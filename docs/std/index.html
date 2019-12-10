@@ -92,13 +92,13 @@
 					id="kayrx-fanyi"><a href="https://github.com/kayrx/rust#rust%E7%BC%96%E7%A8%8B%E8%AF%AD%E8%A8%80"
 						target="_black">翻译</a></span></span></h1>
 		<div class='docblock'>
-			<h1 id="rust标准库" class="section-header"><a href="#rust标准库">Rust标准库</a></h1>
+			<h1 id="the-rust-standard-library" class="section-header"><a href="#the-rust-standard-library">Rust标准库</a></h1>
 			<p>
 				Rust标准库是可移植Rust软件的基础，Rust软件是针对<a href="https://crates.io">更广泛的Rust生态系统</a>.的一组最小且经过测试的共享抽象. 它提供了诸如<a
 					href="vec/index.html"><code>Vec&lt;T&gt;</code></a> 和 <a
 					href="option/enum.Option.html"><code>Option&lt;T&gt;</code></a>之类的核心
 				类型, 对
-				<a href="#primitives">语言原语</a>的库定义操作, <a href="#macros%5D">标准宏</a>, <a href="io/index.html">I/O</a> 和 <a
+				<a href="#primitives">语言原语</a>的库定义操作, <a href="#macros">标准宏</a>, <a href="io/index.html">I/O</a> 和 <a
 					href="thread/index.html">多线程</a>, <a href="#what-is-in-the-standard-library-documentation">等等</a>.
 			</p>
 			<p>
@@ -131,7 +131,7 @@
 				当您查看该 <code>[-]</code>按钮时，也请注意该 <code>[src]</code>按钮。Rust的API文档带
 				有源代码，建议您阅读。标准库资源通常是高质量的，幕后的偷看常常会启发人
 			</p>
-			<h1 id="标准库文档中有什么" class="section-header"><a href="#标准库文档中有什么">标准库文档中有什么？</a></h1>
+			<h1 id="what-is-in-the-standard-library-documentation" class="section-header"><a href="#标准库文档中有什么">标准库文档中有什么？</a></h1>
 			<p>
 				首先，Rust标准库分为多个重点模块, <a href="#modules">所有内容都在此页面的下方列出</a>. 这些模块是所有Rus构造的基石.
 				它们的名称很强大，例如
@@ -154,7 +154,7 @@
 			<p>
 				请注意原生<a href="primitive.str.html"><code>str</code></a> 和 <a
 					href="../std/slice/index.html"><code>T</code></a>(也称为 &quot;切片&quot; )的文档. 通过<a
-					href="deref-coercions">deref.强制</a>， 对<a href="string/struct.String.html"><code>String</code></a> 和
+					href="/book/ch15-02-deref.html#implicit-deref-coercions-with-functions-and-methods">deref.强制</a>， 对<a href="string/struct.String.html"><code>String</code></a> 和
 				<a href="vec/index.html"><code>Vec&lt;T&gt;</code></a> 的许多方法调用实际上分别是对 <a
 					href="primitive.str.html"><code>str</code></a> 和 <a
 					href="../std/slice/index.html"><code>T</code></a> 上的方法的调用.
