@@ -1,0 +1,993 @@
+<!DOCTYPE HTML>
+<html lang="en" class="sidebar-visible no-js">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Warn-by-default lints - The rustc book</title>
+        
+
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
+
+        <link rel="shortcut icon" href="../../favicon.png">
+        <link rel="stylesheet" href="../../css/variables.css">
+        <link rel="stylesheet" href="../../css/general.css">
+        <link rel="stylesheet" href="../../css/chrome.css">
+        <link rel="stylesheet" href="../../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../../FontAwesome/css/font-awesome.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../../highlight.css">
+        <link rel="stylesheet" href="../../tomorrow-night.css">
+        <link rel="stylesheet" href="../../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        
+
+        
+    </head>
+    <body class="light">
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "../../";
+            var default_theme = "light";
+        </script>
+
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            document.body.className = theme;
+            document.querySelector('html').className = theme + ' js';
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li><a href="../../what-is-rustc.html"><strong aria-hidden="true">1.</strong> What is rustc?</a></li><li><a href="../../command-line-arguments.html"><strong aria-hidden="true">2.</strong> Command-line arguments</a></li><li><a href="../../lints/index.html"><strong aria-hidden="true">3.</strong> Lints</a></li><li><ol class="section"><li><a href="../../lints/levels.html"><strong aria-hidden="true">3.1.</strong> Lint levels</a></li><li><a href="../../lints/groups.html"><strong aria-hidden="true">3.2.</strong> Lint Groups</a></li><li><a href="../../lints/listing/index.html"><strong aria-hidden="true">3.3.</strong> Lint listing</a></li><li><ol class="section"><li><a href="../../lints/listing/allowed-by-default.html"><strong aria-hidden="true">3.3.1.</strong> Allowed-by-default lints</a></li><li><a href="../../lints/listing/warn-by-default.html" class="active"><strong aria-hidden="true">3.3.2.</strong> Warn-by-default lints</a></li><li><a href="../../lints/listing/deny-by-default.html"><strong aria-hidden="true">3.3.3.</strong> Deny-by-default lints</a></li></ol></li></ol></li><li><a href="../../codegen-options/index.html"><strong aria-hidden="true">4.</strong> Codegen options</a></li><li><a href="../../targets/index.html"><strong aria-hidden="true">5.</strong> Targets</a></li><li><ol class="section"><li><a href="../../targets/built-in.html"><strong aria-hidden="true">5.1.</strong> Built-in Targets</a></li><li><a href="../../targets/custom.html"><strong aria-hidden="true">5.2.</strong> Custom Targets</a></li></ol></li><li><a href="../../profile-guided-optimization.html"><strong aria-hidden="true">6.</strong> Profile-guided Optimization</a></li><li><a href="../../linker-plugin-lto.html"><strong aria-hidden="true">7.</strong> Linker-plugin based LTO</a></li><li><a href="../../contributing.html"><strong aria-hidden="true">8.</strong> Contributing to rustc</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                
+                <div id="menu-bar" class="menu-bar">
+                    <div id="menu-bar-sticky-container">
+                        <div class="left-buttons">
+                            <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                                <i class="fa fa-bars"></i>
+                            </button>
+                            <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                                <i class="fa fa-paint-brush"></i>
+                            </button>
+                            <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                                <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            </ul>
+                            
+                            <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                                <i class="fa fa-search"></i>
+                            </button>
+                            
+                        </div>
+
+                        <h1 class="menu-title">The rustc book</h1>
+
+                        <div class="right-buttons">
+                            <a href="../../print.html" title="Print this book" aria-label="Print this book">
+                                <i id="print-button" class="fa fa-print"></i>
+                            </a>
+                            
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <h1><a class="header" href="#warn-by-default-lints" id="warn-by-default-lints">Warn-by-default lints</a></h1>
+<p>These lints are all set to the 'warn' level by default.</p>
+<h2><a class="header" href="#const-err" id="const-err">const-err</a></h2>
+<p>This lint detects an erroneous expression while doing constant evaluation. Some
+example code that triggers this lint:</p>
+<pre><code class="language-rust ignore">let b = 200u8 + 200u8;
+</code></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: attempt to add with overflow
+ --&gt; src/main.rs:2:9
+  |
+2 | let b = 200u8 + 200u8;
+  |         ^^^^^^^^^^^^^
+  |
+</code></pre>
+<h2><a class="header" href="#dead-code" id="dead-code">dead-code</a></h2>
+<p>This lint detects unused, unexported items. Some
+example code that triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+fn foo() {}
+#}</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: function is never used: `foo`
+ --&gt; src/lib.rs:2:1
+  |
+2 | fn foo() {}
+  | ^^^^^^^^
+  |
+</code></pre>
+<h2><a class="header" href="#deprecated" id="deprecated">deprecated</a></h2>
+<p>This lint detects use of deprecated items. Some
+example code that triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+#[deprecated]
+fn foo() {}
+
+fn bar() {
+    foo();
+}
+#}</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: use of deprecated item 'foo'
+ --&gt; src/lib.rs:7:5
+  |
+7 |     foo();
+  |     ^^^
+  |
+</code></pre>
+<h2><a class="header" href="#illegal-floating-point-literal-pattern" id="illegal-floating-point-literal-pattern">illegal-floating-point-literal-pattern</a></h2>
+<p>This lint detects floating-point literals used in patterns. Some example code
+that triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+let x = 42.0;
+
+match x {
+    5.0 =&gt; {},
+    _ =&gt; {},
+}
+#}</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: floating-point literals cannot be used in patterns
+ --&gt; src/main.rs:4:9
+  |
+4 |         5.0 =&gt; {},
+  |         ^^^
+  |
+  = note: `#[warn(illegal_floating_point_literal_pattern)]` on by default
+  = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+  = note: for more information, see issue #41620 &lt;https://github.com/rust-lang/rust/issues/41620&gt;
+</code></pre>
+<h2><a class="header" href="#improper-ctypes" id="improper-ctypes">improper-ctypes</a></h2>
+<p>This lint detects proper use of libc types in foreign modules. Some
+example code that triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+extern &quot;C&quot; {
+    static STATIC: String;
+}
+#}</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: found struct without foreign-function-safe representation annotation in foreign module, consider adding a `#[repr(C)]` attribute to the type
+ --&gt; src/main.rs:2:20
+  |
+2 |     static STATIC: String;
+  |                    ^^^^^^
+  |
+</code></pre>
+<h2><a class="header" href="#late-bound-lifetime-arguments" id="late-bound-lifetime-arguments">late-bound-lifetime-arguments</a></h2>
+<p>This lint detects generic lifetime arguments in path segments with
+late bound lifetime parameters. Some example code that triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">struct S;
+
+impl S {
+    fn late&lt;'a, 'b&gt;(self, _: &amp;'a u8, _: &amp;'b u8) {}
+}
+
+fn main() {
+    S.late::&lt;'static&gt;(&amp;0, &amp;0);
+}
+</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: cannot specify lifetime arguments explicitly if late bound lifetime parameters are present
+ --&gt; src/main.rs:8:14
+  |
+4 |     fn late&lt;'a, 'b&gt;(self, _: &amp;'a u8, _: &amp;'b u8) {}
+  |             -- the late bound lifetime parameter is introduced here
+...
+8 |     S.late::&lt;'static&gt;(&amp;0, &amp;0);
+  |              ^^^^^^^
+  |
+  = note: `#[warn(late_bound_lifetime_arguments)]` on by default
+  = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+  = note: for more information, see issue #42868 &lt;https://github.com/rust-lang/rust/issues/42868&gt;
+</code></pre>
+<h2><a class="header" href="#non-camel-case-types" id="non-camel-case-types">non-camel-case-types</a></h2>
+<p>This lint detects types, variants, traits and type parameters that don't have
+camel case names. Some example code that triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+struct s;
+#}</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: type `s` should have a camel case name such as `S`
+ --&gt; src/main.rs:1:1
+  |
+1 | struct s;
+  | ^^^^^^^^^
+  |
+</code></pre>
+<h2><a class="header" href="#non-shorthand-field-patterns" id="non-shorthand-field-patterns">non-shorthand-field-patterns</a></h2>
+<p>This lint detects using <code>Struct { x: x }</code> instead of <code>Struct { x }</code> in a pattern. Some
+example code that triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">struct Point {
+    x: i32,
+    y: i32,
+}
+
+
+fn main() {
+    let p = Point {
+        x: 5,
+        y: 5,
+    };
+
+    match p {
+        Point { x: x, y: y } =&gt; (),
+    }
+}
+</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: the `x:` in this pattern is redundant
+  --&gt; src/main.rs:14:17
+   |
+14 |         Point { x: x, y: y } =&gt; (),
+   |                 --^^
+   |                 |
+   |                 help: remove this
+   |
+
+warning: the `y:` in this pattern is redundant
+  --&gt; src/main.rs:14:23
+   |
+14 |         Point { x: x, y: y } =&gt; (),
+   |                       --^^
+   |                       |
+   |                       help: remove this
+
+</code></pre>
+<h2><a class="header" href="#non-snake-case" id="non-snake-case">non-snake-case</a></h2>
+<p>This lint detects variables, methods, functions, lifetime parameters and
+modules that don't have snake case names. Some example code that triggers
+this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+let X = 5;
+#}</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: variable `X` should have a snake case name such as `x`
+ --&gt; src/main.rs:2:9
+  |
+2 |     let X = 5;
+  |         ^
+  |
+</code></pre>
+<h2><a class="header" href="#non-upper-case-globals" id="non-upper-case-globals">non-upper-case-globals</a></h2>
+<p>This lint detects static constants that don't have uppercase identifiers.
+Some example code that triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+static x: i32 = 5;
+#}</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: static variable `x` should have an upper case name such as `X`
+ --&gt; src/main.rs:1:1
+  |
+1 | static x: i32 = 5;
+  | ^^^^^^^^^^^^^^^^^^
+  |
+</code></pre>
+<h2><a class="header" href="#no-mangle-generic-items" id="no-mangle-generic-items">no-mangle-generic-items</a></h2>
+<p>This lint detects generic items must be mangled. Some
+example code that triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+#[no_mangle]
+fn foo&lt;T&gt;(t: T) {
+
+}
+#}</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: functions generic over types must be mangled
+ --&gt; src/main.rs:2:1
+  |
+1 |   #[no_mangle]
+  |   ------------ help: remove this attribute
+2 | / fn foo&lt;T&gt;(t: T) {
+3 | |
+4 | | }
+  | |_^
+  |
+</code></pre>
+<h2><a class="header" href="#path-statements" id="path-statements">path-statements</a></h2>
+<p>This lint detects path statements with no effect. Some example code that
+triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+let x = 42;
+
+x;
+#}</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: path statement with no effect
+ --&gt; src/main.rs:3:5
+  |
+3 |     x;
+  |     ^^
+  |
+</code></pre>
+<h2><a class="header" href="#patterns-in-fns-without-body" id="patterns-in-fns-without-body">patterns-in-fns-without-body</a></h2>
+<p>This lint detects patterns in functions without body were that were
+previously erroneously allowed. Some example code that triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+trait Trait {
+    fn foo(mut arg: u8);
+}
+#}</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: patterns aren't allowed in methods without bodies
+ --&gt; src/main.rs:2:12
+  |
+2 |     fn foo(mut arg: u8);
+  |            ^^^^^^^
+  |
+  = note: `#[warn(patterns_in_fns_without_body)]` on by default
+  = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+  = note: for more information, see issue #35203 &lt;https://github.com/rust-lang/rust/issues/35203&gt;
+</code></pre>
+<p>To fix this, remove the pattern; it can be used in the implementation without
+being used in the definition. That is:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+trait Trait {
+    fn foo(arg: u8);
+}
+
+impl Trait for i32 {
+    fn foo(mut arg: u8) {
+
+    }
+}
+#}</code></pre></pre>
+<h2><a class="header" href="#plugin-as-library" id="plugin-as-library">plugin-as-library</a></h2>
+<p>This lint detects when compiler plugins are used as ordinary library in
+non-plugin crate. Some example code that triggers this lint:</p>
+<pre><code class="language-rust ignore">#![feature(plugin)]
+#![plugin(macro_crate_test)]
+
+extern crate macro_crate_test;
+</code></pre>
+<h2><a class="header" href="#private-in-public" id="private-in-public">private-in-public</a></h2>
+<p>This lint detects private items in public interfaces not caught by the old implementation. Some
+example code that triggers this lint:</p>
+<pre><code class="language-rust ignore">pub trait Trait {
+    type A;
+}
+
+pub struct S;
+
+mod foo {
+    struct Z;
+
+    impl ::Trait for ::S {
+        type A = Z;
+    }
+}
+# fn main() {}
+</code></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">error[E0446]: private type `foo::Z` in public interface
+  --&gt; src/main.rs:11:9
+   |
+11 |         type A = Z;
+   |         ^^^^^^^^^^^ can't leak private type
+</code></pre>
+<h2><a class="header" href="#private-no-mangle-fns" id="private-no-mangle-fns">private-no-mangle-fns</a></h2>
+<p>This lint detects functions marked <code>#[no_mangle]</code> that are also private.
+Given that private functions aren't exposed publicly, and <code>#[no_mangle]</code>
+controls the public symbol, this combination is erroneous. Some example code
+that triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+#[no_mangle]
+fn foo() {}
+#}</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: function is marked `#[no_mangle]`, but not exported
+ --&gt; src/main.rs:2:1
+  |
+2 | fn foo() {}
+  | -^^^^^^^^^^
+  | |
+  | help: try making it public: `pub`
+  |
+</code></pre>
+<p>To fix this, either make it public or remove the <code>#[no_mangle]</code>.</p>
+<h2><a class="header" href="#private-no-mangle-statics" id="private-no-mangle-statics">private-no-mangle-statics</a></h2>
+<p>This lint detects any statics marked <code>#[no_mangle]</code> that are private.
+Given that private statics aren't exposed publicly, and <code>#[no_mangle]</code>
+controls the public symbol, this combination is erroneous. Some example code
+that triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+#[no_mangle]
+static X: i32 = 4;
+#}</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: static is marked `#[no_mangle]`, but not exported
+ --&gt; src/main.rs:2:1
+  |
+2 | static X: i32 = 4;
+  | -^^^^^^^^^^^^^^^^^
+  | |
+  | help: try making it public: `pub`
+  |
+</code></pre>
+<p>To fix this, either make it public or remove the <code>#[no_mangle]</code>.</p>
+<h2><a class="header" href="#renamed-and-removed-lints" id="renamed-and-removed-lints">renamed-and-removed-lints</a></h2>
+<p>This lint detects lints that have been renamed or removed. Some
+example code that triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#![deny(raw_pointer_derive)]
+#fn main() {
+#}</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: lint raw_pointer_derive has been removed: using derive with raw pointers is ok
+ --&gt; src/main.rs:1:9
+  |
+1 | #![deny(raw_pointer_derive)]
+  |         ^^^^^^^^^^^^^^^^^^
+  |
+</code></pre>
+<p>To fix this, either remove the lint or use the new name.</p>
+<h2><a class="header" href="#safe-packed-borrows" id="safe-packed-borrows">safe-packed-borrows</a></h2>
+<p>This lint detects borrowing a field in the interior of a packed structure
+with alignment other than 1. Some example code that triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">#[repr(packed)]
+pub struct Unaligned&lt;T&gt;(pub T);
+
+pub struct Foo {
+    start: u8,
+    data: Unaligned&lt;u32&gt;,
+}
+
+fn main() {
+    let x = Foo { start: 0, data: Unaligned(1) };
+    let y = &amp;x.data.0;
+}
+</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: borrow of packed field requires unsafe function or block (error E0133)
+  --&gt; src/main.rs:11:13
+   |
+11 |     let y = &amp;x.data.0;
+   |             ^^^^^^^^^
+   |
+   = note: `#[warn(safe_packed_borrows)]` on by default
+   = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in a future release!
+   = note: for more information, see issue #46043 &lt;https://github.com/rust-lang/rust/issues/46043&gt;
+</code></pre>
+<h2><a class="header" href="#stable-features" id="stable-features">stable-features</a></h2>
+<p>This lint detects a <code>#[feature]</code> attribute that's since been made stable. Some
+example code that triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#![feature(test_accepted_feature)]
+#fn main() {
+#}</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: this feature has been stable since 1.0.0. Attribute no longer needed
+ --&gt; src/main.rs:1:12
+  |
+1 | #![feature(test_accepted_feature)]
+  |            ^^^^^^^^^^^^^^^^^^^^^
+  |
+</code></pre>
+<p>To fix, simply remove the <code>#![feature]</code> attribute, as it's no longer needed.</p>
+<h2><a class="header" href="#type-alias-bounds" id="type-alias-bounds">type-alias-bounds</a></h2>
+<p>This lint detects bounds in type aliases. These are not currently enforced.
+Some example code that triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+#[allow(dead_code)]
+type SendVec&lt;T: Send&gt; = Vec&lt;T&gt;;
+#}</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: bounds on generic parameters are not enforced in type aliases
+ --&gt; src/lib.rs:2:17
+  |
+2 | type SendVec&lt;T: Send&gt; = Vec&lt;T&gt;;
+  |                 ^^^^
+  |
+  = note: `#[warn(type_alias_bounds)]` on by default
+  = help: the bound will not be checked when the type alias is used, and should be removed
+</code></pre>
+<h2><a class="header" href="#tyvar-behind-raw-pointer" id="tyvar-behind-raw-pointer">tyvar-behind-raw-pointer</a></h2>
+<p>This lint detects raw pointer to an inference variable. Some
+example code that triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+let data = std::ptr::null();
+let _ = &amp;data as *const *const ();
+
+if data.is_null() {}
+#}</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: type annotations needed
+ --&gt; src/main.rs:4:13
+  |
+4 |     if data.is_null() {}
+  |             ^^^^^^^
+  |
+  = note: `#[warn(tyvar_behind_raw_pointer)]` on by default
+  = warning: this was previously accepted by the compiler but is being phased out; it will become a hard error in the 2018 edition!
+  = note: for more information, see issue #46906 &lt;https://github.com/rust-lang/rust/issues/46906&gt;
+</code></pre>
+<h2><a class="header" href="#unconditional-recursion" id="unconditional-recursion">unconditional-recursion</a></h2>
+<p>This lint detects functions that cannot return without calling themselves.
+Some example code that triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+fn foo() {
+    foo();
+}
+#}</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: function cannot return without recursing
+ --&gt; src/main.rs:1:1
+  |
+1 | fn foo() {
+  | ^^^^^^^^ cannot return without recursing
+2 |     foo();
+  |     ----- recursive call site
+  |
+</code></pre>
+<h2><a class="header" href="#unions-with-drop-fields" id="unions-with-drop-fields">unions-with-drop-fields</a></h2>
+<p>This lint detects use of unions that contain fields with possibly non-trivial drop code. Some
+example code that triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#![feature(untagged_unions)]
+
+#fn main() {
+union U {
+    s: String,
+}
+#}</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: union contains a field with possibly non-trivial drop code, drop code of union fields is ignored when dropping the union
+ --&gt; src/main.rs:4:5
+  |
+4 |     s: String,
+  |     ^^^^^^^^^
+  |
+</code></pre>
+<h2><a class="header" href="#unknown-lints" id="unknown-lints">unknown-lints</a></h2>
+<p>This lint detects unrecognized lint attribute. Some
+example code that triggers this lint:</p>
+<pre><code class="language-rust ignore">#[allow(not_a_real_lint)]
+</code></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: unknown lint: `not_a_real_lint`
+ --&gt; src/main.rs:1:10
+  |
+1 | #![allow(not_a_real_lint)]
+  |          ^^^^^^^^^^^^^^^
+  |
+</code></pre>
+<h2><a class="header" href="#unreachable-code" id="unreachable-code">unreachable-code</a></h2>
+<p>This lint detects unreachable code paths. Some example code that
+triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+panic!(&quot;we never go past here!&quot;);
+
+let x = 5;
+#}</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: unreachable statement
+ --&gt; src/main.rs:4:5
+  |
+4 |     let x = 5;
+  |     ^^^^^^^^^^
+  |
+</code></pre>
+<h2><a class="header" href="#unreachable-patterns" id="unreachable-patterns">unreachable-patterns</a></h2>
+<p>This lint detects unreachable patterns. Some
+example code that triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+let x = 5;
+match x {
+    y =&gt; (),
+    5 =&gt; (),
+}
+#}</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: unreachable pattern
+ --&gt; src/main.rs:5:5
+  |
+5 |     5 =&gt; (),
+  |     ^
+  |
+</code></pre>
+<p>The <code>y</code> pattern will always match, so the five is impossible to reach.
+Remember, match arms match in order, you probably wanted to put the <code>5</code> case
+above the <code>y</code> case.</p>
+<h2><a class="header" href="#unstable-name-collision" id="unstable-name-collision">unstable-name-collision</a></h2>
+<p>This lint detects that you've used a name that the standard library plans to
+add in the future, which means that your code may fail to compile without
+additional type annotations in the future. Either rename, or add those
+annotations now.</p>
+<h2><a class="header" href="#unused-allocation" id="unused-allocation">unused-allocation</a></h2>
+<p>This lint detects unnecessary allocations that can be eliminated.</p>
+<h2><a class="header" href="#unused-assignments" id="unused-assignments">unused-assignments</a></h2>
+<p>This lint detects assignments that will never be read. Some
+example code that triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+let mut x = 5;
+x = 6;
+#}</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: value assigned to `x` is never read
+ --&gt; src/main.rs:4:5
+  |
+4 |     x = 6;
+  |     ^
+  |
+</code></pre>
+<h2><a class="header" href="#unused-attributes" id="unused-attributes">unused-attributes</a></h2>
+<p>This lint detects attributes that were not used by the compiler. Some
+example code that triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#![macro_export]
+#fn main() {
+#}</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: unused attribute
+ --&gt; src/main.rs:1:1
+  |
+1 | #![macro_export]
+  | ^^^^^^^^^^^^^^^^
+  |
+</code></pre>
+<h2><a class="header" href="#unused-comparisons" id="unused-comparisons">unused-comparisons</a></h2>
+<p>This lint detects comparisons made useless by limits of the types involved. Some
+example code that triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+fn foo(x: u8) {
+    x &gt;= 0;
+}
+#}</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: comparison is useless due to type limits
+ --&gt; src/main.rs:6:5
+  |
+6 |     x &gt;= 0;
+  |     ^^^^^^
+  |
+</code></pre>
+<h2><a class="header" href="#unused-doc-comment" id="unused-doc-comment">unused-doc-comment</a></h2>
+<p>This lint detects doc comments that aren't used by rustdoc. Some
+example code that triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+/// docs for x
+let x = 12;
+#}</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: doc comment not used by rustdoc
+ --&gt; src/main.rs:2:5
+  |
+2 |     /// docs for x
+  |     ^^^^^^^^^^^^^^
+  |
+</code></pre>
+<h2><a class="header" href="#unused-features" id="unused-features">unused-features</a></h2>
+<p>This lint detects unused or unknown features found in crate-level <code>#[feature]</code> directives.
+To fix this, simply remove the feature flag.</p>
+<h2><a class="header" href="#unused-imports" id="unused-imports">unused-imports</a></h2>
+<p>This lint detects imports that are never used. Some
+example code that triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+use std::collections::HashMap;
+#}</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: unused import: `std::collections::HashMap`
+ --&gt; src/main.rs:1:5
+  |
+1 | use std::collections::HashMap;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+</code></pre>
+<h2><a class="header" href="#unused-macros" id="unused-macros">unused-macros</a></h2>
+<p>This lint detects macros that were not used. Some example code that
+triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">macro_rules! unused {
+    () =&gt; {};
+}
+
+fn main() {
+}
+</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: unused macro definition
+ --&gt; src/main.rs:1:1
+  |
+1 | / macro_rules! unused {
+2 | |     () =&gt; {};
+3 | | }
+  | |_^
+  |
+</code></pre>
+<h2><a class="header" href="#unused-must-use" id="unused-must-use">unused-must-use</a></h2>
+<p>This lint detects unused result of a type flagged as <code>#[must_use]</code>. Some
+example code that triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">fn returns_result() -&gt; Result&lt;(), ()&gt; {
+    Ok(())
+}
+
+fn main() {
+    returns_result();
+}
+</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: unused `std::result::Result` that must be used
+ --&gt; src/main.rs:6:5
+  |
+6 |     returns_result();
+  |     ^^^^^^^^^^^^^^^^^
+  |
+</code></pre>
+<h2><a class="header" href="#unused-mut" id="unused-mut">unused-mut</a></h2>
+<p>This lint detects mut variables which don't need to be mutable. Some
+example code that triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+let mut x = 5;
+#}</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: variable does not need to be mutable
+ --&gt; src/main.rs:2:9
+  |
+2 |     let mut x = 5;
+  |         ----^
+  |         |
+  |         help: remove this `mut`
+  |
+</code></pre>
+<h2><a class="header" href="#unused-parens" id="unused-parens">unused-parens</a></h2>
+<p>This lint detects <code>if</code>, <code>match</code>, <code>while</code> and <code>return</code> with parentheses; they
+do not need them. Some example code that triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+if(true) {}
+#}</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: unnecessary parentheses around `if` condition
+ --&gt; src/main.rs:2:7
+  |
+2 |     if(true) {}
+  |       ^^^^^^ help: remove these parentheses
+  |
+</code></pre>
+<h2><a class="header" href="#unused-unsafe" id="unused-unsafe">unused-unsafe</a></h2>
+<p>This lint detects unnecessary use of an <code>unsafe</code> block. Some
+example code that triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+unsafe {}
+#}</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: unnecessary `unsafe` block
+ --&gt; src/main.rs:2:5
+  |
+2 |     unsafe {}
+  |     ^^^^^^ unnecessary `unsafe` block
+  |
+</code></pre>
+<h2><a class="header" href="#unused-variables" id="unused-variables">unused-variables</a></h2>
+<p>This lint detects variables which are not used in any way. Some
+example code that triggers this lint:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#fn main() {
+let x = 5;
+#}</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: unused variable: `x`
+ --&gt; src/main.rs:2:9
+  |
+2 |     let x = 5;
+  |         ^ help: consider using `_x` instead
+  |
+</code></pre>
+<h2><a class="header" href="#warnings" id="warnings">warnings</a></h2>
+<p>This lint is a bit special; by changing its level, you change every other warning
+that would produce a warning to whatever value you'd like:</p>
+<pre><pre class="playpen"><code class="language-rust">
+# #![allow(unused_variables)]
+#![deny(warnings)]
+#fn main() {
+#}</code></pre></pre>
+<p>As such, you won't ever trigger this lint in your code directly.</p>
+<h2><a class="header" href="#while-true" id="while-true">while-true</a></h2>
+<p>This lint detects <code>while true { }</code>. Some example code that triggers this
+lint:</p>
+<pre><pre class="playpen"><code class="language-rust no_run">
+# #![allow(unused_variables)]
+#fn main() {
+while true {
+
+}
+#}</code></pre></pre>
+<p>This will produce:</p>
+<pre><code class="language-text">warning: denote infinite loops with `loop { ... }`
+ --&gt; src/main.rs:2:5
+  |
+2 |     while true {
+  |     ^^^^^^^^^^ help: use `loop`
+  |
+</code></pre>
+
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                            <a rel="prev" href="../../lints/listing/allowed-by-default.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+
+                        
+                            <a rel="next" href="../../lints/listing/deny-by-default.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                    <a href="../../lints/listing/allowed-by-default.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+                    <a href="../../lints/listing/deny-by-default.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+
+        
+        <script src="../../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../../mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../../searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="../../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../../highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../../book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+
+    </body>
+</html>
