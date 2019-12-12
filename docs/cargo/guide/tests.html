@@ -4,7 +4,7 @@
 <head>
     <!-- Book generated using mdBook -->
     <meta charset="UTF-8">
-    <title>处理现有包 - Rust Cargo 官书（非官方翻译)</title>
+    <title>测试 - Cargo教程</title>
     <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
     <meta name="description" content="Cargo ">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -75,7 +75,7 @@
     </script>
 
     <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-        <ol class="chapter"><li class="affix"><a href="../index.zh.html">介绍</a></li><li><a href="../getting-started/index.zh.html"><strong aria-hidden="true">1.</strong> 入门</a></li><li><ol class="section"><li><a href="../getting-started/installation.zh.html"><strong aria-hidden="true">1.1.</strong> 安装</a></li><li><a href="../getting-started/first-steps.zh.html"><strong aria-hidden="true">1.2.</strong> Cargo 的第一步</a></li></ol></li><li><a href="../guide/index.zh.html"><strong aria-hidden="true">2.</strong> Cargo 指南</a></li><li><ol class="section"><li><a href="../guide/why-cargo-exists.zh.html"><strong aria-hidden="true">2.1.</strong> 为什么 Cargo 存在</a></li><li><a href="../guide/creating-a-new-project.zh.html"><strong aria-hidden="true">2.2.</strong> 创建一个新包</a></li><li><a href="../guide/working-on-an-existing-project.zh.html" class="active"><strong aria-hidden="true">2.3.</strong> 处理现有包</a></li><li><a href="../guide/dependencies.zh.html"><strong aria-hidden="true">2.4.</strong> 依赖</a></li><li><a href="../guide/project-layout.zh.html"><strong aria-hidden="true">2.5.</strong> 包装布局</a></li><li><a href="../guide/cargo-toml-vs-cargo-lock.zh.html"><strong aria-hidden="true">2.6.</strong> Cargo.toml 与 Cargo.lock</a></li><li><a href="../guide/tests.zh.html"><strong aria-hidden="true">2.7.</strong> 测试</a></li><li><a href="../guide/continuous-integration.zh.html"><strong aria-hidden="true">2.8.</strong> 持续集成</a></li><li><a href="../guide/build-cache.zh.html"><strong aria-hidden="true">2.9.</strong> 构建缓存</a></li></ol></li><li><a href="../reference/index.zh.html"><strong aria-hidden="true">3.</strong> Cargo 参考</a></li><li><ol class="section"><li><a href="../reference/specifying-dependencies.zh.html"><strong aria-hidden="true">3.1.</strong> 指定依赖项</a></li><li><a href="../reference/manifest.zh.html"><strong aria-hidden="true">3.2.</strong> 清单格式</a></li><li><a href="../reference/config.zh.html"><strong aria-hidden="true">3.3.</strong> 组态</a></li><li><a href="../reference/environment-variables.zh.html"><strong aria-hidden="true">3.4.</strong> 环境变量</a></li><li><a href="../reference/build-scripts.zh.html"><strong aria-hidden="true">3.5.</strong> 构建脚本</a></li><li><a href="../reference/publishing.zh.html"><strong aria-hidden="true">3.6.</strong> 在 crates.io 上发布</a></li><li><a href="../reference/pkgid-spec.zh.html"><strong aria-hidden="true">3.7.</strong> 包 ID 规格</a></li><li><a href="../reference/source-replacement.zh.html"><strong aria-hidden="true">3.8.</strong> 来源更换</a></li><li><a href="../reference/external-tools.zh.html"><strong aria-hidden="true">3.9.</strong> 外部工具</a></li><li><a href="../reference/unstable.zh.html"><strong aria-hidden="true">3.10.</strong> 不稳定的功能</a></li></ol></li><li><a href="../faq.zh.html"><strong aria-hidden="true">4.</strong> 常问问题</a></li><li><a href="../appendix/glossary.zh.html"><strong aria-hidden="true">5.</strong> 附录:词汇表</a></li></ol>
+        <ol class="chapter"><li class="affix"><a href="../index.html">介绍</a></li><li><a href="../getting-started/index.html"><strong aria-hidden="true">1.</strong> 入门</a></li><li><ol class="section"><li><a href="../getting-started/installation.html"><strong aria-hidden="true">1.1.</strong> 安装</a></li><li><a href="../getting-started/first-steps.html"><strong aria-hidden="true">1.2.</strong> Cargo 的第一步</a></li></ol></li><li><a href="../guide/index.html"><strong aria-hidden="true">2.</strong> Cargo 指南</a></li><li><ol class="section"><li><a href="../guide/why-cargo-exists.html"><strong aria-hidden="true">2.1.</strong> 为什么 Cargo 存在</a></li><li><a href="../guide/creating-a-new-project.html"><strong aria-hidden="true">2.2.</strong> 创建一个新包</a></li><li><a href="../guide/working-on-an-existing-project.html"><strong aria-hidden="true">2.3.</strong> 处理现有包</a></li><li><a href="../guide/dependencies.html"><strong aria-hidden="true">2.4.</strong> 依赖</a></li><li><a href="../guide/project-layout.html"><strong aria-hidden="true">2.5.</strong> 包装布局</a></li><li><a href="../guide/cargo-toml-vs-cargo-lock.html"><strong aria-hidden="true">2.6.</strong> Cargo.toml 与 Cargo.lock</a></li><li><a href="../guide/tests.html" class="active"><strong aria-hidden="true">2.7.</strong> 测试</a></li><li><a href="../guide/continuous-integration.html"><strong aria-hidden="true">2.8.</strong> 持续集成</a></li><li><a href="../guide/build-cache.html"><strong aria-hidden="true">2.9.</strong> 构建缓存</a></li></ol></li><li><a href="../reference/index.html"><strong aria-hidden="true">3.</strong> Cargo 参考</a></li><li><ol class="section"><li><a href="../reference/specifying-dependencies.html"><strong aria-hidden="true">3.1.</strong> 指定依赖项</a></li><li><a href="../reference/manifest.html"><strong aria-hidden="true">3.2.</strong> 清单格式</a></li><li><a href="../reference/config.html"><strong aria-hidden="true">3.3.</strong> 组态</a></li><li><a href="../reference/environment-variables.html"><strong aria-hidden="true">3.4.</strong> 环境变量</a></li><li><a href="../reference/build-scripts.html"><strong aria-hidden="true">3.5.</strong> 构建脚本</a></li><li><a href="../reference/publishing.html"><strong aria-hidden="true">3.6.</strong> 在 crates.io 上发布</a></li><li><a href="../reference/pkgid-spec.html"><strong aria-hidden="true">3.7.</strong> 包 ID 规格</a></li><li><a href="../reference/source-replacement.html"><strong aria-hidden="true">3.8.</strong> 来源更换</a></li><li><a href="../reference/external-tools.html"><strong aria-hidden="true">3.9.</strong> 外部工具</a></li><li><a href="../reference/unstable.html"><strong aria-hidden="true">3.10.</strong> 不稳定的功能</a></li></ol></li><li><a href="../faq.html"><strong aria-hidden="true">4.</strong> 常问问题</a></li><li><a href="../appendix/glossary.html"><strong aria-hidden="true">5.</strong> 附录:词汇表</a></li></ol>
     </nav>
 
     <div id="page-wrapper" class="page-wrapper">
@@ -114,7 +114,7 @@
                         
                     </div>
 
-                    <h1 class="menu-title">Rust Cargo 官书（非官方翻译)</h1>
+                    <h1 class="menu-title">Cargo教程</h1>
                     
                         <div class="right-buttons">
                             <a href="../print.html" title="Print this book" aria-label="Print this book">
@@ -148,40 +148,42 @@
                 });
             </script>
 
-            <!-- // START - Rust Cookbook customization -->
-            <script>
-                document.getElementById("edit-button").addEventListener("click", function () {
-                    var editWindow = window.open("https://github.com/chinanf-boy/cargo-book-zh/edit/master/src/guide/working-on-an-existing-project.zh.md");
-                });</script>
-            <!-- // END - Rust Cookbook customization -->
+
 
             <div id="content" class="content">
                 <main>
-                    <a class="header" href="#在现有的-carog-项目上工作" id="在现有的-carog-项目上工作"><h2>在现有的 Carog 项目上工作</h2></a>
-<p>如果您下载使用 Cargo 的现有项目，那么它很容易上手.</p>
-<p>首先，从某个地方获取项目.在这个例子中，我们将使用<code>rand</code>项目，其从 GitHub 上的存储库克隆而来:</p>
-<pre><code class="language-shell">$ git clone https://github.com/rust-lang-nursery/rand.git
-$ cd rand
+                    <a class="header" href="#测试" id="测试"><h2>测试</h2></a>
+<p>Cargo 可以使用<code>cargo test</code>命令运行您的测试。Cargo 寻找在两个地方运行的测试 :在你<code>src</code>中的每个文件，和<code>tests/</code>中的任何测试。测试你的<code>src</code>文件应该是单元测试，并在<code>tests/</code>中的应该是整合式测试。因此，您需要将包装箱导入到<code>tests</code>的文件中.</p>
+<p>这是在我们的项目中，运行<code>cargo test</code>的一个例子，目前没有测试:</p>
+<pre><code class="language-shell">$ cargo test
+   Compiling rand v0.1.0 (https://github.com/rust-lang-nursery/rand.git#9f35b8e)
+   Compiling hello_world v0.1.0 (file:///path/to/project/hello_world)
+     Running target/test/hello_world-9c2b65bbb79eabce
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured
 </code></pre>
-<p>要建立，使用<code>cargo build</code>:</p>
-<pre><code class="language-shell">$ cargo build
-   Compiling rand v0.1.0 (file:///path/to/project/rand)
+<p>如果我们的项目有测试，我们会看到更多的输出与正确的测试数量.</p>
+<p>您还可以通过传递过滤器，来运行特定测试:</p>
+<pre><code class="language-shell">$ cargo test foo
 </code></pre>
-<p>这将获取所有依赖项，然后与项目一起构建它们.</p>
+<p>这将运行任何匹配的<code>foo</code>测试.</p>
+<p><code>cargo test</code>还运行其他检查。例如，它将编译您包含的任何示例(examples)，并且还将测试文档中的示例。请看在 Rust 文档中的<a href="https://doc.rust-lang.org/book/testing.md">测试指南</a>，了解更多详细信息.</p>
 
                 </main>
 
                 <nav class="nav-wrapper" aria-label="Page navigation">
                     <!-- Mobile navigation buttons -->
                     
-                    <a rel="prev" href="../guide/creating-a-new-project.zh.html" class="mobile-nav-chapters previous" title="Previous chapter"
+                    <a rel="prev" href="../guide/cargo-toml-vs-cargo-lock.html" class="mobile-nav-chapters previous" title="Previous chapter"
                         aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
                     
 
                     
-                    <a rel="next" href="../guide/dependencies.zh.html" class="mobile-nav-chapters next" title="Next chapter"
+                    <a rel="next" href="../guide/continuous-integration.html" class="mobile-nav-chapters next" title="Next chapter"
                         aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
@@ -194,14 +196,14 @@ $ cd rand
 
         <nav class="nav-wide-wrapper" aria-label="Page navigation">
             
-            <a href="../guide/creating-a-new-project.zh.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter"
+            <a href="../guide/cargo-toml-vs-cargo-lock.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter"
                 aria-keyshortcuts="Left">
                 <i class="fa fa-angle-left"></i>
             </a>
             
 
             
-            <a href="../guide/dependencies.zh.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter"
+            <a href="../guide/continuous-integration.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter"
                 aria-keyshortcuts="Right">
                 <i class="fa fa-angle-right"></i>
             </a>
