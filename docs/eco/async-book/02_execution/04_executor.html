@@ -1,0 +1,400 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN" class="sidebar-visible no-js">
+
+<head>
+    <!-- Book generated using mdBook -->
+    <meta charset="UTF-8">
+    <title>已应用：生成一个执行器 - Asynchronous Programming in Rust</title>
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+    <meta name="description" content="Rust 异步编程非官方中文.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#ffffff" />
+
+    <link rel="shortcut icon" href="../favicon.png">
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/general.css">
+    <link rel="stylesheet" href="../css/chrome.css">
+    <link rel="stylesheet" href="../css/print.css" media="print">
+
+    <!-- Fonts -->
+    <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+    <link
+        href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800"
+        rel="stylesheet" type="text/css">
+    <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+
+    <!-- Highlight.js Stylesheets -->
+    <link rel="stylesheet" href="../highlight.css">
+    <link rel="stylesheet" href="../tomorrow-night.css">
+    <link rel="stylesheet" href="../ayu-highlight.css">
+
+    <!-- Custom theme stylesheets -->
+    
+
+    
+</head>
+
+<body class="light">
+    <!-- Provide site root to javascript -->
+    <script type="text/javascript">var path_to_root = "../";</script>
+
+    <!-- Work around some values being stored in localStorage wrapped in quotes -->
+    <script type="text/javascript">
+        try {
+            var theme = localStorage.getItem('mdbook-theme');
+            var sidebar = localStorage.getItem('mdbook-sidebar');
+
+            if (theme.startsWith('"') && theme.endsWith('"')) {
+                localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+            }
+
+            if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+            }
+        } catch (e) { }
+    </script>
+
+    <!-- Set the theme before any content is loaded, prevents flash -->
+    <script type="text/javascript">
+        var theme;
+        try { theme = localStorage.getItem('mdbook-theme'); } catch (e) { }
+        if (theme === null || theme === undefined) { theme = 'light'; }
+        document.body.className = theme;
+        document.querySelector('html').className = theme + ' js';
+    </script>
+
+    <!-- Hide / unhide sidebar before it is displayed -->
+    <script type="text/javascript">
+        var html = document.querySelector('html');
+        var sidebar = 'hidden';
+        if (document.body.clientWidth >= 1080) {
+            try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch (e) { }
+            sidebar = sidebar || 'visible';
+        }
+        html.classList.remove('sidebar-visible');
+        html.classList.add("sidebar-" + sidebar);
+    </script>
+
+    <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+        <ol class="chapter"><li class="expanded "><a href="../01_getting_started/01_chapter.html"><strong aria-hidden="true">1.</strong> 入门</a></li><li><ol class="section"><li class="expanded "><a href="../01_getting_started/02_why_async.html"><strong aria-hidden="true">1.1.</strong> 为什么要 async ？</a></li><li class="expanded "><a href="../01_getting_started/03_state_of_async_rust.html"><strong aria-hidden="true">1.2.</strong> async Rust 状态</a></li><li class="expanded "><a href="../01_getting_started/04_async_await_primer.html"><strong aria-hidden="true">1.3.</strong> async/.await底漆</a></li><li class="expanded "><a href="../01_getting_started/05_http_server_example.html"><strong aria-hidden="true">1.4.</strong> 已应用：HTTP 服务器</a></li></ol></li><li class="expanded "><a href="../02_execution/01_chapter.html"><strong aria-hidden="true">2.</strong> 幕后：执行Future和任务</a></li><li><ol class="section"><li class="expanded "><a href="../02_execution/02_future.html"><strong aria-hidden="true">2.1.</strong> Future Trait</a></li><li class="expanded "><a href="../02_execution/03_wakeups.html"><strong aria-hidden="true">2.2.</strong> 任务唤醒Waker</a></li><li class="expanded "><a href="../02_execution/04_executor.html" class="active"><strong aria-hidden="true">2.3.</strong> 已应用：生成一个执行器</a></li><li class="expanded "><a href="../02_execution/05_io.html"><strong aria-hidden="true">2.4.</strong> 执行器和系统 IO</a></li></ol></li><li class="expanded "><a href="../03_async_await/01_chapter.html"><strong aria-hidden="true">3.</strong> async/await</a></li><li class="expanded "><a href="../04_pinning/01_chapter.html"><strong aria-hidden="true">4.</strong> Pinning</a></li><li class="expanded "><a href="../05_streams/01_chapter.html"><strong aria-hidden="true">5.</strong> Streams</a></li><li><ol class="section"><li class="expanded "><a href="../05_streams/02_iteration_and_concurrency.html"><strong aria-hidden="true">5.1.</strong> 迭代与并发</a></li></ol></li><li class="expanded "><a href="../06_multiple_futures/01_chapter.html"><strong aria-hidden="true">6.</strong> 一次执行多个 Futures</a></li><li><ol class="section"><li class="expanded "><a href="../06_multiple_futures/02_join.html"><strong aria-hidden="true">6.1.</strong> join!</a></li><li class="expanded "><a href="../06_multiple_futures/03_select.html"><strong aria-hidden="true">6.2.</strong> select!</a></li><li class="expanded "><a href="../404.html"><strong aria-hidden="true">6.3.</strong> TODO: Spawning</a></li><li class="expanded "><a href="../404.html"><strong aria-hidden="true">6.4.</strong> TODO：取消和超时</a></li><li class="expanded "><a href="../404.html"><strong aria-hidden="true">6.5.</strong> TODO：FuturesUnordered</a></li></ol></li><li class="expanded "><a href="../07_workarounds/01_chapter.html"><strong aria-hidden="true">7.</strong> 走走看看，想想</a></li><li><ol class="section"><li class="expanded "><a href="../07_workarounds/02_return_type.html"><strong aria-hidden="true">7.1.</strong> 返回类型错误</a></li><li class="expanded "><a href="../07_workarounds/03_err_in_async_blocks.html"><strong aria-hidden="true">7.2.</strong> ?在async区块</a></li><li class="expanded "><a href="../07_workarounds/04_send_approximation.html"><strong aria-hidden="true">7.3.</strong> Send近似</a></li><li class="expanded "><a href="../07_workarounds/05_recursion.html"><strong aria-hidden="true">7.4.</strong> 递归</a></li><li class="expanded "><a href="../07_workarounds/06_async_in_traits.html"><strong aria-hidden="true">7.5.</strong> async在 Traits 上</a></li></ol></li><li class="expanded "><a href="../404.html"><strong aria-hidden="true">8.</strong> TODO：I/O</a></li><li><ol class="section"><li class="expanded "><a href="../404.html"><strong aria-hidden="true">8.1.</strong> TODO：AsyncRead以及AsyncWrite</a></li></ol></li><li class="expanded "><a href="../404.html"><strong aria-hidden="true">9.</strong> TODO:async 设计模式：解决方案和建议</a></li><li><ol class="section"><li class="expanded "><a href="../404.html"><strong aria-hidden="true">9.1.</strong> TODO:建模服务器和请求/响应模式</a></li><li class="expanded "><a href="../404.html"><strong aria-hidden="true">9.2.</strong> TODO:管理共享状态</a></li></ol></li><li class="expanded "><a href="../404.html"><strong aria-hidden="true">10.</strong> TODO: 生态系统：Tokio 等</a></li><li><ol class="section"><li class="expanded "><a href="../404.html"><strong aria-hidden="true">10.1.</strong> TODO: 多多，多得多的东西？...</a></li></ol></li></ol>
+    </nav>
+
+    <div id="page-wrapper" class="page-wrapper">
+
+        <div class="page">
+            
+            <div id="menu-bar" class="menu-bar">
+                <div id="menu-bar-sticky-container">
+                    <div class="left-buttons">
+                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents"
+                            aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </button>
+                        <!-- START - Rust Cookbook customization -->
+                        <button id="edit-button" class="icon-button" type="button" title="Fork and edit"
+                            aria-label="Fork and edit" aria-haspopup="true" aria-expanded="false" aria-controls="edit">
+                            <i class="fa fa-edit">Edit</i>
+                        </button>
+                        <!-- END - Rust Cookbook customization -->
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme"
+                            aria-label="Change theme" aria-haspopup="true" aria-expanded="false"
+                            aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light <span
+                                        class="default">(default)</span></button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)"
+                            aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S"
+                            aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                        
+                    </div>
+
+                    <h1 class="menu-title">Asynchronous Programming in Rust</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        
+                    </div>
+                </div>
+            </div>
+
+            
+            <div id="search-wrapper" class="hidden">
+                <form id="searchbar-outer" class="searchbar-outer">
+                    <input type="search" name="search" id="searchbar" name="searchbar"
+                        placeholder="Search this book ..." aria-controls="searchresults-outer"
+                        aria-describedby="searchresults-header">
+                </form>
+                <div id="searchresults-outer" class="searchresults-outer hidden">
+                    <div id="searchresults-header" class="searchresults-header"></div>
+                    <ul id="searchresults">
+                    </ul>
+                </div>
+            </div>
+            
+
+            <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+            <script type="text/javascript">
+                document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                Array.from(document.querySelectorAll('#sidebar a')).forEach(function (link) {
+                    link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                });
+            </script>
+
+            <!-- // START - Rust Cookbook customization -->
+            <script>
+                document.getElementById("edit-button").addEventListener("click", function () {
+                    var editWindow = window.open("https://github.com/chinanf-boy/async-book-zh/edit/master/src/02_execution/04_executor.md");
+                });</script>
+            <!-- // END - Rust Cookbook customization -->
+
+            <div id="content" class="content">
+                <main>
+                    <h1><a class="header" href="#applied-build-an-executor" id="applied-build-an-executor">Applied: Build an Executor</a></h1>
+<p>Rust 的<code>Future</code>是懒惰的：除非是向着’完成’这一个目标积极前进，否则他们不会做任何事情。向 Future 完成前进的一种方法是，在<code>async</code>函数里面，对它<code>.await</code>，但这只会将问题升了个级：谁来管理，从顶层 <code>async</code>函数返回的 Futures ？答案是：我们需要一个<code>Future</code>执行者（executor）。</p>
+<p><code>Future</code> executor 获取一组顶层<code>Future</code>，并每当<code>Future</code>可以前进时，通过调用<code>poll</code>，让它们驶向完成。通常一旦开始，executor 会<code>poll</code>一个 Future 。当<code>Future</code>表示，因<code>wake()</code>的调用准备好前进，会将它们先放回到一个队列，才再次<code>poll</code>，重复直到<code>Future</code>已经完成。</p>
+<p>在本节中，我们将编写自己的简单 executor，该 executor 能够让大量顶层 Future 同时驶向完成。</p>
+<p>在此示例中，我们依赖<code>futures</code>箱子，<code>ArcWake</code> trait 会用到，它提供了一种轻松的方法来构建<code>Waker</code>。</p>
+<pre><code class="language-toml">[package]
+name = &quot;xyz&quot;
+version = &quot;0.1.0&quot;
+authors = [&quot;XYZ Author&quot;]
+edition = &quot;2018&quot;
+
+[dependencies]
+futures-preview = &quot;=0.3.0-alpha.17&quot;
+</code></pre>
+<p>接下来，我们需要在顶部，添加以下内容<code>src/main.rs</code>：</p>
+<pre><pre class="playpen"><code class="language-rust">
+<span class="boring">#![allow(unused_variables)]
+</span><span class="boring">fn main() {
+</span>use {
+    futures::{
+        future::{FutureExt, BoxFuture},
+        task::{ArcWake, waker_ref},
+    },
+    std::{
+        future::Future,
+        sync::{Arc, Mutex},
+        sync::mpsc::{sync_channel, SyncSender, Receiver},
+        task::{Context, Poll},
+        time::Duration,
+    },
+    // The timer we wrote in the previous section:
+    timer_future::TimerFuture,
+};
+<span class="boring">}
+</span></code></pre></pre>
+<p>我们的 executor 的工作是，将通过发送任务，在通道上运行。executor 将事件从通道中拉出，并运行它们。当一个任务准备做更多的工作（被唤醒）时，它可以安排自己重新回到通道上，以计划再次进行轮询。</p>
+<p>在这种设计中，executor 本身仅需要任务通道的接收端。用户将获得发送端，以便他们可以生成新的 Future 。任务本身就是 Future，是可以重新计划自己的。因此，我们会将它们与一个 sender 每每存储在一起，这样，任务就可以用来让自己重新排队。</p>
+<pre><pre class="playpen"><code class="language-rust">
+<span class="boring">#![allow(unused_variables)]
+</span><span class="boring">fn main() {
+</span>/// Task executor that receives tasks off of a channel and runs them.
+struct Executor {
+    ready_queue: Receiver&lt;Arc&lt;Task&gt;&gt;,
+}
+
+/// `Spawner` spawns new futures onto the task channel.
+#[derive(Clone)]
+struct Spawner {
+    task_sender: SyncSender&lt;Arc&lt;Task&gt;&gt;,
+}
+
+/// A future that can reschedule itself to be polled by an `Executor`.
+struct Task {
+    /// In-progress future that should be pushed to completion.
+    ///
+    /// The `Mutex` is not necessary for correctness, since we only have
+    /// one thread executing tasks at once. However, Rust isn't smart
+    /// enough to know that `future` is only mutated from one thread,
+    /// so we need use the `Mutex` to prove thread-safety. A production
+    /// executor would not need this, and could use `UnsafeCell` instead.
+    future: Mutex&lt;Option&lt;BoxFuture&lt;'static, ()&gt;&gt;&gt;,
+
+    /// Handle to place the task itself back onto the task queue.
+    task_sender: SyncSender&lt;Arc&lt;Task&gt;&gt;,
+}
+
+fn new_executor_and_spawner() -&gt; (Executor, Spawner) {
+    // Maximum number of tasks to allow queueing in the channel at once.
+    // This is just to make `sync_channel` happy, and wouldn't be present in
+    // a real executor.
+    const MAX_QUEUED_TASKS: usize = 10_000;
+    let (task_sender, ready_queue) = sync_channel(MAX_QUEUED_TASKS);
+    (Executor { ready_queue }, Spawner { task_sender })
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>我们还向 spawner 添加一种方法，以使其易于生成新的 Future 。此方法将拿到一个 Future 类型，将其装箱，并放入 FutureObj 中，然后创建一个新类型<code>Arc&lt;Task&gt;</code>，它的内部可以在 executor 上，排队。</p>
+<pre><pre class="playpen"><code class="language-rust">
+<span class="boring">#![allow(unused_variables)]
+</span><span class="boring">fn main() {
+</span>impl Spawner {
+    fn spawn(&amp;self, future: impl Future&lt;Output = ()&gt; + 'static + Send) {
+        let future = future.boxed();
+        let task = Arc::new(Task {
+            future: Mutex::new(Some(future)),
+            task_sender: self.task_sender.clone(),
+        });
+        self.task_sender.send(task).expect(&quot;too many tasks queued&quot;);
+    }
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>要轮询 Future ，我们需要创建一个<code>Waker</code>。正如在<a href="./03_wakeups.html">唤醒章节</a>，<code>Waker</code>负责安排，一旦<code>wake</code>调用了，就再次轮询的任务。记住，<code>Waker</code>s 是会告诉 executor，确切的那些任务已经准备就绪，只轮询准备好前进的 Future。创建一个新的<code>Waker</code>最简单的方法是，通过实现<code>ArcWake</code> trait ，然后使用<code>waker_ref</code>要么<code>.into_waker()</code>函数，将<code>Arc&lt;impl ArcWake&gt;</code>转变成一个<code>Waker</code>。让我们，为我们的任务实现<code>ArcWake</code>，这样就可以转变为<code>Waker</code>，和被唤醒啦：</p>
+<pre><pre class="playpen"><code class="language-rust">
+<span class="boring">#![allow(unused_variables)]
+</span><span class="boring">fn main() {
+</span>impl ArcWake for Task {
+    fn wake_by_ref(arc_self: &amp;Arc&lt;Self&gt;) {
+        // Implement `wake` by sending this task back onto the task channel
+        // so that it will be polled again by the executor.
+        let cloned = arc_self.clone();
+        arc_self.task_sender.send(cloned).expect(&quot;too many tasks queued&quot;);
+    }
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>当一个新建的<code>Waker</code>，从<code>Arc&lt;Task&gt;</code>而来，那么我们在它上面调用<code>wake()</code>，将导致<code>Arc</code>的一个 copy 发送到任务通道。然后，我们的 executor 需要选择任务，并进行轮询。让我们实现一下：</p>
+<pre><pre class="playpen"><code class="language-rust">
+<span class="boring">#![allow(unused_variables)]
+</span><span class="boring">fn main() {
+</span>impl Executor {
+    fn run(&amp;self) {
+        while let Ok(task) = self.ready_queue.recv() {
+            // Take the future, and if it has not yet completed (is still Some),
+            // poll it in an attempt to complete it.
+            let mut future_slot = task.future.lock().unwrap();
+            if let Some(mut future) = future_slot.take() {
+                // Create a `LocalWaker` from the task itself
+                let waker = waker_ref(&amp;task);
+                let context = &amp;mut Context::from_waker(&amp;*waker);
+                // `BoxFuture&lt;T&gt;` is a type alias for
+                // `Pin&lt;Box&lt;dyn Future&lt;Output = T&gt; + Send + 'static&gt;&gt;`.
+                // We can get a `Pin&lt;&amp;mut dyn Future + Send + 'static&gt;`
+                // from it by calling the `Pin::as_mut` method.
+                if let Poll::Pending = future.as_mut().poll(context) {
+                    // We're not done processing the future, so put it
+                    // back in its task to be run again in the future.
+                    *future_slot = Some(future);
+                }
+            }
+        }
+    }
+}
+<span class="boring">}
+</span></code></pre></pre>
+<p>恭喜你！我们现在有一个能工作的 Future executor。我们甚至可以使用它，来运行<code>async/.await</code>代码和自定义 Future ，例如，我们之前写过的<code>TimerFuture</code>：</p>
+<pre><pre class="playpen"><code class="language-rust">fn main() {
+    let (executor, spawner) = new_executor_and_spawner();
+
+    // Spawn a task to print before and after waiting on a timer.
+    spawner.spawn(async {
+        println!(&quot;howdy!&quot;);
+        // Wait for our timer future to complete after two seconds.
+        TimerFuture::new(Duration::new(2, 0)).await;
+        println!(&quot;done!&quot;);
+    });
+
+    // Drop the spawner so that our executor knows it is finished and won't
+    // receive more incoming tasks to run.
+    drop(spawner);
+
+    // Run the executor until the task queue is empty.
+    // This will print &quot;howdy!&quot;, pause, and then print &quot;done!&quot;.
+    executor.run();
+}
+</code></pre></pre>
+
+                </main>
+
+                <nav class="nav-wrapper" aria-label="Page navigation">
+                    <!-- Mobile navigation buttons -->
+                    
+                    <a rel="prev" href="../02_execution/03_wakeups.html" class="mobile-nav-chapters previous"
+                        title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                    
+
+                    
+                    <a rel="next" href="../02_execution/05_io.html" class="mobile-nav-chapters next"
+                        title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                    
+
+                    <div style="clear: both"></div>
+                </nav>
+            </div>
+        </div>
+
+        <nav class="nav-wide-wrapper" aria-label="Page navigation">
+            
+            <a href="../02_execution/03_wakeups.html" class="nav-chapters previous" title="Previous chapter"
+                aria-label="Previous chapter" aria-keyshortcuts="Left">
+                <i class="fa fa-angle-left"></i>
+            </a>
+            
+
+            
+            <a href="../02_execution/05_io.html" class="nav-chapters next" title="Next chapter"
+                aria-label="Next chapter" aria-keyshortcuts="Right">
+                <i class="fa fa-angle-right"></i>
+            </a>
+            
+        </nav>
+
+    </div>
+
+    
+
+    
+    <!-- Google Analytics Tag -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-128555056-1"></script>
+
+    <script type="text/javascript">
+        var localAddrs = ["localhost", "127.0.0.1", ""];
+        if (localAddrs.indexOf(document.location.hostname) === -1) {
+            window.dataLayer = window.dataLayer || [];
+            function gtag() { dataLayer.push(arguments); }
+            gtag('js', new Date());
+
+            gtag('config', 'UA-128555056-1');
+        }
+    </script>
+    
+
+    
+
+    
+    <script src="../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../mark.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../searcher.js" type="text/javascript" charset="utf-8"></script>
+    
+
+    <script src="../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../highlight.js" type="text/javascript" charset="utf-8"></script>
+    <script src="../book.js" type="text/javascript" charset="utf-8"></script>
+
+    <!-- Custom JS scripts -->
+    
+
+    
+
+</body>
+
+</html>
