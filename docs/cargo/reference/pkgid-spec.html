@@ -1,261 +1,240 @@
 <!DOCTYPE HTML>
 <html lang="en" class="sidebar-visible no-js">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Package ID Specifications - The Cargo Book</title>
+        
 
-<head>
-    <!-- Book generated using mdBook -->
-    <meta charset="UTF-8">
-    <title>包 ID 规格 - Cargo教程</title>
-    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-    <meta name="description" content="Cargo ">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#ffffff" />
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
 
-    <link rel="shortcut icon" href="../favicon.png">
-    <link rel="stylesheet" href="../css/variables.css">
-    <link rel="stylesheet" href="../css/general.css">
-    <link rel="stylesheet" href="../css/chrome.css">
-    <link rel="stylesheet" href="../css/print.css" media="print">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
 
-    <!-- Fonts -->
-    <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800"
-        rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
 
-    <!-- Highlight.js Stylesheets -->
-    <link rel="stylesheet" href="../highlight.css">
-    <link rel="stylesheet" href="../tomorrow-night.css">
-    <link rel="stylesheet" href="../ayu-highlight.css">
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
 
-    <!-- Custom theme stylesheets -->
-    
+        <!-- Custom theme stylesheets -->
+        
 
-    
-</head>
+        
+    </head>
+    <body class="light">
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "../";
+            var default_theme = "light";
+        </script>
 
-<body class="light">
-    <!-- Provide site root to javascript -->
-    <script type="text/javascript">var path_to_root = "../";</script>
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
 
-    <!-- Work around some values being stored in localStorage wrapped in quotes -->
-    <script type="text/javascript">
-        try {
-            var theme = localStorage.getItem('mdbook-theme');
-            var sidebar = localStorage.getItem('mdbook-sidebar');
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
 
-            if (theme.startsWith('"') && theme.endsWith('"')) {
-                localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            document.body.className = theme;
+            document.querySelector('html').className = theme + ' js';
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
             }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
 
-            if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
-                localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
-            }
-        } catch (e) { }
-    </script>
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div class="sidebar-scrollbox">
+                <ol class="chapter"><li class="affix"><a href="../index.html">Introduction</a></li><li><a href="../getting-started/index.html"><strong aria-hidden="true">1.</strong> Getting Started</a></li><li><ol class="section"><li><a href="../getting-started/installation.html"><strong aria-hidden="true">1.1.</strong> Installation</a></li><li><a href="../getting-started/first-steps.html"><strong aria-hidden="true">1.2.</strong> First Steps with Cargo</a></li></ol></li><li><a href="../guide/index.html"><strong aria-hidden="true">2.</strong> Cargo Guide</a></li><li><ol class="section"><li><a href="../guide/why-cargo-exists.html"><strong aria-hidden="true">2.1.</strong> Why Cargo Exists</a></li><li><a href="../guide/creating-a-new-project.html"><strong aria-hidden="true">2.2.</strong> Creating a New Package</a></li><li><a href="../guide/working-on-an-existing-project.html"><strong aria-hidden="true">2.3.</strong> Working on an Existing Package</a></li><li><a href="../guide/dependencies.html"><strong aria-hidden="true">2.4.</strong> Dependencies</a></li><li><a href="../guide/project-layout.html"><strong aria-hidden="true">2.5.</strong> Package Layout</a></li><li><a href="../guide/cargo-toml-vs-cargo-lock.html"><strong aria-hidden="true">2.6.</strong> Cargo.toml vs Cargo.lock</a></li><li><a href="../guide/tests.html"><strong aria-hidden="true">2.7.</strong> Tests</a></li><li><a href="../guide/continuous-integration.html"><strong aria-hidden="true">2.8.</strong> Continuous Integration</a></li><li><a href="../guide/cargo-home.html"><strong aria-hidden="true">2.9.</strong> Cargo Home</a></li><li><a href="../guide/build-cache.html"><strong aria-hidden="true">2.10.</strong> Build Cache</a></li></ol></li><li><a href="../reference/index.html"><strong aria-hidden="true">3.</strong> Cargo Reference</a></li><li><ol class="section"><li><a href="../reference/specifying-dependencies.html"><strong aria-hidden="true">3.1.</strong> Specifying Dependencies</a></li><li><a href="../reference/manifest.html"><strong aria-hidden="true">3.2.</strong> The Manifest Format</a></li><li><a href="../reference/config.html"><strong aria-hidden="true">3.3.</strong> Configuration</a></li><li><a href="../reference/environment-variables.html"><strong aria-hidden="true">3.4.</strong> Environment Variables</a></li><li><a href="../reference/build-scripts.html"><strong aria-hidden="true">3.5.</strong> Build Scripts</a></li><li><a href="../reference/publishing.html"><strong aria-hidden="true">3.6.</strong> Publishing on crates.io</a></li><li><a href="../reference/pkgid-spec.html" class="active"><strong aria-hidden="true">3.7.</strong> Package ID Specifications</a></li><li><a href="../reference/source-replacement.html"><strong aria-hidden="true">3.8.</strong> Source Replacement</a></li><li><a href="../reference/external-tools.html"><strong aria-hidden="true">3.9.</strong> External Tools</a></li><li><a href="../reference/registries.html"><strong aria-hidden="true">3.10.</strong> Registries</a></li><li><a href="../reference/unstable.html"><strong aria-hidden="true">3.11.</strong> Unstable Features</a></li></ol></li><li><a href="../commands/index.html"><strong aria-hidden="true">4.</strong> Cargo Commands</a></li><li><ol class="section"><li><a href="../commands/build-commands.html"><strong aria-hidden="true">4.1.</strong> Build Commands</a></li><li><ol class="section"><li><a href="../commands/cargo-bench.html"><strong aria-hidden="true">4.1.1.</strong> bench</a></li><li><a href="../commands/cargo-build.html"><strong aria-hidden="true">4.1.2.</strong> build</a></li><li><a href="../commands/cargo-check.html"><strong aria-hidden="true">4.1.3.</strong> check</a></li><li><a href="../commands/cargo-clean.html"><strong aria-hidden="true">4.1.4.</strong> clean</a></li><li><a href="../commands/cargo-doc.html"><strong aria-hidden="true">4.1.5.</strong> doc</a></li><li><a href="../commands/cargo-fetch.html"><strong aria-hidden="true">4.1.6.</strong> fetch</a></li><li><a href="../commands/cargo-fix.html"><strong aria-hidden="true">4.1.7.</strong> fix</a></li><li><a href="../commands/cargo-run.html"><strong aria-hidden="true">4.1.8.</strong> run</a></li><li><a href="../commands/cargo-rustc.html"><strong aria-hidden="true">4.1.9.</strong> rustc</a></li><li><a href="../commands/cargo-rustdoc.html"><strong aria-hidden="true">4.1.10.</strong> rustdoc</a></li><li><a href="../commands/cargo-test.html"><strong aria-hidden="true">4.1.11.</strong> test</a></li></ol></li><li><a href="../commands/manifest-commands.html"><strong aria-hidden="true">4.2.</strong> Manifest Commands</a></li><li><ol class="section"><li><a href="../commands/cargo-generate-lockfile.html"><strong aria-hidden="true">4.2.1.</strong> generate-lockfile</a></li><li><a href="../commands/cargo-locate-project.html"><strong aria-hidden="true">4.2.2.</strong> locate-project</a></li><li><a href="../commands/cargo-metadata.html"><strong aria-hidden="true">4.2.3.</strong> metadata</a></li><li><a href="../commands/cargo-pkgid.html"><strong aria-hidden="true">4.2.4.</strong> pkgid</a></li><li><a href="../commands/cargo-update.html"><strong aria-hidden="true">4.2.5.</strong> update</a></li><li><a href="../commands/cargo-vendor.html"><strong aria-hidden="true">4.2.6.</strong> vendor</a></li><li><a href="../commands/cargo-verify-project.html"><strong aria-hidden="true">4.2.7.</strong> verify-project</a></li></ol></li><li><a href="../commands/package-commands.html"><strong aria-hidden="true">4.3.</strong> Package Commands</a></li><li><ol class="section"><li><a href="../commands/cargo-init.html"><strong aria-hidden="true">4.3.1.</strong> init</a></li><li><a href="../commands/cargo-install.html"><strong aria-hidden="true">4.3.2.</strong> install</a></li><li><a href="../commands/cargo-new.html"><strong aria-hidden="true">4.3.3.</strong> new</a></li><li><a href="../commands/cargo-search.html"><strong aria-hidden="true">4.3.4.</strong> search</a></li><li><a href="../commands/cargo-uninstall.html"><strong aria-hidden="true">4.3.5.</strong> uninstall</a></li></ol></li><li><a href="../commands/publishing-commands.html"><strong aria-hidden="true">4.4.</strong> Publishing Commands</a></li><li><ol class="section"><li><a href="../commands/cargo-login.html"><strong aria-hidden="true">4.4.1.</strong> login</a></li><li><a href="../commands/cargo-owner.html"><strong aria-hidden="true">4.4.2.</strong> owner</a></li><li><a href="../commands/cargo-package.html"><strong aria-hidden="true">4.4.3.</strong> package</a></li><li><a href="../commands/cargo-publish.html"><strong aria-hidden="true">4.4.4.</strong> publish</a></li><li><a href="../commands/cargo-yank.html"><strong aria-hidden="true">4.4.5.</strong> yank</a></li></ol></li><li><a href="../commands/general-commands.html"><strong aria-hidden="true">4.5.</strong> General Commands</a></li><li><ol class="section"><li><a href="../commands/cargo-help.html"><strong aria-hidden="true">4.5.1.</strong> help</a></li><li><a href="../commands/cargo-version.html"><strong aria-hidden="true">4.5.2.</strong> version</a></li></ol></li></ol></li><li><a href="../faq.html"><strong aria-hidden="true">5.</strong> FAQ</a></li><li><a href="../appendix/glossary.html"><strong aria-hidden="true">6.</strong> Appendix: Glossary</a></li></ol>
+            </div>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
+        </nav>
 
-    <!-- Set the theme before any content is loaded, prevents flash -->
-    <script type="text/javascript">
-        var theme;
-        try { theme = localStorage.getItem('mdbook-theme'); } catch (e) { }
-        if (theme === null || theme === undefined) { theme = 'light'; }
-        document.body.className = theme;
-        document.querySelector('html').className = theme + ' js';
-    </script>
+        <div id="page-wrapper" class="page-wrapper">
 
-    <!-- Hide / unhide sidebar before it is displayed -->
-    <script type="text/javascript">
-        var html = document.querySelector('html');
-        var sidebar = 'hidden';
-        if (document.body.clientWidth >= 1080) {
-            try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch (e) { }
-            sidebar = sidebar || 'visible';
-        }
-        html.classList.remove('sidebar-visible');
-        html.classList.add("sidebar-" + sidebar);
-    </script>
+            <div class="page">
+                
+                <div id="menu-bar" class="menu-bar">
+                    <div id="menu-bar-sticky-container">
+                        <div class="left-buttons">
+                            <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                                <i class="fa fa-bars"></i>
+                            </button>
+                            <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                                <i class="fa fa-paint-brush"></i>
+                            </button>
+                            <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                                <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            </ul>
+                            
+                            <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                                <i class="fa fa-search"></i>
+                            </button>
+                            
+                        </div>
 
-    <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-        <ol class="chapter"><li class="affix"><a href="../index.html">介绍</a></li><li><a href="../getting-started/index.html"><strong aria-hidden="true">1.</strong> 入门</a></li><li><ol class="section"><li><a href="../getting-started/installation.html"><strong aria-hidden="true">1.1.</strong> 安装</a></li><li><a href="../getting-started/first-steps.html"><strong aria-hidden="true">1.2.</strong> Cargo 的第一步</a></li></ol></li><li><a href="../guide/index.html"><strong aria-hidden="true">2.</strong> Cargo 指南</a></li><li><ol class="section"><li><a href="../guide/why-cargo-exists.html"><strong aria-hidden="true">2.1.</strong> 为什么 Cargo 存在</a></li><li><a href="../guide/creating-a-new-project.html"><strong aria-hidden="true">2.2.</strong> 创建一个新包</a></li><li><a href="../guide/working-on-an-existing-project.html"><strong aria-hidden="true">2.3.</strong> 处理现有包</a></li><li><a href="../guide/dependencies.html"><strong aria-hidden="true">2.4.</strong> 依赖</a></li><li><a href="../guide/project-layout.html"><strong aria-hidden="true">2.5.</strong> 包装布局</a></li><li><a href="../guide/cargo-toml-vs-cargo-lock.html"><strong aria-hidden="true">2.6.</strong> Cargo.toml 与 Cargo.lock</a></li><li><a href="../guide/tests.html"><strong aria-hidden="true">2.7.</strong> 测试</a></li><li><a href="../guide/continuous-integration.html"><strong aria-hidden="true">2.8.</strong> 持续集成</a></li><li><a href="../guide/build-cache.html"><strong aria-hidden="true">2.9.</strong> 构建缓存</a></li></ol></li><li><a href="../reference/index.html"><strong aria-hidden="true">3.</strong> Cargo 参考</a></li><li><ol class="section"><li><a href="../reference/specifying-dependencies.html"><strong aria-hidden="true">3.1.</strong> 指定依赖项</a></li><li><a href="../reference/manifest.html"><strong aria-hidden="true">3.2.</strong> 清单格式</a></li><li><a href="../reference/config.html"><strong aria-hidden="true">3.3.</strong> 组态</a></li><li><a href="../reference/environment-variables.html"><strong aria-hidden="true">3.4.</strong> 环境变量</a></li><li><a href="../reference/build-scripts.html"><strong aria-hidden="true">3.5.</strong> 构建脚本</a></li><li><a href="../reference/publishing.html"><strong aria-hidden="true">3.6.</strong> 在 crates.io 上发布</a></li><li><a href="../reference/pkgid-spec.html" class="active"><strong aria-hidden="true">3.7.</strong> 包 ID 规格</a></li><li><a href="../reference/source-replacement.html"><strong aria-hidden="true">3.8.</strong> 来源更换</a></li><li><a href="../reference/external-tools.html"><strong aria-hidden="true">3.9.</strong> 外部工具</a></li><li><a href="../reference/unstable.html"><strong aria-hidden="true">3.10.</strong> 不稳定的功能</a></li></ol></li><li><a href="../faq.html"><strong aria-hidden="true">4.</strong> 常问问题</a></li><li><a href="../appendix/glossary.html"><strong aria-hidden="true">5.</strong> 附录:词汇表</a></li></ol>
-    </nav>
+                        <h1 class="menu-title">The Cargo Book</h1>
 
-    <div id="page-wrapper" class="page-wrapper">
-
-        <div class="page">
-            
-            <div id="menu-bar" class="menu-bar">
-                <div id="menu-bar-sticky-container">
-                    <div class="left-buttons">
-                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents"
-                            aria-label="Toggle Table of Contents" aria-controls="sidebar">
-                            <i class="fa fa-bars"></i>
-                        </button>
-                        <!-- START - Rust Cookbook customization -->
-                        <button id="edit-button" class="icon-button" type="button" title="Fork and edit" aria-label="Fork and edit"
-                            aria-haspopup="true" aria-expanded="false" aria-controls="edit">
-                            <i class="fa fa-edit">Edit</i>
-                        </button>
-                        <!-- END - Rust Cookbook customization -->
-                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme"
-                            aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
-                            <i class="fa fa-paint-brush"></i>
-                        </button>
-                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light <span class="default">(default)</span></button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
-                        </ul>
-                        
-                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)"
-                            aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
-                            <i class="fa fa-search"></i>
-                        </button>
-                        
-                    </div>
-
-                    <h1 class="menu-title">Cargo教程</h1>
-                    
                         <div class="right-buttons">
                             <a href="../print.html" title="Print this book" aria-label="Print this book">
                                 <i id="print-button" class="fa fa-print"></i>
+                            </a>
+                            
+                            <a href="https://github.com/rust-lang/cargo/tree/master/src/doc/src" title="Git repository" aria-label="Git repository">
+                                <i id="git-repository-button" class="fa fa-github"></i>
                             </a>
                             
                         </div>
                     </div>
                 </div>
 
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                        <main>
+                                <a class="header" href="#package-id-specifications" id="package-id-specifications"><h2>Package ID Specifications</h2></a>
+            <a class="header" href="#package-id-specifications-1" id="package-id-specifications-1"><h3>Package ID specifications</h3></a>
+            <p>包 ID 规范</p>
+            <p>Cargo 的子命令经常需要引用依赖关系图中的特定包来进行各种操作，例如更新，清理，构建等。为了解决这个问题，Cargo 支持包 ID 规范。规范是一个字符串，用于唯一地引用依赖关系图中的一个包.</p>
+            <a class="header" href="#specification-grammar" id="specification-grammar"><h4>Specification grammar</h4></a>
+            <p>规范语法</p>
+            <p>包 ID 规范的形式语法是:</p>
+            <pre><code class="language-notrust">pkgid := pkgname
+                   | [ proto &quot;://&quot; ] hostname-and-path [ &quot;#&quot; ( pkgname | semver ) ]
+            pkgname := name [ &quot;:&quot; semver ]
             
-            <div id="search-wrapper" class="hidden">
-                <form id="searchbar-outer" class="searchbar-outer">
-                    <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..."
-                        aria-controls="searchresults-outer" aria-describedby="searchresults-header">
-                </form>
-                <div id="searchresults-outer" class="searchresults-outer hidden">
-                    <div id="searchresults-header" class="searchresults-header"></div>
-                    <ul id="searchresults">
-                    </ul>
+            proto := &quot;http&quot; | &quot;git&quot; | ...
+            </code></pre>
+            <p>这里，括号表示内容是可选的.</p>
+            <a class="header" href="#example-specifications" id="example-specifications"><h4>Example specifications</h4></a>
+            <p>规范示例</p>
+            <p>这些都可以是对<code>foo</code>包的引用，版本<code>1.2.3</code>，来自注册表<code>crates.io</code></p>
+            <table><thead><tr><th align="left"> pkgid                        </th><th align="center"> 名称  </th><th align="center">   版本    </th><th align="center">          网址          </th></tr></thead><tbody>
+            <tr><td align="left"> <code>foo</code>                        </td><td align="center"> <code>foo</code> </td><td align="center">   <code>*</code>   </td><td align="center">          <code>*</code>           </td></tr>
+            <tr><td align="left"> <code>foo:1.2.3</code>                  </td><td align="center"> <code>foo</code> </td><td align="center"> <code>1.2.3</code> </td><td align="center">          <code>*</code>           </td></tr>
+            <tr><td align="left"> <code>crates.io/foo</code>              </td><td align="center"> <code>foo</code> </td><td align="center">   <code>*</code>   </td><td align="center">  <code>*://crates.io/foo</code>   </td></tr>
+            <tr><td align="left"> <code>crates.io/foo#1.2.3</code>        </td><td align="center"> <code>foo</code> </td><td align="center"> <code>1.2.3</code> </td><td align="center">  <code>*://crates.io/foo</code>   </td></tr>
+            <tr><td align="left"> <code>crates.io/bar#foo:1.2.3</code>    </td><td align="center"> <code>foo</code> </td><td align="center"> <code>1.2.3</code> </td><td align="center">  <code>*://crates.io/bar</code>   </td></tr>
+            <tr><td align="left"> <code>http://crates.io/foo#1.2.3</code> </td><td align="center"> <code>foo</code> </td><td align="center"> <code>1.2.3</code> </td><td align="center"> <code>http://crates.io/foo</code> </td></tr>
+            </tbody></table>
+            <a class="header" href="#brevity-of-specifications" id="brevity-of-specifications"><h4>Brevity of specifications</h4></a>
+            <p>规范的简洁</p>
+            <p>这样做的目的是用简洁和详尽的语法来引用依赖图中的包。而不明确的引用可以指代一个或多个包。若使用相同的规范会引用多个包，那大多数命令都会生成错误。</p>
+            
+                            </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                            <a rel="prev" href="../reference/publishing.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
+
+                        
+                            <a rel="next" href="../reference/source-replacement.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
+
+                        <div style="clear: both"></div>
+                    </nav>
                 </div>
             </div>
-            
 
-            <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
-            <script type="text/javascript">
-                document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
-                document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
-                Array.from(document.querySelectorAll('#sidebar a')).forEach(function (link) {
-                    link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
-                });
-            </script>
-
-
-            <div id="content" class="content">
-                <main>
-                    <a class="header" href="#package-id-specifications" id="package-id-specifications"><h2>Package ID Specifications</h2></a>
-<a class="header" href="#package-id-specifications-1" id="package-id-specifications-1"><h3>Package ID specifications</h3></a>
-<p>包 ID 规范</p>
-<p>Cargo 的子命令经常需要引用依赖关系图中的特定包来进行各种操作，例如更新，清理，构建等。为了解决这个问题，Cargo 支持包 ID 规范。规范是一个字符串，用于唯一地引用依赖关系图中的一个包.</p>
-<a class="header" href="#specification-grammar" id="specification-grammar"><h4>Specification grammar</h4></a>
-<p>规范语法</p>
-<p>包 ID 规范的形式语法是:</p>
-<pre><code class="language-notrust">pkgid := pkgname
-       | [ proto &quot;://&quot; ] hostname-and-path [ &quot;#&quot; ( pkgname | semver ) ]
-pkgname := name [ &quot;:&quot; semver ]
-
-proto := &quot;http&quot; | &quot;git&quot; | ...
-</code></pre>
-<p>这里，括号表示内容是可选的.</p>
-<a class="header" href="#example-specifications" id="example-specifications"><h4>Example specifications</h4></a>
-<p>规范示例</p>
-<p>这些都可以是对<code>foo</code>包的引用，版本<code>1.2.3</code>，来自注册表<code>crates.io</code></p>
-<table><thead><tr><th align="left"> pkgid                        </th><th align="center"> 名称  </th><th align="center">   版本    </th><th align="center">          网址          </th></tr></thead><tbody>
-<tr><td align="left"> <code>foo</code>                        </td><td align="center"> <code>foo</code> </td><td align="center">   <code>*</code>   </td><td align="center">          <code>*</code>           </td></tr>
-<tr><td align="left"> <code>foo:1.2.3</code>                  </td><td align="center"> <code>foo</code> </td><td align="center"> <code>1.2.3</code> </td><td align="center">          <code>*</code>           </td></tr>
-<tr><td align="left"> <code>crates.io/foo</code>              </td><td align="center"> <code>foo</code> </td><td align="center">   <code>*</code>   </td><td align="center">  <code>*://crates.io/foo</code>   </td></tr>
-<tr><td align="left"> <code>crates.io/foo#1.2.3</code>        </td><td align="center"> <code>foo</code> </td><td align="center"> <code>1.2.3</code> </td><td align="center">  <code>*://crates.io/foo</code>   </td></tr>
-<tr><td align="left"> <code>crates.io/bar#foo:1.2.3</code>    </td><td align="center"> <code>foo</code> </td><td align="center"> <code>1.2.3</code> </td><td align="center">  <code>*://crates.io/bar</code>   </td></tr>
-<tr><td align="left"> <code>http://crates.io/foo#1.2.3</code> </td><td align="center"> <code>foo</code> </td><td align="center"> <code>1.2.3</code> </td><td align="center"> <code>http://crates.io/foo</code> </td></tr>
-</tbody></table>
-<a class="header" href="#brevity-of-specifications" id="brevity-of-specifications"><h4>Brevity of specifications</h4></a>
-<p>规范的简洁</p>
-<p>这样做的目的是用简洁和详尽的语法来引用依赖图中的包。而不明确的引用可以指代一个或多个包。若使用相同的规范会引用多个包，那大多数命令都会生成错误。</p>
-
-                </main>
-
-                <nav class="nav-wrapper" aria-label="Page navigation">
-                    <!-- Mobile navigation buttons -->
-                    
-                    <a rel="prev" href="../reference/publishing.html" class="mobile-nav-chapters previous" title="Previous chapter"
-                        aria-label="Previous chapter" aria-keyshortcuts="Left">
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                    <a href="../reference/publishing.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
-                    
+                
 
-                    
-                    <a rel="next" href="../reference/source-replacement.html" class="mobile-nav-chapters next" title="Next chapter"
-                        aria-label="Next chapter" aria-keyshortcuts="Right">
+                
+                    <a href="../reference/source-replacement.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
-                    
+                
+            </nav>
 
-                    <div style="clear: both"></div>
-                </nav>
-            </div>
         </div>
 
-        <nav class="nav-wide-wrapper" aria-label="Page navigation">
-            
-            <a href="../reference/publishing.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter"
-                aria-keyshortcuts="Left">
-                <i class="fa fa-angle-left"></i>
-            </a>
-            
+        
 
-            
-            <a href="../reference/source-replacement.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter"
-                aria-keyshortcuts="Right">
-                <i class="fa fa-angle-right"></i>
-            </a>
-            
-        </nav>
+        
 
-    </div>
+        
 
-    
+        
+        <script src="../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../searcher.js" type="text/javascript" charset="utf-8"></script>
+        
 
-    
-    <!-- Google Analytics Tag -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-128555056-1"></script>
-    
-    <script type="text/javascript">
-        var localAddrs = ["localhost", "127.0.0.1", ""];
-        if (localAddrs.indexOf(document.location.hostname) === -1) {
-            window.dataLayer = window.dataLayer || [];
-            function gtag() { dataLayer.push(arguments); }
-            gtag('js', new Date());
+        <script src="../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../book.js" type="text/javascript" charset="utf-8"></script>
 
-            gtag('config', 'UA-128555056-1');
-        }
-    </script>
-    
+        <!-- Custom JS scripts -->
+        
 
-    
+        
 
-    
-    <script src="../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
-    <script src="../mark.min.js" type="text/javascript" charset="utf-8"></script>
-    <script src="../searcher.js" type="text/javascript" charset="utf-8"></script>
-    
-
-    <script src="../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
-    <script src="../highlight.js" type="text/javascript" charset="utf-8"></script>
-    <script src="../book.js" type="text/javascript" charset="utf-8"></script>
-
-    <!-- Custom JS scripts -->
-    
-
-    
-
-</body>
-
+    </body>
 </html>
