@@ -1,13 +1,14 @@
+
 <!DOCTYPE HTML>
 <html lang="en" class="sidebar-visible no-js">
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Reference Cycles Can Leak Memory - The Rust Programming Language</title>
+        <title>引用循环与内存泄漏是安全的 - Rust 程序设计语言 简体中文版</title>
         
 
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-        <meta name="description" content="">
+        <meta name="description" content="Rust 程序设计语言 简体中文版">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff" />
 
@@ -30,8 +31,6 @@
         <!-- Custom theme stylesheets -->
         
         <link rel="stylesheet" href="ferris.css">
-        
-        <link rel="stylesheet" href="theme/2018-edition.css">
         
 
         
@@ -82,7 +81,7 @@
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
             <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="affix"><a href="title-page.html">The Rust Programming Language</a></li><li class="affix"><a href="foreword.html">Foreword</a></li><li class="affix"><a href="ch00-00-introduction.html">Introduction</a></li><li><a href="ch01-00-getting-started.html"><strong aria-hidden="true">1.</strong> Getting Started</a></li><li><ol class="section"><li><a href="ch01-01-installation.html"><strong aria-hidden="true">1.1.</strong> Installation</a></li><li><a href="ch01-02-hello-world.html"><strong aria-hidden="true">1.2.</strong> Hello, World!</a></li><li><a href="ch01-03-hello-cargo.html"><strong aria-hidden="true">1.3.</strong> Hello, Cargo!</a></li></ol></li><li><a href="ch02-00-guessing-game-tutorial.html"><strong aria-hidden="true">2.</strong> Programming a Guessing Game</a></li><li><a href="ch03-00-common-programming-concepts.html"><strong aria-hidden="true">3.</strong> Common Programming Concepts</a></li><li><ol class="section"><li><a href="ch03-01-variables-and-mutability.html"><strong aria-hidden="true">3.1.</strong> Variables and Mutability</a></li><li><a href="ch03-02-data-types.html"><strong aria-hidden="true">3.2.</strong> Data Types</a></li><li><a href="ch03-03-how-functions-work.html"><strong aria-hidden="true">3.3.</strong> Functions</a></li><li><a href="ch03-04-comments.html"><strong aria-hidden="true">3.4.</strong> Comments</a></li><li><a href="ch03-05-control-flow.html"><strong aria-hidden="true">3.5.</strong> Control Flow</a></li></ol></li><li><a href="ch04-00-understanding-ownership.html"><strong aria-hidden="true">4.</strong> Understanding Ownership</a></li><li><ol class="section"><li><a href="ch04-01-what-is-ownership.html"><strong aria-hidden="true">4.1.</strong> What is Ownership?</a></li><li><a href="ch04-02-references-and-borrowing.html"><strong aria-hidden="true">4.2.</strong> References and Borrowing</a></li><li><a href="ch04-03-slices.html"><strong aria-hidden="true">4.3.</strong> The Slice Type</a></li></ol></li><li><a href="ch05-00-structs.html"><strong aria-hidden="true">5.</strong> Using Structs to Structure Related Data</a></li><li><ol class="section"><li><a href="ch05-01-defining-structs.html"><strong aria-hidden="true">5.1.</strong> Defining and Instantiating Structs</a></li><li><a href="ch05-02-example-structs.html"><strong aria-hidden="true">5.2.</strong> An Example Program Using Structs</a></li><li><a href="ch05-03-method-syntax.html"><strong aria-hidden="true">5.3.</strong> Method Syntax</a></li></ol></li><li><a href="ch06-00-enums.html"><strong aria-hidden="true">6.</strong> Enums and Pattern Matching</a></li><li><ol class="section"><li><a href="ch06-01-defining-an-enum.html"><strong aria-hidden="true">6.1.</strong> Defining an Enum</a></li><li><a href="ch06-02-match.html"><strong aria-hidden="true">6.2.</strong> The match Control Flow Operator</a></li><li><a href="ch06-03-if-let.html"><strong aria-hidden="true">6.3.</strong> Concise Control Flow with if let</a></li></ol></li><li><a href="ch07-00-managing-growing-projects-with-packages-crates-and-modules.html"><strong aria-hidden="true">7.</strong> Managing Growing Projects with Packages, Crates, and Modules</a></li><li><ol class="section"><li><a href="ch07-01-packages-and-crates.html"><strong aria-hidden="true">7.1.</strong> Packages and Crates</a></li><li><a href="ch07-02-defining-modules-to-control-scope-and-privacy.html"><strong aria-hidden="true">7.2.</strong> Defining Modules to Control Scope and Privacy</a></li><li><a href="ch07-03-paths-for-referring-to-an-item-in-the-module-tree.html"><strong aria-hidden="true">7.3.</strong> Paths for Referring to an Item in the Module Tree</a></li><li><a href="ch07-04-bringing-paths-into-scope-with-the-use-keyword.html"><strong aria-hidden="true">7.4.</strong> Bringing Paths Into Scope with the use Keyword</a></li><li><a href="ch07-05-separating-modules-into-different-files.html"><strong aria-hidden="true">7.5.</strong> Separating Modules into Different Files</a></li></ol></li><li><a href="ch08-00-common-collections.html"><strong aria-hidden="true">8.</strong> Common Collections</a></li><li><ol class="section"><li><a href="ch08-01-vectors.html"><strong aria-hidden="true">8.1.</strong> Storing Lists of Values with Vectors</a></li><li><a href="ch08-02-strings.html"><strong aria-hidden="true">8.2.</strong> Storing UTF-8 Encoded Text with Strings</a></li><li><a href="ch08-03-hash-maps.html"><strong aria-hidden="true">8.3.</strong> Storing Keys with Associated Values in Hash Maps</a></li></ol></li><li><a href="ch09-00-error-handling.html"><strong aria-hidden="true">9.</strong> Error Handling</a></li><li><ol class="section"><li><a href="ch09-01-unrecoverable-errors-with-panic.html"><strong aria-hidden="true">9.1.</strong> Unrecoverable Errors with panic!</a></li><li><a href="ch09-02-recoverable-errors-with-result.html"><strong aria-hidden="true">9.2.</strong> Recoverable Errors with Result</a></li><li><a href="ch09-03-to-panic-or-not-to-panic.html"><strong aria-hidden="true">9.3.</strong> To panic! or Not To panic!</a></li></ol></li><li><a href="ch10-00-generics.html"><strong aria-hidden="true">10.</strong> Generic Types, Traits, and Lifetimes</a></li><li><ol class="section"><li><a href="ch10-01-syntax.html"><strong aria-hidden="true">10.1.</strong> Generic Data Types</a></li><li><a href="ch10-02-traits.html"><strong aria-hidden="true">10.2.</strong> Traits: Defining Shared Behavior</a></li><li><a href="ch10-03-lifetime-syntax.html"><strong aria-hidden="true">10.3.</strong> Validating References with Lifetimes</a></li></ol></li><li><a href="ch11-00-testing.html"><strong aria-hidden="true">11.</strong> Writing Automated Tests</a></li><li><ol class="section"><li><a href="ch11-01-writing-tests.html"><strong aria-hidden="true">11.1.</strong> How to Write Tests</a></li><li><a href="ch11-02-running-tests.html"><strong aria-hidden="true">11.2.</strong> Controlling How Tests Are Run</a></li><li><a href="ch11-03-test-organization.html"><strong aria-hidden="true">11.3.</strong> Test Organization</a></li></ol></li><li><a href="ch12-00-an-io-project.html"><strong aria-hidden="true">12.</strong> An I/O Project: Building a Command Line Program</a></li><li><ol class="section"><li><a href="ch12-01-accepting-command-line-arguments.html"><strong aria-hidden="true">12.1.</strong> Accepting Command Line Arguments</a></li><li><a href="ch12-02-reading-a-file.html"><strong aria-hidden="true">12.2.</strong> Reading a File</a></li><li><a href="ch12-03-improving-error-handling-and-modularity.html"><strong aria-hidden="true">12.3.</strong> Refactoring to Improve Modularity and Error Handling</a></li><li><a href="ch12-04-testing-the-librarys-functionality.html"><strong aria-hidden="true">12.4.</strong> Developing the Library’s Functionality with Test Driven Development</a></li><li><a href="ch12-05-working-with-environment-variables.html"><strong aria-hidden="true">12.5.</strong> Working with Environment Variables</a></li><li><a href="ch12-06-writing-to-stderr-instead-of-stdout.html"><strong aria-hidden="true">12.6.</strong> Writing Error Messages to Standard Error Instead of Standard Output</a></li></ol></li><li><a href="ch13-00-functional-features.html"><strong aria-hidden="true">13.</strong> Functional Language Features: Iterators and Closures</a></li><li><ol class="section"><li><a href="ch13-01-closures.html"><strong aria-hidden="true">13.1.</strong> Closures: Anonymous Functions that Can Capture Their Environment</a></li><li><a href="ch13-02-iterators.html"><strong aria-hidden="true">13.2.</strong> Processing a Series of Items with Iterators</a></li><li><a href="ch13-03-improving-our-io-project.html"><strong aria-hidden="true">13.3.</strong> Improving Our I/O Project</a></li><li><a href="ch13-04-performance.html"><strong aria-hidden="true">13.4.</strong> Comparing Performance: Loops vs. Iterators</a></li></ol></li><li><a href="ch14-00-more-about-cargo.html"><strong aria-hidden="true">14.</strong> More about Cargo and Crates.io</a></li><li><ol class="section"><li><a href="ch14-01-release-profiles.html"><strong aria-hidden="true">14.1.</strong> Customizing Builds with Release Profiles</a></li><li><a href="ch14-02-publishing-to-crates-io.html"><strong aria-hidden="true">14.2.</strong> Publishing a Crate to Crates.io</a></li><li><a href="ch14-03-cargo-workspaces.html"><strong aria-hidden="true">14.3.</strong> Cargo Workspaces</a></li><li><a href="ch14-04-installing-binaries.html"><strong aria-hidden="true">14.4.</strong> Installing Binaries from Crates.io with cargo install</a></li><li><a href="ch14-05-extending-cargo.html"><strong aria-hidden="true">14.5.</strong> Extending Cargo with Custom Commands</a></li></ol></li><li><a href="ch15-00-smart-pointers.html"><strong aria-hidden="true">15.</strong> Smart Pointers</a></li><li><ol class="section"><li><a href="ch15-01-box.html"><strong aria-hidden="true">15.1.</strong> Using Box<T> to Point to Data on the Heap</a></li><li><a href="ch15-02-deref.html"><strong aria-hidden="true">15.2.</strong> Treating Smart Pointers Like Regular References with the Deref Trait</a></li><li><a href="ch15-03-drop.html"><strong aria-hidden="true">15.3.</strong> Running Code on Cleanup with the Drop Trait</a></li><li><a href="ch15-04-rc.html"><strong aria-hidden="true">15.4.</strong> Rc<T>, the Reference Counted Smart Pointer</a></li><li><a href="ch15-05-interior-mutability.html"><strong aria-hidden="true">15.5.</strong> RefCell<T> and the Interior Mutability Pattern</a></li><li><a href="ch15-06-reference-cycles.html" class="active"><strong aria-hidden="true">15.6.</strong> Reference Cycles Can Leak Memory</a></li></ol></li><li><a href="ch16-00-concurrency.html"><strong aria-hidden="true">16.</strong> Fearless Concurrency</a></li><li><ol class="section"><li><a href="ch16-01-threads.html"><strong aria-hidden="true">16.1.</strong> Using Threads to Run Code Simultaneously</a></li><li><a href="ch16-02-message-passing.html"><strong aria-hidden="true">16.2.</strong> Using Message Passing to Transfer Data Between Threads</a></li><li><a href="ch16-03-shared-state.html"><strong aria-hidden="true">16.3.</strong> Shared-State Concurrency</a></li><li><a href="ch16-04-extensible-concurrency-sync-and-send.html"><strong aria-hidden="true">16.4.</strong> Extensible Concurrency with the Sync and Send Traits</a></li></ol></li><li><a href="ch17-00-oop.html"><strong aria-hidden="true">17.</strong> Object Oriented Programming Features of Rust</a></li><li><ol class="section"><li><a href="ch17-01-what-is-oo.html"><strong aria-hidden="true">17.1.</strong> Characteristics of Object-Oriented Languages</a></li><li><a href="ch17-02-trait-objects.html"><strong aria-hidden="true">17.2.</strong> Using Trait Objects That Allow for Values of Different Types</a></li><li><a href="ch17-03-oo-design-patterns.html"><strong aria-hidden="true">17.3.</strong> Implementing an Object-Oriented Design Pattern</a></li></ol></li><li><a href="ch18-00-patterns.html"><strong aria-hidden="true">18.</strong> Patterns and Matching</a></li><li><ol class="section"><li><a href="ch18-01-all-the-places-for-patterns.html"><strong aria-hidden="true">18.1.</strong> All the Places Patterns Can Be Used</a></li><li><a href="ch18-02-refutability.html"><strong aria-hidden="true">18.2.</strong> Refutability: Whether a Pattern Might Fail to Match</a></li><li><a href="ch18-03-pattern-syntax.html"><strong aria-hidden="true">18.3.</strong> Pattern Syntax</a></li></ol></li><li><a href="ch19-00-advanced-features.html"><strong aria-hidden="true">19.</strong> Advanced Features</a></li><li><ol class="section"><li><a href="ch19-01-unsafe-rust.html"><strong aria-hidden="true">19.1.</strong> Unsafe Rust</a></li><li><a href="ch19-03-advanced-traits.html"><strong aria-hidden="true">19.2.</strong> Advanced Traits</a></li><li><a href="ch19-04-advanced-types.html"><strong aria-hidden="true">19.3.</strong> Advanced Types</a></li><li><a href="ch19-05-advanced-functions-and-closures.html"><strong aria-hidden="true">19.4.</strong> Advanced Functions and Closures</a></li><li><a href="ch19-06-macros.html"><strong aria-hidden="true">19.5.</strong> Macros</a></li></ol></li><li><a href="ch20-00-final-project-a-web-server.html"><strong aria-hidden="true">20.</strong> Final Project: Building a Multithreaded Web Server</a></li><li><ol class="section"><li><a href="ch20-01-single-threaded.html"><strong aria-hidden="true">20.1.</strong> Building a Single-Threaded Web Server</a></li><li><a href="ch20-02-multithreaded.html"><strong aria-hidden="true">20.2.</strong> Turning Our Single-Threaded Server into a Multithreaded Server</a></li><li><a href="ch20-03-graceful-shutdown-and-cleanup.html"><strong aria-hidden="true">20.3.</strong> Graceful Shutdown and Cleanup</a></li></ol></li><li><a href="appendix-00.html"><strong aria-hidden="true">21.</strong> Appendix</a></li><li><ol class="section"><li><a href="appendix-01-keywords.html"><strong aria-hidden="true">21.1.</strong> A - Keywords</a></li><li><a href="appendix-02-operators.html"><strong aria-hidden="true">21.2.</strong> B - Operators and Symbols</a></li><li><a href="appendix-03-derivable-traits.html"><strong aria-hidden="true">21.3.</strong> C - Derivable Traits</a></li><li><a href="appendix-04-useful-development-tools.html"><strong aria-hidden="true">21.4.</strong> D - Useful Development Tools</a></li><li><a href="appendix-05-editions.html"><strong aria-hidden="true">21.5.</strong> E - Editions</a></li><li><a href="appendix-06-translation.html"><strong aria-hidden="true">21.6.</strong> F - Translations of the Book</a></li><li><a href="appendix-07-nightly-rust.html"><strong aria-hidden="true">21.7.</strong> G - How Rust is Made and “Nightly Rust”</a></li></ol></li></ol>
+                <ol class="chapter"><li class="affix"><a href="title-page.html">Rust 程序设计语言</a></li><li class="affix"><a href="foreword.html">前言</a></li><li class="affix"><a href="ch00-00-introduction.html">介绍</a></li><li><a href="ch01-00-getting-started.html"><strong aria-hidden="true">1.</strong> 入门指南</a></li><li><ol class="section"><li><a href="ch01-01-installation.html"><strong aria-hidden="true">1.1.</strong> 安装</a></li><li><a href="ch01-02-hello-world.html"><strong aria-hidden="true">1.2.</strong> Hello, World!</a></li><li><a href="ch01-03-hello-cargo.html"><strong aria-hidden="true">1.3.</strong> Hello, Cargo!</a></li></ol></li><li><a href="ch02-00-guessing-game-tutorial.html"><strong aria-hidden="true">2.</strong> 猜猜看游戏教程</a></li><li><a href="ch03-00-common-programming-concepts.html"><strong aria-hidden="true">3.</strong> 常见编程概念</a></li><li><ol class="section"><li><a href="ch03-01-variables-and-mutability.html"><strong aria-hidden="true">3.1.</strong> 变量与可变性</a></li><li><a href="ch03-02-data-types.html"><strong aria-hidden="true">3.2.</strong> 数据类型</a></li><li><a href="ch03-03-how-functions-work.html"><strong aria-hidden="true">3.3.</strong> 函数如何工作</a></li><li><a href="ch03-04-comments.html"><strong aria-hidden="true">3.4.</strong> 注释</a></li><li><a href="ch03-05-control-flow.html"><strong aria-hidden="true">3.5.</strong> 控制流</a></li></ol></li><li><a href="ch04-00-understanding-ownership.html"><strong aria-hidden="true">4.</strong> 认识所有权</a></li><li><ol class="section"><li><a href="ch04-01-what-is-ownership.html"><strong aria-hidden="true">4.1.</strong> 什么是所有权？</a></li><li><a href="ch04-02-references-and-borrowing.html"><strong aria-hidden="true">4.2.</strong> 引用与借用</a></li><li><a href="ch04-03-slices.html"><strong aria-hidden="true">4.3.</strong> Slices</a></li></ol></li><li><a href="ch05-00-structs.html"><strong aria-hidden="true">5.</strong> 使用结构体来组织相关联的数据</a></li><li><ol class="section"><li><a href="ch05-01-defining-structs.html"><strong aria-hidden="true">5.1.</strong> 定义并实例化结构体</a></li><li><a href="ch05-02-example-structs.html"><strong aria-hidden="true">5.2.</strong> 一个使用结构体的示例程序</a></li><li><a href="ch05-03-method-syntax.html"><strong aria-hidden="true">5.3.</strong> 方法语法</a></li></ol></li><li><a href="ch06-00-enums.html"><strong aria-hidden="true">6.</strong> 枚举与模式匹配</a></li><li><ol class="section"><li><a href="ch06-01-defining-an-enum.html"><strong aria-hidden="true">6.1.</strong> 定义枚举</a></li><li><a href="ch06-02-match.html"><strong aria-hidden="true">6.2.</strong> match 控制流运算符</a></li><li><a href="ch06-03-if-let.html"><strong aria-hidden="true">6.3.</strong> if let 简洁控制流</a></li></ol></li><li><a href="ch07-00-managing-growing-projects-with-packages-crates-and-modules.html"><strong aria-hidden="true">7.</strong> 使用包、Crate 和模块管理不断增长的项目</a></li><li><ol class="section"><li><a href="ch07-01-packages-and-crates.html"><strong aria-hidden="true">7.1.</strong> 包和 crate</a></li><li><a href="ch07-02-defining-modules-to-control-scope-and-privacy.html"><strong aria-hidden="true">7.2.</strong> 定义模块来控制作用域与私有性</a></li><li><a href="ch07-03-paths-for-referring-to-an-item-in-the-module-tree.html"><strong aria-hidden="true">7.3.</strong> 路径用于引用模块树中的项</a></li><li><a href="ch07-04-bringing-paths-into-scope-with-the-use-keyword.html"><strong aria-hidden="true">7.4.</strong> 使用 use 关键字将名称引入作用域</a></li><li><a href="ch07-05-separating-modules-into-different-files.html"><strong aria-hidden="true">7.5.</strong> 将模块分割进不同文件</a></li></ol></li><li><a href="ch08-00-common-collections.html"><strong aria-hidden="true">8.</strong> 常见集合</a></li><li><ol class="section"><li><a href="ch08-01-vectors.html"><strong aria-hidden="true">8.1.</strong> vector</a></li><li><a href="ch08-02-strings.html"><strong aria-hidden="true">8.2.</strong> 字符串</a></li><li><a href="ch08-03-hash-maps.html"><strong aria-hidden="true">8.3.</strong> 哈希 map</a></li></ol></li><li><a href="ch09-00-error-handling.html"><strong aria-hidden="true">9.</strong> 错误处理</a></li><li><ol class="section"><li><a href="ch09-01-unrecoverable-errors-with-panic.html"><strong aria-hidden="true">9.1.</strong> panic! 与不可恢复的错误</a></li><li><a href="ch09-02-recoverable-errors-with-result.html"><strong aria-hidden="true">9.2.</strong> Result 与可恢复的错误</a></li><li><a href="ch09-03-to-panic-or-not-to-panic.html"><strong aria-hidden="true">9.3.</strong> panic! 还是不 panic!</a></li></ol></li><li><a href="ch10-00-generics.html"><strong aria-hidden="true">10.</strong> 泛型、trait 与生命周期</a></li><li><ol class="section"><li><a href="ch10-01-syntax.html"><strong aria-hidden="true">10.1.</strong> 泛型数据类型</a></li><li><a href="ch10-02-traits.html"><strong aria-hidden="true">10.2.</strong> trait：定义共享的行为</a></li><li><a href="ch10-03-lifetime-syntax.html"><strong aria-hidden="true">10.3.</strong> 生命周期与引用有效性</a></li></ol></li><li><a href="ch11-00-testing.html"><strong aria-hidden="true">11.</strong> 测试</a></li><li><ol class="section"><li><a href="ch11-01-writing-tests.html"><strong aria-hidden="true">11.1.</strong> 编写测试</a></li><li><a href="ch11-02-running-tests.html"><strong aria-hidden="true">11.2.</strong> 运行测试</a></li><li><a href="ch11-03-test-organization.html"><strong aria-hidden="true">11.3.</strong> 测试的组织结构</a></li></ol></li><li><a href="ch12-00-an-io-project.html"><strong aria-hidden="true">12.</strong> 一个 I/O 项目：构建命令行程序</a></li><li><ol class="section"><li><a href="ch12-01-accepting-command-line-arguments.html"><strong aria-hidden="true">12.1.</strong> 接受命令行参数</a></li><li><a href="ch12-02-reading-a-file.html"><strong aria-hidden="true">12.2.</strong> 读取文件</a></li><li><a href="ch12-03-improving-error-handling-and-modularity.html"><strong aria-hidden="true">12.3.</strong> 重构以改进模块化与错误处理</a></li><li><a href="ch12-04-testing-the-librarys-functionality.html"><strong aria-hidden="true">12.4.</strong> 采用测试驱动开发完善库的功能</a></li><li><a href="ch12-05-working-with-environment-variables.html"><strong aria-hidden="true">12.5.</strong> 处理环境变量</a></li><li><a href="ch12-06-writing-to-stderr-instead-of-stdout.html"><strong aria-hidden="true">12.6.</strong> 将错误信息输出到标准错误而不是标准输出</a></li></ol></li><li><a href="ch13-00-functional-features.html"><strong aria-hidden="true">13.</strong> Rust 中的函数式语言功能：迭代器与闭包</a></li><li><ol class="section"><li><a href="ch13-01-closures.html"><strong aria-hidden="true">13.1.</strong> 闭包：可以捕获其环境的匿名函数</a></li><li><a href="ch13-02-iterators.html"><strong aria-hidden="true">13.2.</strong> 使用迭代器处理元素序列</a></li><li><a href="ch13-03-improving-our-io-project.html"><strong aria-hidden="true">13.3.</strong> 改进之前的 I/O 项目</a></li><li><a href="ch13-04-performance.html"><strong aria-hidden="true">13.4.</strong> 性能比较：循环对迭代器</a></li></ol></li><li><a href="ch14-00-more-about-cargo.html"><strong aria-hidden="true">14.</strong> 更多关于 Cargo 和 Crates.io 的内容</a></li><li><ol class="section"><li><a href="ch14-01-release-profiles.html"><strong aria-hidden="true">14.1.</strong> 采用发布配置自定义构建</a></li><li><a href="ch14-02-publishing-to-crates-io.html"><strong aria-hidden="true">14.2.</strong> 将 crate 发布到 Crates.io</a></li><li><a href="ch14-03-cargo-workspaces.html"><strong aria-hidden="true">14.3.</strong> Cargo 工作空间</a></li><li><a href="ch14-04-installing-binaries.html"><strong aria-hidden="true">14.4.</strong> 使用 cargo install 从 Crates.io 安装二进制文件</a></li><li><a href="ch14-05-extending-cargo.html"><strong aria-hidden="true">14.5.</strong> Cargo 自定义扩展命令</a></li></ol></li><li><a href="ch15-00-smart-pointers.html"><strong aria-hidden="true">15.</strong> 智能指针</a></li><li><ol class="section"><li><a href="ch15-01-box.html"><strong aria-hidden="true">15.1.</strong> Box<T> 指向堆上数据，并且可确定大小</a></li><li><a href="ch15-02-deref.html"><strong aria-hidden="true">15.2.</strong> 通过 Deref trait 将智能指针当作常规引用处理</a></li><li><a href="ch15-03-drop.html"><strong aria-hidden="true">15.3.</strong> Drop Trait 运行清理代码</a></li><li><a href="ch15-04-rc.html"><strong aria-hidden="true">15.4.</strong> Rc<T> 引用计数智能指针</a></li><li><a href="ch15-05-interior-mutability.html"><strong aria-hidden="true">15.5.</strong> RefCell<T> 与内部可变性模式</a></li><li><a href="ch15-06-reference-cycles.html" class="active"><strong aria-hidden="true">15.6.</strong> 引用循环与内存泄漏是安全的</a></li></ol></li><li><a href="ch16-00-concurrency.html"><strong aria-hidden="true">16.</strong> 无畏并发</a></li><li><ol class="section"><li><a href="ch16-01-threads.html"><strong aria-hidden="true">16.1.</strong> 线程</a></li><li><a href="ch16-02-message-passing.html"><strong aria-hidden="true">16.2.</strong> 消息传递</a></li><li><a href="ch16-03-shared-state.html"><strong aria-hidden="true">16.3.</strong> 共享状态</a></li><li><a href="ch16-04-extensible-concurrency-sync-and-send.html"><strong aria-hidden="true">16.4.</strong> 可扩展的并发：Sync 与 Send</a></li></ol></li><li><a href="ch17-00-oop.html"><strong aria-hidden="true">17.</strong> Rust 的面向对象编程特性</a></li><li><ol class="section"><li><a href="ch17-01-what-is-oo.html"><strong aria-hidden="true">17.1.</strong> 面向对象语言的特点</a></li><li><a href="ch17-02-trait-objects.html"><strong aria-hidden="true">17.2.</strong> 为使用不同类型的值而设计的 trait 对象</a></li><li><a href="ch17-03-oo-design-patterns.html"><strong aria-hidden="true">17.3.</strong> 面向对象设计模式的实现</a></li></ol></li><li><a href="ch18-00-patterns.html"><strong aria-hidden="true">18.</strong> 模式用来匹配值的结构</a></li><li><ol class="section"><li><a href="ch18-01-all-the-places-for-patterns.html"><strong aria-hidden="true">18.1.</strong> 所有可能会用到模式的位置</a></li><li><a href="ch18-02-refutability.html"><strong aria-hidden="true">18.2.</strong> Refutability：何时模式可能会匹配失败</a></li><li><a href="ch18-03-pattern-syntax.html"><strong aria-hidden="true">18.3.</strong> 模式的全部语法</a></li></ol></li><li><a href="ch19-00-advanced-features.html"><strong aria-hidden="true">19.</strong> 高级特征</a></li><li><ol class="section"><li><a href="ch19-01-unsafe-rust.html"><strong aria-hidden="true">19.1.</strong> 不安全的 Rust</a></li><li><a href="ch19-03-advanced-traits.html"><strong aria-hidden="true">19.2.</strong> 高级 trait</a></li><li><a href="ch19-04-advanced-types.html"><strong aria-hidden="true">19.3.</strong> 高级类型</a></li><li><a href="ch19-05-advanced-functions-and-closures.html"><strong aria-hidden="true">19.4.</strong> 高级函数与闭包</a></li><li><a href="ch19-06-macros.html"><strong aria-hidden="true">19.5.</strong> 宏</a></li></ol></li><li><a href="ch20-00-final-project-a-web-server.html"><strong aria-hidden="true">20.</strong> 最后的项目: 构建多线程 web server</a></li><li><ol class="section"><li><a href="ch20-01-single-threaded.html"><strong aria-hidden="true">20.1.</strong> 单线程 web server</a></li><li><a href="ch20-02-multithreaded.html"><strong aria-hidden="true">20.2.</strong> 将单线程 server 变为多线程 server</a></li><li><a href="ch20-03-graceful-shutdown-and-cleanup.html"><strong aria-hidden="true">20.3.</strong> 优雅停机与清理</a></li></ol></li><li><a href="appendix-00.html"><strong aria-hidden="true">21.</strong> 附录</a></li><li><ol class="section"><li><a href="appendix-01-keywords.html"><strong aria-hidden="true">21.1.</strong> A - 关键字</a></li><li><a href="appendix-02-operators.html"><strong aria-hidden="true">21.2.</strong> B - 运算符与符号</a></li><li><a href="appendix-03-derivable-traits.html"><strong aria-hidden="true">21.3.</strong> C - 可派生的 trait</a></li><li><a href="appendix-04-useful-development-tools.html"><strong aria-hidden="true">21.4.</strong> D - 实用开发工具</a></li><li><a href="appendix-05-editions.html"><strong aria-hidden="true">21.5.</strong> E - 版本</a></li><li><a href="appendix-06-translation.html"><strong aria-hidden="true">21.6.</strong> F - 本书译本</a></li><li><a href="appendix-07-nightly-rust.html"><strong aria-hidden="true">21.7.</strong> G - Rust 是如何开发的与 “Nightly Rust”</a></li></ol></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -114,7 +113,7 @@
                             
                         </div>
 
-                        <h1 class="menu-title">The Rust Programming Language</h1>
+                        <h1 class="menu-title">Rust 程序设计语言 简体中文版</h1>
 
                         <div class="right-buttons">
                             <a href="print.html" title="Print this book" aria-label="Print this book">
@@ -149,20 +148,16 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h2><a class="header" href="#reference-cycles-can-leak-memory" id="reference-cycles-can-leak-memory">Reference Cycles Can Leak Memory</a></h2>
-<p>Rust’s memory safety guarantees make it difficult, but not impossible, to
-accidentally create memory that is never cleaned up (known as a <em>memory leak</em>).
-Preventing memory leaks entirely is not one of Rust’s guarantees in the same
-way that disallowing data races at compile time is, meaning memory leaks are
-memory safe in Rust. We can see that Rust allows memory leaks by using <code>Rc&lt;T&gt;</code>
-and <code>RefCell&lt;T&gt;</code>: it’s possible to create references where items refer to each
-other in a cycle. This creates memory leaks because the reference count of each
-item in the cycle will never reach 0, and the values will never be dropped.</p>
-<h3><a class="header" href="#creating-a-reference-cycle" id="creating-a-reference-cycle">Creating a Reference Cycle</a></h3>
-<p>Let’s look at how a reference cycle might happen and how to prevent it,
-starting with the definition of the <code>List</code> enum and a <code>tail</code> method in Listing
-15-25:</p>
-<p><span class="filename">Filename: src/main.rs</span></p>
+                        <h2><a class="header" href="#引用循环与内存泄漏" id="引用循环与内存泄漏">引用循环与内存泄漏</a></h2>
+<blockquote>
+<p><a href="https://github.com/rust-lang/book/blob/master/src/ch15-06-reference-cycles.md">ch15-06-reference-cycles.md</a>
+<br>
+commit 1fedfc4b96c2017f64ecfcf41a0a07e2e815f24f</p>
+</blockquote>
+<p>Rust 的内存安全保证使其难以意外地制造永远也不会被清理的内存（被称为 <strong>内存泄露</strong>（<em>memory leak</em>）），但并不是不可能。与在编译时拒绝数据竞争不同， Rust 并不保证完全地避免内存泄露，这意味着内存泄露在 Rust 被认为是内存安全的。这一点可以通过 <code>Rc&lt;T&gt;</code> 和 <code>RefCell&lt;T&gt;</code> 看出：有可能会创建个个项之间相互引用的引用。这会造成内存泄露，因为每一项的引用计数将永远也到不了 0，其值也永远也不会被丢弃。</p>
+<h3><a class="header" href="#制造引用循环" id="制造引用循环">制造引用循环</a></h3>
+<p>让我们看看引用循环是如何发生的以及如何避免它。以示例 15-25 中的 <code>List</code> 枚举和 <code>tail</code> 方法的定义开始：</p>
+<p><span class="filename">文件名: src/main.rs</span></p>
 <!-- Hidden fn main is here to disable the automatic wrapping in fn main that
 doc tests do; the `use List` fails if this listing is put within a main -->
 <pre><pre class="playpen"><code class="language-rust"># fn main() {}
@@ -185,19 +180,9 @@ impl List {
     }
 }
 </code></pre></pre>
-<p><span class="caption">Listing 15-25: A cons list definition that holds a
-<code>RefCell&lt;T&gt;</code> so we can modify what a <code>Cons</code> variant is referring to</span></p>
-<p>We’re using another variation of the <code>List</code> definition from Listing 15-5. The
-second element in the <code>Cons</code> variant is now <code>RefCell&lt;Rc&lt;List&gt;&gt;</code>, meaning that
-instead of having the ability to modify the <code>i32</code> value as we did in Listing
-15-24, we want to modify which <code>List</code> value a <code>Cons</code> variant is pointing to.
-We’re also adding a <code>tail</code> method to make it convenient for us to access the
-second item if we have a <code>Cons</code> variant.</p>
-<p>In Listing 15-26, we’re adding a <code>main</code> function that uses the definitions in
-Listing 15-25. This code creates a list in <code>a</code> and a list in <code>b</code> that points to
-the list in <code>a</code>. Then it modifies the list in <code>a</code> to point to <code>b</code>, creating a
-reference cycle. There are <code>println!</code> statements along the way to show what the
-reference counts are at various points in this process.</p>
+<p><span class="caption">示例 15-25: 一个存放 <code>RefCell</code> 的 cons list 定义，这样可以修改 <code>Cons</code> 成员所引用的数据</span></p>
+<p>这里采用了示例 15-25 中 <code>List</code> 定义的另一种变体。现在 <code>Cons</code> 成员的第二个元素是 <code>RefCell&lt;Rc&lt;List&gt;&gt;</code>，这意味着不同于像示例 15-24 那样能够修改 <code>i32</code> 的值，我们希望能够修改 <code>Cons</code> 成员所指向的 <code>List</code>。这里还增加了一个 <code>tail</code> 方法来方便我们在有 <code>Cons</code> 成员的时候访问其第二项。</p>
+<p>在示例 15-26 中增加了一个 <code>main</code> 函数，其使用了示例 15-25 中的定义。这些代码在 <code>a</code> 中创建了一个列表，一个指向 <code>a</code> 中列表的 <code>b</code> 列表，接着修改 <code>b</code> 中的列表指向 <code>a</code> 中的列表，这会创建一个引用循环。在这个过程的多个位置有 <code>println!</code> 语句展示引用计数。</p>
 <p><span class="filename">Filename: src/main.rs</span></p>
 <pre><pre class="playpen"><code class="language-rust"># use crate::List::{Cons, Nil};
 # use std::rc::Rc;
@@ -236,24 +221,15 @@ fn main() {
     println!(&quot;b rc count after changing a = {}&quot;, Rc::strong_count(&amp;b));
     println!(&quot;a rc count after changing a = {}&quot;, Rc::strong_count(&amp;a));
 
-    // Uncomment the next line to see that we have a cycle;
-    // it will overflow the stack
+    // 取消如下行的注释来观察引用循环；
+    // 这会导致栈溢出
     // println!(&quot;a next item = {:?}&quot;, a.tail());
 }
 </code></pre></pre>
-<p><span class="caption">Listing 15-26: Creating a reference cycle of two <code>List</code>
-values pointing to each other</span></p>
-<p>We create an <code>Rc&lt;List&gt;</code> instance holding a <code>List</code> value in the variable <code>a</code>
-with an initial list of <code>5, Nil</code>. We then create an <code>Rc&lt;List&gt;</code> instance
-holding another <code>List</code> value in the variable <code>b</code> that contains the value 10 and
-points to the list in <code>a</code>.</p>
-<p>We modify <code>a</code> so it points to <code>b</code> instead of <code>Nil</code>, creating a cycle. We
-do that by using the <code>tail</code> method to get a reference to the
-<code>RefCell&lt;Rc&lt;List&gt;&gt;</code> in <code>a</code>, which we put in the variable <code>link</code>. Then we use
-the <code>borrow_mut</code> method on the <code>RefCell&lt;Rc&lt;List&gt;&gt;</code> to change the value inside
-from an <code>Rc&lt;List&gt;</code> that holds a <code>Nil</code> value to the <code>Rc&lt;List&gt;</code> in <code>b</code>.</p>
-<p>When we run this code, keeping the last <code>println!</code> commented out for the
-moment, we’ll get this output:</p>
+<p><span class="caption">示例 15-26：创建一个引用循环：两个 <code>List</code> 值互相指向彼此</span></p>
+<p>这里在变量 <code>a</code> 中创建了一个 <code>Rc&lt;List&gt;</code> 实例来存放初值为 <code>5, Nil</code> 的 <code>List</code> 值。接着在变量 <code>b</code> 中创建了存放包含值 10 和指向列表 <code>a</code> 的 <code>List</code> 的另一个 <code>Rc&lt;List&gt;</code> 实例。</p>
+<p>最后，修改 <code>a</code> 使其指向 <code>b</code> 而不是 <code>Nil</code>，这就创建了一个循环。为此需要使用 <code>tail</code> 方法获取 <code>a</code> 中 <code>RefCell&lt;Rc&lt;List&gt;&gt;</code> 的引用，并放入变量 <code>link</code> 中。接着使用 <code>RefCell&lt;Rc&lt;List&gt;&gt;</code> 的 <code>borrow_mut</code> 方法将其值从存放 <code>Nil</code> 的 <code>Rc</code> 修改为 <code>b</code> 中的 <code>Rc&lt;List&gt;</code>。</p>
+<p>如果保持最后的 <code>println!</code> 行注释并运行代码，会得到如下输出：</p>
 <pre><code class="language-text">a initial rc count = 1
 a next item = Some(RefCell { value: Nil })
 a rc count after b creation = 2
@@ -262,73 +238,22 @@ b next item = Some(RefCell { value: Cons(5, RefCell { value: Nil }) })
 b rc count after changing a = 2
 a rc count after changing a = 2
 </code></pre>
-<p>The reference count of the <code>Rc&lt;List&gt;</code> instances in both <code>a</code> and <code>b</code> are 2
-after we change the list in <code>a</code> to point to <code>b</code>. At the end of <code>main</code>, Rust
-will try to drop <code>b</code> first, which will decrease the count of the <code>Rc&lt;List&gt;</code>
-instance in <code>b</code> by 1.</p>
-<p>However, because <code>a</code> is still referencing the <code>Rc&lt;List&gt;</code> that was in <code>b</code>, that
-<code>Rc&lt;List&gt;</code> has a count of 1 rather than 0, so the memory the <code>Rc&lt;List&gt;</code> has on
-the heap won’t be dropped. The memory will just sit there with a count of 1,
-forever. To visualize this reference cycle, we’ve created a diagram in Figure
-15-4.</p>
+<p>可以看到将 <code>a</code> 修改为指向 <code>b</code> 之后，<code>a</code> 和 <code>b</code> 中都有的 <code>Rc&lt;List&gt;</code> 实例的引用计数为 2。在 <code>main</code> 的结尾，Rust 会尝试首先丢弃 <code>b</code>，这会使 <code>a</code> 和 <code>b</code> 中 <code>Rc</code> 实例的引用计数减 1。</p>
+<p>然而，因为 <code>a</code> 仍然引用 <code>b</code> 中的 <code>Rc&lt;List&gt;</code>，<code>Rc&lt;List&gt;</code> 的引用计数是 1 而不是 0，所以 <code>Rc&lt;List&gt;</code> 在堆上的内存不会被丢弃。其内存会因为引用计数为 1 而永远停留。为了更形象的展示，我们创建了一个如图 15-4 所示的引用循环：</p>
 <img alt="Reference cycle of lists" src="img/trpl15-04.svg" class="center" />
-<p><span class="caption">Figure 15-4: A reference cycle of lists <code>a</code> and <code>b</code>
-pointing to each other</span></p>
-<p>If you uncomment the last <code>println!</code> and run the program, Rust will try to
-print this cycle with <code>a</code> pointing to <code>b</code> pointing to <code>a</code> and so forth until it
-overflows the stack.</p>
-<p>In this case, right after we create the reference cycle, the program ends. The
-consequences of this cycle aren’t very dire. However, if a more complex program
-allocated lots of memory in a cycle and held onto it for a long time, the
-program would use more memory than it needed and might overwhelm the system,
-causing it to run out of available memory.</p>
-<p>Creating reference cycles is not easily done, but it’s not impossible either.
-If you have <code>RefCell&lt;T&gt;</code> values that contain <code>Rc&lt;T&gt;</code> values or similar nested
-combinations of types with interior mutability and reference counting, you must
-ensure that you don’t create cycles; you can’t rely on Rust to catch them.
-Creating a reference cycle would be a logic bug in your program that you should
-use automated tests, code reviews, and other software development practices to
-minimize.</p>
-<p>Another solution for avoiding reference cycles is reorganizing your data
-structures so that some references express ownership and some references don’t.
-As a result, you can have cycles made up of some ownership relationships and
-some non-ownership relationships, and only the ownership relationships affect
-whether or not a value can be dropped. In Listing 15-25, we always want <code>Cons</code>
-variants to own their list, so reorganizing the data structure isn’t possible.
-Let’s look at an example using graphs made up of parent nodes and child nodes
-to see when non-ownership relationships are an appropriate way to prevent
-reference cycles.</p>
-<h3><a class="header" href="#preventing-reference-cycles-turning-an-rct-into-a-weakt" id="preventing-reference-cycles-turning-an-rct-into-a-weakt">Preventing Reference Cycles: Turning an <code>Rc&lt;T&gt;</code> into a <code>Weak&lt;T&gt;</code></a></h3>
-<p>So far, we’ve demonstrated that calling <code>Rc::clone</code> increases the
-<code>strong_count</code> of an <code>Rc&lt;T&gt;</code> instance, and an <code>Rc&lt;T&gt;</code> instance is only cleaned
-up if its <code>strong_count</code> is 0. You can also create a <em>weak reference</em> to the
-value within an <code>Rc&lt;T&gt;</code> instance by calling <code>Rc::downgrade</code> and passing a
-reference to the <code>Rc&lt;T&gt;</code>. When you call <code>Rc::downgrade</code>, you get a smart
-pointer of type <code>Weak&lt;T&gt;</code>. Instead of increasing the <code>strong_count</code> in the
-<code>Rc&lt;T&gt;</code> instance by 1, calling <code>Rc::downgrade</code> increases the <code>weak_count</code> by 1.
-The <code>Rc&lt;T&gt;</code> type uses <code>weak_count</code> to keep track of how many <code>Weak&lt;T&gt;</code>
-references exist, similar to <code>strong_count</code>. The difference is the <code>weak_count</code>
-doesn’t need to be 0 for the <code>Rc&lt;T&gt;</code> instance to be cleaned up.</p>
-<p>Strong references are how you can share ownership of an <code>Rc&lt;T&gt;</code> instance. Weak
-references don’t express an ownership relationship. They won’t cause a
-reference cycle because any cycle involving some weak references will be broken
-once the strong reference count of values involved is 0.</p>
-<p>Because the value that <code>Weak&lt;T&gt;</code> references might have been dropped, to do
-anything with the value that a <code>Weak&lt;T&gt;</code> is pointing to, you must make sure the
-value still exists. Do this by calling the <code>upgrade</code> method on a <code>Weak&lt;T&gt;</code>
-instance, which will return an <code>Option&lt;Rc&lt;T&gt;&gt;</code>. You’ll get a result of <code>Some</code>
-if the <code>Rc&lt;T&gt;</code> value has not been dropped yet and a result of <code>None</code> if the
-<code>Rc&lt;T&gt;</code> value has been dropped. Because <code>upgrade</code> returns an <code>Option&lt;T&gt;</code>, Rust
-will ensure that the <code>Some</code> case and the <code>None</code> case are handled, and there
-won’t be an invalid pointer.</p>
-<p>As an example, rather than using a list whose items know only about the next
-item, we’ll create a tree whose items know about their children items <em>and</em>
-their parent items.</p>
-<h4><a class="header" href="#creating-a-tree-data-structure-a-node-with-child-nodes" id="creating-a-tree-data-structure-a-node-with-child-nodes">Creating a Tree Data Structure: a <code>Node</code> with Child Nodes</a></h4>
-<p>To start, we’ll build a tree with nodes that know about their child nodes.
-We’ll create a struct named <code>Node</code> that holds its own <code>i32</code> value as well as
-references to its children <code>Node</code> values:</p>
-<p><span class="filename">Filename: src/main.rs</span></p>
+<p><span class="caption">图 15-4: 列表 <code>a</code> 和 <code>b</code> 彼此互相指向形成引用循环</span></p>
+<p>如果取消最后 <code>println!</code> 的注释并运行程序，Rust 会尝试打印出 <code>a</code> 指向 <code>b</code> 指向 <code>a</code> 这样的循环直到栈溢出。</p>
+<p>这个特定的例子中，创建了引用循环之后程序立刻就结束了。这个循环的结果并不可怕。如果在更为复杂的程序中并在循环里分配了很多内存并占有很长时间，这个程序会使用多于它所需要的内存，并有可能压垮系统并造成没有内存可供使用。</p>
+<p>创建引用循环并不容易，但也不是不可能。如果你有包含 <code>Rc&lt;T&gt;</code> 的 <code>RefCell&lt;T&gt;</code> 值或类似的嵌套结合了内部可变性和引用计数的类型，请务必小心确保你没有形成一个引用循环；你无法指望 Rust 帮你捕获它们。创建引用循环是一个程序上的逻辑 bug，你应该使用自动化测试、代码评审和其他软件开发最佳实践来使其最小化。</p>
+<p>另一个解决方案是重新组织数据结构使得一些引用有所有权而另一些则没有。如此，循环将由一些有所有权的关系和一些没有所有权的关系，而只有所有权关系才影响值是否被丢弃。在示例 15-25 中，我们总是希望 <code>Cons</code> 成员拥有其列表，所以重新组织数据结构是不可能的。让我们看看一个由父结点和子结点构成的图的例子，观察何时无所有权关系是一个好的避免引用循环的方法。</p>
+<h3><a class="header" href="#避免引用循环将-rct-变为-weakt" id="避免引用循环将-rct-变为-weakt">避免引用循环：将 <code>Rc&lt;T&gt;</code> 变为 <code>Weak&lt;T&gt;</code></a></h3>
+<p>到目前为止，我们已经展示了调用 <code>Rc::clone</code> 会增加 <code>Rc&lt;T&gt;</code> 实例的 <code>strong_count</code>，和 <code>Rc&lt;T&gt;</code> 实例只在其 <code>strong_count</code> 为 0 时才会被清理。也可以通过调用 <code>Rc::downgrade</code> 并传递 <code>Rc</code> 实例的引用来创建其值的 <strong>弱引用</strong>（<em>weak reference</em>）。调用 <code>Rc::downgrade</code> 时会得到 <code>Weak&lt;T&gt;</code> 类型的智能指针。不同于将 <code>Rc&lt;T&gt;</code> 实例的 <code>strong_count</code> 加一，调用 <code>Rc::downgrade</code> 会将 <code>weak_count</code> 加一。<code>Rc&lt;T&gt;</code> 类型使用 <code>weak_count</code> 来记录其存在多少个 <code>Weak&lt;T&gt;</code> 引用，类似于 <code>strong_count</code>。其区别在于 <code>weak_count</code> 无需计数为 0 就能使 <code>Rc</code> 实例被清理。</p>
+<p>强引用代表如何共享 <code>Rc&lt;T&gt;</code> 实例的所有权。弱引用并不代表所有权关系。他们不会造成引用循环，因为任何引入了弱引用的循环一旦所涉及的强引用计数为 0 就会被打破。</p>
+<p>因为 <code>Weak&lt;T&gt;</code> 引用的值可能已经被丢弃了，为了使用 <code>Weak&lt;T&gt;</code> 所指向的值，我们必须确保其值仍然有效。为此可以调用 <code>Weak&lt;T&gt;</code> 实例的 <code>upgrade</code> 方法，这会返回 <code>Option&lt;Rc&lt;T&gt;&gt;</code>。如果 <code>Rc&lt;T&gt;</code> 值还未被丢弃则结果是 <code>Some</code>，如果 <code>Rc&lt;T&gt;</code> 已经被丢弃则结果是 <code>None</code>。因为 <code>upgrade</code> 返回一个 <code>Option&lt;T&gt;</code>，我们确信 Rust 会处理 <code>Some</code> 和 <code>None</code>的情况，并且不会有一个无效的指针。</p>
+<p>作为一个例子，不同于使用一个某项只知道其下一项的列表，我们会创建一个某项知道其子项 <strong>和</strong> 父项的树形结构。</p>
+<h4><a class="header" href="#创建树形数据结构带有子结点的-node" id="创建树形数据结构带有子结点的-node">创建树形数据结构：带有子结点的 <code>Node</code></a></h4>
+<p>让我们从一个叫做 <code>Node</code> 的存放拥有所有权的 <code>i32</code> 值和其子 <code>Node</code> 值引用的结构体开始：</p>
+<p><span class="filename">文件名: src/main.rs</span></p>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
 #fn main() {
@@ -341,15 +266,9 @@ struct Node {
     children: RefCell&lt;Vec&lt;Rc&lt;Node&gt;&gt;&gt;,
 }
 #}</code></pre></pre>
-<p>We want a <code>Node</code> to own its children, and we want to share that ownership with
-variables so we can access each <code>Node</code> in the tree directly. To do this, we
-define the <code>Vec&lt;T&gt;</code> items to be values of type <code>Rc&lt;Node&gt;</code>. We also want to
-modify which nodes are children of another node, so we have a <code>RefCell&lt;T&gt;</code> in
-<code>children</code> around the <code>Vec&lt;Rc&lt;Node&gt;&gt;</code>.</p>
-<p>Next, we’ll use our struct definition and create one <code>Node</code> instance named
-<code>leaf</code> with the value 3 and no children, and another instance named <code>branch</code>
-with the value 5 and <code>leaf</code> as one of its children, as shown in Listing 15-27:</p>
-<p><span class="filename">Filename: src/main.rs</span></p>
+<p>我们希望能够 <code>Node</code> 拥有其子结点，同时也希望通过变量来共享所有权，以便可以直接访问树中的每一个 <code>Node</code>。为此 <code>Vec&lt;T&gt;</code> 的项的类型被定义为 <code>Rc&lt;Node&gt;</code>。我们还希望能改其他结点的子结点，所以 <code>children</code> 中 <code>Vec&lt;Rc&lt;Node&gt;&gt;</code> 被放进了 <code>RefCell&lt;T&gt;</code>。</p>
+<p>接下来，使用此结构体定义来创建一个叫做 <code>leaf</code> 的带有值 3 且没有子结点的 <code>Node</code> 实例，和另一个带有值 5 并以 <code>leaf</code> 作为子结点的实例 <code>branch</code>，如示例 15-27 所示：</p>
+<p><span class="filename">文件名: src/main.rs</span></p>
 <pre><pre class="playpen"><code class="language-rust"># use std::rc::Rc;
 # use std::cell::RefCell;
 #
@@ -371,29 +290,13 @@ fn main() {
     });
 }
 </code></pre></pre>
-<p><span class="caption">Listing 15-27: Creating a <code>leaf</code> node with no children
-and a <code>branch</code> node with <code>leaf</code> as one of its children</span></p>
-<p>We clone the <code>Rc&lt;Node&gt;</code> in <code>leaf</code> and store that in <code>branch</code>, meaning the
-<code>Node</code> in <code>leaf</code> now has two owners: <code>leaf</code> and <code>branch</code>. We can get from
-<code>branch</code> to <code>leaf</code> through <code>branch.children</code>, but there’s no way to get from
-<code>leaf</code> to <code>branch</code>. The reason is that <code>leaf</code> has no reference to <code>branch</code> and
-doesn’t know they’re related. We want <code>leaf</code> to know that <code>branch</code> is its
-parent. We’ll do that next.</p>
-<h4><a class="header" href="#adding-a-reference-from-a-child-to-its-parent" id="adding-a-reference-from-a-child-to-its-parent">Adding a Reference from a Child to Its Parent</a></h4>
-<p>To make the child node aware of its parent, we need to add a <code>parent</code> field to
-our <code>Node</code> struct definition. The trouble is in deciding what the type of
-<code>parent</code> should be. We know it can’t contain an <code>Rc&lt;T&gt;</code>, because that would
-create a reference cycle with <code>leaf.parent</code> pointing to <code>branch</code> and
-<code>branch.children</code> pointing to <code>leaf</code>, which would cause their <code>strong_count</code>
-values to never be 0.</p>
-<p>Thinking about the relationships another way, a parent node should own its
-children: if a parent node is dropped, its child nodes should be dropped as
-well. However, a child should not own its parent: if we drop a child node, the
-parent should still exist. This is a case for weak references!</p>
-<p>So instead of <code>Rc&lt;T&gt;</code>, we’ll make the type of <code>parent</code> use <code>Weak&lt;T&gt;</code>,
-specifically a <code>RefCell&lt;Weak&lt;Node&gt;&gt;</code>. Now our <code>Node</code> struct definition looks
-like this:</p>
-<p><span class="filename">Filename: src/main.rs</span></p>
+<p><span class="caption">示例 15-27：创建没有子结点的 <code>leaf</code> 结点和以 <code>leaf</code> 作为子结点的 <code>branch</code> 结点</span></p>
+<p>这里克隆了 <code>leaf</code> 中的 <code>Rc&lt;Node&gt;</code> 并储存在了 <code>branch</code> 中，这意味着 <code>leaf</code> 中的 <code>Node</code> 现在有两个所有者：<code>leaf</code>和<code>branch</code>。可以通过 <code>branch.children</code> 从 <code>branch</code> 中获得 <code>leaf</code>，不过无法从 <code>leaf</code> 到 <code>branch</code>。<code>leaf</code> 没有到 <code>branch</code> 的引用且并不知道他们相互关联。我们希望 <code>leaf</code> 知道 <code>branch</code> 是其父结点。稍后会这么做。</p>
+<h4><a class="header" href="#增加从子到父的引用" id="增加从子到父的引用">增加从子到父的引用</a></h4>
+<p>为了使子结点知道其父结点，需要在 <code>Node</code> 结构体定义中增加一个 <code>parent</code> 字段。问题是 <code>parent</code> 的类型应该是什么。我们知道其不能包含 <code>Rc&lt;T&gt;</code>，因为这样 <code>leaf.parent</code> 将会指向 <code>branch</code> 而 <code>branch.children</code> 会包含 <code>leaf</code> 的指针，这会形成引用循环，会造成其 <code>strong_count</code> 永远也不会为 0.</p>
+<p>现在换一种方式思考这个关系，父结点应该拥有其子结点：如果父结点被丢弃了，其子结点也应该被丢弃。然而子结点不应该拥有其父结点：如果丢弃子结点，其父结点应该依然存在。这正是弱引用的例子！</p>
+<p>所以 <code>parent</code> 使用 <code>Weak&lt;T&gt;</code> 类型而不是 <code>Rc&lt;T&gt;</code>，具体来说是 <code>RefCell&lt;Weak&lt;Node&gt;&gt;</code>。现在 <code>Node</code> 结构体定义看起来像这样：</p>
+<p><span class="filename">文件名: src/main.rs</span></p>
 <pre><pre class="playpen"><code class="language-rust">
 # #![allow(unused_variables)]
 #fn main() {
@@ -407,10 +310,8 @@ struct Node {
     children: RefCell&lt;Vec&lt;Rc&lt;Node&gt;&gt;&gt;,
 }
 #}</code></pre></pre>
-<p>A node will be able to refer to its parent node but doesn’t own its parent.
-In Listing 15-28, we update <code>main</code> to use this new definition so the <code>leaf</code>
-node will have a way to refer to its parent, <code>branch</code>:</p>
-<p><span class="filename">Filename: src/main.rs</span></p>
+<p>这样，一个结点就能够引用其父结点，但不拥有其父结点。在示例 15-28 中，我们更新 <code>main</code> 来使用新定义以便 <code>leaf</code> 结点可以通过 <code>branch</code> 引用其父结点：</p>
+<p><span class="filename">文件名: src/main.rs</span></p>
 <pre><pre class="playpen"><code class="language-rust"># use std::rc::{Rc, Weak};
 # use std::cell::RefCell;
 #
@@ -441,42 +342,21 @@ fn main() {
     println!(&quot;leaf parent = {:?}&quot;, leaf.parent.borrow().upgrade());
 }
 </code></pre></pre>
-<p><span class="caption">Listing 15-28: A <code>leaf</code> node with a weak reference to its
-parent node <code>branch</code></span></p>
-<p>Creating the <code>leaf</code> node looks similar to how creating the <code>leaf</code> node looked
-in Listing 15-27 with the exception of the <code>parent</code> field: <code>leaf</code> starts out
-without a parent, so we create a new, empty <code>Weak&lt;Node&gt;</code> reference instance.</p>
-<p>At this point, when we try to get a reference to the parent of <code>leaf</code> by using
-the <code>upgrade</code> method, we get a <code>None</code> value. We see this in the output from the
-first <code>println!</code> statement:</p>
+<p><span class="caption">示例 15-28：一个 <code>leaf</code> 结点，其拥有指向其父结点 <code>branch</code> 的 <code>Weak</code> 引用</span></p>
+<p>创建 <code>leaf</code> 结点类似于示例 15-27 中如何创建 <code>leaf</code> 结点的，除了 <code>parent</code> 字段有所不同：<code>leaf</code> 开始时没有父结点，所以我们新建了一个空的 <code>Weak</code> 引用实例。</p>
+<p>此时，当尝试使用 <code>upgrade</code> 方法获取 <code>leaf</code> 的父结点引用时，会得到一个 <code>None</code> 值。如第一个 <code>println!</code> 输出所示：</p>
 <pre><code class="language-text">leaf parent = None
 </code></pre>
-<p>When we create the <code>branch</code> node, it will also have a new <code>Weak&lt;Node&gt;</code>
-reference in the <code>parent</code> field, because <code>branch</code> doesn’t have a parent node.
-We still have <code>leaf</code> as one of the children of <code>branch</code>. Once we have the
-<code>Node</code> instance in <code>branch</code>, we can modify <code>leaf</code> to give it a <code>Weak&lt;Node&gt;</code>
-reference to its parent. We use the <code>borrow_mut</code> method on the
-<code>RefCell&lt;Weak&lt;Node&gt;&gt;</code> in the <code>parent</code> field of <code>leaf</code>, and then we use the
-<code>Rc::downgrade</code> function to create a <code>Weak&lt;Node&gt;</code> reference to <code>branch</code> from
-the <code>Rc&lt;Node&gt;</code> in <code>branch.</code></p>
-<p>When we print the parent of <code>leaf</code> again, this time we’ll get a <code>Some</code> variant
-holding <code>branch</code>: now <code>leaf</code> can access its parent! When we print <code>leaf</code>, we
-also avoid the cycle that eventually ended in a stack overflow like we had in
-Listing 15-26; the <code>Weak&lt;Node&gt;</code> references are printed as <code>(Weak)</code>:</p>
+<p>当创建 <code>branch</code> 结点时，其也会新建一个 <code>Weak&lt;Node&gt;</code> 引用，因为 <code>branch</code> 并没有父结点。<code>leaf</code> 仍然作为 <code>branch</code> 的一个子结点。一旦在 <code>branch</code> 中有了 <code>Node</code> 实例，就可以修改 <code>leaf</code> 使其拥有指向父结点的 <code>Weak&lt;Node&gt;</code> 引用。这里使用了 <code>leaf</code> 中 <code>parent</code> 字段里的 <code>RefCell&lt;Weak&lt;Node&gt;&gt;</code> 的 <code>borrow_mut</code> 方法，接着使用了 <code>Rc::downgrade</code> 函数来从 <code>branch</code> 中的 <code>Rc</code> 值创建了一个指向 <code>branch</code> 的 <code>Weak&lt;Node&gt;</code> 引用。</p>
+<p>当再次打印出 <code>leaf</code> 的父结点时，这一次将会得到存放了 <code>branch</code> 的 <code>Some</code> 值：现在 <code>leaf</code> 可以访问其父结点了！当打印出 <code>leaf</code> 时，我们也避免了如示例 15-26 中最终会导致栈溢出的循环：<code>Weak&lt;Node&gt;</code> 引用被打印为 <code>(Weak)</code>：</p>
 <pre><code class="language-text">leaf parent = Some(Node { value: 5, parent: RefCell { value: (Weak) },
 children: RefCell { value: [Node { value: 3, parent: RefCell { value: (Weak) },
 children: RefCell { value: [] } }] } })
 </code></pre>
-<p>The lack of infinite output indicates that this code didn’t create a reference
-cycle. We can also tell this by looking at the values we get from calling
-<code>Rc::strong_count</code> and <code>Rc::weak_count</code>.</p>
-<h4><a class="header" href="#visualizing-changes-to-strong_count-and-weak_count" id="visualizing-changes-to-strong_count-and-weak_count">Visualizing Changes to <code>strong_count</code> and <code>weak_count</code></a></h4>
-<p>Let’s look at how the <code>strong_count</code> and <code>weak_count</code> values of the <code>Rc&lt;Node&gt;</code>
-instances change by creating a new inner scope and moving the creation of
-<code>branch</code> into that scope. By doing so, we can see what happens when <code>branch</code> is
-created and then dropped when it goes out of scope. The modifications are shown
-in Listing 15-29:</p>
-<p><span class="filename">Filename: src/main.rs</span></p>
+<p>没有无限的输出表明这段代码并没有造成引用循环。这一点也可以从观察 <code>Rc::strong_count</code> 和 <code>Rc::weak_count</code> 调用的结果看出。</p>
+<h4><a class="header" href="#可视化-strong_count-和-weak_count-的改变" id="可视化-strong_count-和-weak_count-的改变">可视化 <code>strong_count</code> 和 <code>weak_count</code> 的改变</a></h4>
+<p>让我们通过创建了一个新的内部作用域并将 <code>branch</code> 的创建放入其中，来观察 <code>Rc&lt;Node&gt;</code> 实例的 <code>strong_count</code> 和 <code>weak_count</code> 值的变化。这会展示当 <code>branch</code> 创建和离开作用域被丢弃时会发生什么。这些修改如示例 15-29 所示：</p>
+<p><span class="filename">文件名: src/main.rs</span></p>
 <pre><pre class="playpen"><code class="language-rust"># use std::rc::{Rc, Weak};
 # use std::cell::RefCell;
 #
@@ -530,47 +410,16 @@ fn main() {
     );
 }
 </code></pre></pre>
-<p><span class="caption">Listing 15-29: Creating <code>branch</code> in an inner scope and
-examining strong and weak reference counts</span></p>
-<p>After <code>leaf</code> is created, its <code>Rc&lt;Node&gt;</code> has a strong count of 1 and a weak
-count of 0. In the inner scope, we create <code>branch</code> and associate it with
-<code>leaf</code>, at which point when we print the counts, the <code>Rc&lt;Node&gt;</code> in <code>branch</code>
-will have a strong count of 1 and a weak count of 1 (for <code>leaf.parent</code> pointing
-to <code>branch</code> with a <code>Weak&lt;Node&gt;</code>). When we print the counts in <code>leaf</code>, we’ll see
-it will have a strong count of 2, because <code>branch</code> now has a clone of the
-<code>Rc&lt;Node&gt;</code> of <code>leaf</code> stored in <code>branch.children</code>, but will still have a weak
-count of 0.</p>
-<p>When the inner scope ends, <code>branch</code> goes out of scope and the strong count of
-the <code>Rc&lt;Node&gt;</code> decreases to 0, so its <code>Node</code> is dropped. The weak count of 1
-from <code>leaf.parent</code> has no bearing on whether or not <code>Node</code> is dropped, so we
-don’t get any memory leaks!</p>
-<p>If we try to access the parent of <code>leaf</code> after the end of the scope, we’ll get
-<code>None</code> again. At the end of the program, the <code>Rc&lt;Node&gt;</code> in <code>leaf</code> has a strong
-count of 1 and a weak count of 0, because the variable <code>leaf</code> is now the only
-reference to the <code>Rc&lt;Node&gt;</code> again.</p>
-<p>All of the logic that manages the counts and value dropping is built into
-<code>Rc&lt;T&gt;</code> and <code>Weak&lt;T&gt;</code> and their implementations of the <code>Drop</code> trait. By
-specifying that the relationship from a child to its parent should be a
-<code>Weak&lt;T&gt;</code> reference in the definition of <code>Node</code>, you’re able to have parent
-nodes point to child nodes and vice versa without creating a reference cycle
-and memory leaks.</p>
-<h2><a class="header" href="#summary" id="summary">Summary</a></h2>
-<p>This chapter covered how to use smart pointers to make different guarantees and
-trade-offs from those Rust makes by default with regular references. The
-<code>Box&lt;T&gt;</code> type has a known size and points to data allocated on the heap. The
-<code>Rc&lt;T&gt;</code> type keeps track of the number of references to data on the heap so
-that data can have multiple owners. The <code>RefCell&lt;T&gt;</code> type with its interior
-mutability gives us a type that we can use when we need an immutable type but
-need to change an inner value of that type; it also enforces the borrowing
-rules at runtime instead of at compile time.</p>
-<p>Also discussed were the <code>Deref</code> and <code>Drop</code> traits, which enable a lot of the
-functionality of smart pointers. We explored reference cycles that can cause
-memory leaks and how to prevent them using <code>Weak&lt;T&gt;</code>.</p>
-<p>If this chapter has piqued your interest and you want to implement your own
-smart pointers, check out <a href="https://doc.rust-lang.org/stable/nomicon/">“The Rustonomicon”</a> for more useful
-information.</p>
-<p>Next, we’ll talk about concurrency in Rust. You’ll even learn about a few new
-smart pointers.</p>
+<p><span class="caption">示例 15-29：在内部作用域创建 <code>branch</code> 并检查其强弱引用计数</span></p>
+<p>一旦创建了 <code>leaf</code>，其 <code>Rc&lt;Node&gt;</code> 的强引用计数为 1，弱引用计数为 0。在内部作用域中创建了 <code>branch</code> 并与 <code>leaf</code> 相关联，此时 <code>branch</code> 中 <code>Rc&lt;Node&gt;</code> 的强引用计数为 1，弱引用计数为 1（因为 <code>leaf.parent</code> 通过 <code>Weak&lt;Node&gt;</code> 指向 <code>branch</code>）。这里 <code>leaf</code> 的强引用计数为 2，因为现在 <code>branch</code> 的 <code>branch.children</code> 中储存了 <code>leaf</code> 的 <code>Rc&lt;Node&gt;</code> 的拷贝，不过弱引用计数仍然为 0。</p>
+<p>当内部作用域结束时，<code>branch</code> 离开作用域，<code>Rc&lt;Node&gt;</code> 的强引用计数减少为 0，所以其 <code>Node</code> 被丢弃。来自 <code>leaf.parent</code> 的弱引用计数 1 与 <code>Node</code> 是否被丢弃无关，所以并没有产生任何内存泄露！</p>
+<p>如果在内部作用域结束后尝试访问 <code>leaf</code> 的父结点，会再次得到 <code>None</code>。在程序的结尾，<code>leaf</code> 中 <code>Rc&lt;Node&gt;</code> 的强引用计数为 1，弱引用计数为 0，因为现在 <code>leaf</code> 又是 <code>Rc&lt;Node&gt;</code> 唯一的引用了。</p>
+<p>所有这些管理计数和值的逻辑都内建于 <code>Rc&lt;T&gt;</code> 和 <code>Weak&lt;T&gt;</code> 以及它们的 <code>Drop</code> trait 实现中。通过在 <code>Node</code> 定义中指定从子结点到父结点的关系为一个<code>Weak&lt;T&gt;</code>引用，就能够拥有父结点和子结点之间的双向引用而不会造成引用循环和内存泄露。</p>
+<h2><a class="header" href="#总结" id="总结">总结</a></h2>
+<p>这一章涵盖了如何使用智能指针来做出不同于 Rust 常规引用默认所提供的保证与取舍。<code>Box&lt;T&gt;</code> 有一个已知的大小并指向分配在堆上的数据。<code>Rc&lt;T&gt;</code> 记录了堆上数据的引用数量以便可以拥有多个所有者。<code>RefCell&lt;T&gt;</code> 和其内部可变性提供了一个可以用于当需要不可变类型但是需要改变其内部值能力的类型，并在运行时而不是编译时检查借用规则。</p>
+<p>我们还介绍了提供了很多智能指针功能的 trait <code>Deref</code> 和 <code>Drop</code>。同时探索了会造成内存泄露的引用循环，以及如何使用 <code>Weak&lt;T&gt;</code> 来避免它们。</p>
+<p>如果本章内容引起了你的兴趣并希望现在就实现你自己的智能指针的话，请阅读 [“The Nomicon”] 来获取更多有用的信息。</p>
+<p>接下来，让我们谈谈 Rust 的并发。届时甚至还会学习到一些新的对并发有帮助的智能指针。</p>
 
                     </main>
 
