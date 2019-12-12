@@ -1,9 +1,9 @@
 <!DOCTYPE HTML>
-<html lang="en" class="sidebar-visible no-js">
+<html lang="en" class="sidebar-visible no-js light">
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Macro changes - The Edition Guide</title>
+        <title>宏的变化 - Rust 版本指南</title>
         
 
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
@@ -32,11 +32,11 @@
 
         
     </head>
-    <body class="light">
+    <body>
         <!-- Provide site root to javascript -->
         <script type="text/javascript">
             var path_to_root = "../../";
-            var default_theme = "light";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "light" : "light";
         </script>
 
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
@@ -60,8 +60,11 @@
             var theme;
             try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
             if (theme === null || theme === undefined) { theme = default_theme; }
-            document.body.className = theme;
-            document.querySelector('html').className = theme + ' js';
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
         </script>
 
         <!-- Hide / unhide sidebar before it is displayed -->
@@ -77,8 +80,8 @@
         </script>
 
         <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-            <div class="sidebar-scrollbox">
-                <ol class="chapter"><li class="affix"><a href="../../introduction.html">Introduction</a></li><li><a href="../../editions/index.html"><strong aria-hidden="true">1.</strong> What are editions?</a></li><li><ol class="section"><li><a href="../../editions/creating-a-new-project.html"><strong aria-hidden="true">1.1.</strong> Creating a new project</a></li><li><a href="../../editions/transitioning-an-existing-project-to-a-new-edition.html"><strong aria-hidden="true">1.2.</strong> Transitioning an existing project to a new edition</a></li></ol></li><li><a href="../../rust-2015/index.html"><strong aria-hidden="true">2.</strong> Rust 2015</a></li><li><a href="../../rust-2018/index.html"><strong aria-hidden="true">3.</strong> Rust 2018</a></li><li><ol class="section"><li><a href="../../rust-2018/edition-changes.html"><strong aria-hidden="true">3.1.</strong> 2018-Specific Changes</a></li><li><a href="../../rust-2018/module-system/index.html"><strong aria-hidden="true">3.2.</strong> Module system</a></li><li><ol class="section"><li><a href="../../rust-2018/module-system/raw-identifiers.html"><strong aria-hidden="true">3.2.1.</strong> Raw identifiers</a></li><li><a href="../../rust-2018/module-system/path-clarity.html"><strong aria-hidden="true">3.2.2.</strong> Path clarity</a></li><li><a href="../../rust-2018/module-system/more-visibility-modifiers.html"><strong aria-hidden="true">3.2.3.</strong> More visibility modifiers</a></li><li><a href="../../rust-2018/module-system/nested-imports-with-use.html"><strong aria-hidden="true">3.2.4.</strong> Nested imports with use</a></li></ol></li><li><a href="../../rust-2018/error-handling-and-panics/index.html"><strong aria-hidden="true">3.3.</strong> Error handling and panics</a></li><li><ol class="section"><li><a href="../../rust-2018/error-handling-and-panics/the-question-mark-operator-for-easier-error-handling.html"><strong aria-hidden="true">3.3.1.</strong> The ? operator for easier error handling</a></li><li><a href="../../rust-2018/error-handling-and-panics/question-mark-in-main-and-tests.html"><strong aria-hidden="true">3.3.2.</strong> ? in main and tests</a></li><li><a href="../../rust-2018/error-handling-and-panics/controlling-panics-with-std-panic.html"><strong aria-hidden="true">3.3.3.</strong> Controlling panics with std::panic</a></li><li><a href="../../rust-2018/error-handling-and-panics/aborting-on-panic.html"><strong aria-hidden="true">3.3.4.</strong> Aborting on panic</a></li></ol></li><li><a href="../../rust-2018/control-flow/index.html"><strong aria-hidden="true">3.4.</strong> Control flow</a></li><li><ol class="section"><li><a href="../../rust-2018/control-flow/loops-can-break-with-a-value.html"><strong aria-hidden="true">3.4.1.</strong> Loops can break with a value</a></li><li><a href="../../rust-2018/control-flow/async-await-for-easier-concurrency.html"><strong aria-hidden="true">3.4.2.</strong> async/await for easier concurrency</a></li></ol></li><li><a href="../../rust-2018/trait-system/index.html"><strong aria-hidden="true">3.5.</strong> Trait system</a></li><li><ol class="section"><li><a href="../../rust-2018/trait-system/impl-trait-for-returning-complex-types-with-ease.html"><strong aria-hidden="true">3.5.1.</strong> impl Trait for returning complex types with ease</a></li><li><a href="../../rust-2018/trait-system/dyn-trait-for-trait-objects.html"><strong aria-hidden="true">3.5.2.</strong> dyn Trait for trait objects</a></li><li><a href="../../rust-2018/trait-system/more-container-types-support-trait-objects.html"><strong aria-hidden="true">3.5.3.</strong> More container types support trait objects</a></li><li><a href="../../rust-2018/trait-system/associated-constants.html"><strong aria-hidden="true">3.5.4.</strong> Associated constants</a></li><li><a href="../../rust-2018/trait-system/no-anon-params.html"><strong aria-hidden="true">3.5.5.</strong> No more anonymous parameters</a></li></ol></li><li><a href="../../rust-2018/slice-patterns.html"><strong aria-hidden="true">3.6.</strong> Slice patterns</a></li><li><a href="../../rust-2018/ownership-and-lifetimes/index.html"><strong aria-hidden="true">3.7.</strong> Ownership and lifetimes</a></li><li><ol class="section"><li><a href="../../rust-2018/ownership-and-lifetimes/non-lexical-lifetimes.html"><strong aria-hidden="true">3.7.1.</strong> Non-lexical lifetimes</a></li><li><a href="../../rust-2018/ownership-and-lifetimes/default-match-bindings.html"><strong aria-hidden="true">3.7.2.</strong> Default match bindings</a></li><li><a href="../../rust-2018/ownership-and-lifetimes/the-anonymous-lifetime.html"><strong aria-hidden="true">3.7.3.</strong> '_, the anonymous lifetime</a></li><li><a href="../../rust-2018/ownership-and-lifetimes/lifetime-elision-in-impl.html"><strong aria-hidden="true">3.7.4.</strong> Lifetime elision in impl</a></li><li><a href="../../rust-2018/ownership-and-lifetimes/inference-in-structs.html"><strong aria-hidden="true">3.7.5.</strong> T: 'a inference in structs</a></li><li><a href="../../rust-2018/ownership-and-lifetimes/simpler-lifetimes-in-static-and-const.html"><strong aria-hidden="true">3.7.6.</strong> Simpler lifetimes in static and const</a></li></ol></li><li><a href="../../rust-2018/data-types/index.html"><strong aria-hidden="true">3.8.</strong> Data types</a></li><li><ol class="section"><li><a href="../../rust-2018/data-types/field-init-shorthand.html"><strong aria-hidden="true">3.8.1.</strong> Field init shorthand</a></li><li><a href="../../rust-2018/data-types/inclusive-ranges.html"><strong aria-hidden="true">3.8.2.</strong> ..= for inclusive ranges</a></li><li><a href="../../rust-2018/data-types/128-bit-integers.html"><strong aria-hidden="true">3.8.3.</strong> 128 bit integers</a></li><li><a href="../../rust-2018/data-types/operator-equals-are-now-implementable.html"><strong aria-hidden="true">3.8.4.</strong> &quot;Operator-equals&quot; are now implementable</a></li><li><a href="../../rust-2018/data-types/union-for-an-unsafe-form-of-enum.html"><strong aria-hidden="true">3.8.5.</strong> union for an unsafe form of enum</a></li><li><a href="../../rust-2018/data-types/choosing-alignment-with-the-repr-attribute.html"><strong aria-hidden="true">3.8.6.</strong> Choosing alignment with the repr attribute</a></li></ol></li><li><a href="../../rust-2018/simd-for-faster-computing.html"><strong aria-hidden="true">3.9.</strong> SIMD for faster computing</a></li><li><a href="../../rust-2018/macros/index.html"><strong aria-hidden="true">3.10.</strong> Macros</a></li><li><ol class="section"><li><a href="../../rust-2018/macros/custom-derive.html"><strong aria-hidden="true">3.10.1.</strong> Custom Derive</a></li><li><a href="../../rust-2018/macros/macro-changes.html" class="active"><strong aria-hidden="true">3.10.2.</strong> Macro changes</a></li><li><a href="../../rust-2018/macros/at-most-once.html"><strong aria-hidden="true">3.10.3.</strong> At most one repetition</a></li></ol></li><li><a href="../../rust-2018/the-compiler/index.html"><strong aria-hidden="true">3.11.</strong> The compiler</a></li><li><ol class="section"><li><a href="../../rust-2018/the-compiler/improved-error-messages.html"><strong aria-hidden="true">3.11.1.</strong> Improved error messages</a></li><li><a href="../../rust-2018/the-compiler/incremental-compilation-for-faster-compiles.html"><strong aria-hidden="true">3.11.2.</strong> Incremental Compilation for faster compiles</a></li><li><a href="../../rust-2018/the-compiler/an-attribute-for-deprecation.html"><strong aria-hidden="true">3.11.3.</strong> An attribute for deprecation</a></li></ol></li><li><a href="../../rust-2018/rustup-for-managing-rust-versions.html"><strong aria-hidden="true">3.12.</strong> Rustup for managing Rust versions</a></li><li><a href="../../rust-2018/cargo-and-crates-io/index.html"><strong aria-hidden="true">3.13.</strong> Cargo and crates.io</a></li><li><ol class="section"><li><a href="../../rust-2018/cargo-and-crates-io/cargo-check-for-faster-checking.html"><strong aria-hidden="true">3.13.1.</strong> cargo check for faster checking</a></li><li><a href="../../rust-2018/cargo-and-crates-io/cargo-install-for-easy-installation-of-tools.html"><strong aria-hidden="true">3.13.2.</strong> cargo install for easy installation of tools</a></li><li><a href="../../rust-2018/cargo-and-crates-io/cargo-new-defaults-to-a-binary-project.html"><strong aria-hidden="true">3.13.3.</strong> cargo new defaults to a binary project</a></li><li><a href="../../rust-2018/cargo-and-crates-io/cargo-rustc-for-passing-arbitrary-flags-to-rustc.html"><strong aria-hidden="true">3.13.4.</strong> cargo rustc for passing arbitrary flags to rustc</a></li><li><a href="../../rust-2018/cargo-and-crates-io/cargo-workspaces-for-multi-package-projects.html"><strong aria-hidden="true">3.13.5.</strong> Cargo workspaces for multi-package projects</a></li><li><a href="../../rust-2018/cargo-and-crates-io/multi-file-examples.html"><strong aria-hidden="true">3.13.6.</strong> Multi-file examples</a></li><li><a href="../../rust-2018/cargo-and-crates-io/replacing-dependencies-with-patch.html"><strong aria-hidden="true">3.13.7.</strong> Replacing dependencies with patch</a></li><li><a href="../../rust-2018/cargo-and-crates-io/cargo-can-use-a-local-registry-replacement.html"><strong aria-hidden="true">3.13.8.</strong> Cargo can use a local registry replacement</a></li><li><a href="../../rust-2018/cargo-and-crates-io/crates-io-disallows-wildcard-dependencies.html"><strong aria-hidden="true">3.13.9.</strong> Crates.io disallows wildcard dependencies</a></li></ol></li><li><a href="../../rust-2018/documentation/index.html"><strong aria-hidden="true">3.14.</strong> Documentation</a></li><li><ol class="section"><li><a href="../../rust-2018/documentation/new-editions-of-the-book.html"><strong aria-hidden="true">3.14.1.</strong> New editions of the &quot;the book&quot;</a></li><li><a href="../../rust-2018/documentation/the-rust-bookshelf.html"><strong aria-hidden="true">3.14.2.</strong> The Rust Bookshelf</a></li><li><a href="../../rust-2018/documentation/the-rustonomicon.html"><strong aria-hidden="true">3.14.3.</strong> The Rustonomicon</a></li><li><a href="../../rust-2018/documentation/std-os-has-documentation-for-all-platforms.html"><strong aria-hidden="true">3.14.4.</strong> Full documentation for std::os</a></li></ol></li><li><a href="../../rust-2018/rustdoc/index.html"><strong aria-hidden="true">3.15.</strong> rustdoc</a></li><li><ol class="section"><li><a href="../../rust-2018/rustdoc/documentation-tests-can-now-compile-fail.html"><strong aria-hidden="true">3.15.1.</strong> Documentation tests can now compile-fail</a></li><li><a href="../../rust-2018/rustdoc/rustdoc-uses-commonmark.html"><strong aria-hidden="true">3.15.2.</strong> Rustdoc uses CommonMark</a></li></ol></li><li><a href="../../rust-2018/platform-and-target-support/index.html"><strong aria-hidden="true">3.16.</strong> Platform and target support</a></li><li><ol class="section"><li><a href="../../rust-2018/platform-and-target-support/libcore-for-low-level-rust.html"><strong aria-hidden="true">3.16.1.</strong> libcore for low-level Rust</a></li><li><a href="../../rust-2018/platform-and-target-support/webassembly-support.html"><strong aria-hidden="true">3.16.2.</strong> WebAssembly support</a></li><li><a href="../../rust-2018/platform-and-target-support/global-allocators.html"><strong aria-hidden="true">3.16.3.</strong> Global allocators</a></li><li><a href="../../rust-2018/platform-and-target-support/msvc-toolchain-support.html"><strong aria-hidden="true">3.16.4.</strong> MSVC toolchain support</a></li><li><a href="../../rust-2018/platform-and-target-support/musl-support-for-fully-static-binaries.html"><strong aria-hidden="true">3.16.5.</strong> MUSL support for fully static binaries</a></li><li><a href="../../rust-2018/platform-and-target-support/cdylib-crates-for-c-interoperability.html"><strong aria-hidden="true">3.16.6.</strong> cdylib crates for C interoperability</a></li></ol></li></ol></li></ol>
+            <div id="sidebar-scrollbox" class="sidebar-scrollbox">
+                <ol class="chapter"><li class="expanded affix "><a href="../../introduction.html">简介</a></li><li class="expanded "><a href="../../editions/index.html"><strong aria-hidden="true">1.</strong> 什么是版本(Editions)？</a></li><li><ol class="section"><li class="expanded "><a href="../../editions/transitioning-your-code-to-a-new-edition.html"><strong aria-hidden="true">1.1.</strong> 将你的代码迁移到新版本</a></li></ol></li><li class="expanded "><a href="../../rust-2015/index.html"><strong aria-hidden="true">2.</strong> Rust 2015</a></li><li class="expanded "><a href="../../rust-2018/index.html"><strong aria-hidden="true">3.</strong> Rust 2018</a></li><li><ol class="section"><li class="expanded "><a href="../../rust-2018/module-system/index.html"><strong aria-hidden="true">3.1.</strong> 模块系统</a></li><li><ol class="section"><li class="expanded "><a href="../../rust-2018/module-system/raw-identifiers.html"><strong aria-hidden="true">3.1.1.</strong> 原始标识符</a></li><li class="expanded "><a href="../../rust-2018/module-system/path-clarity.html"><strong aria-hidden="true">3.1.2.</strong> 路径清晰化</a></li><li class="expanded "><a href="../../rust-2018/module-system/more-visibility-modifiers.html"><strong aria-hidden="true">3.1.3.</strong> 更加可见的修饰符</a></li><li class="expanded "><a href="../../rust-2018/module-system/nested-imports-with-use.html"><strong aria-hidden="true">3.1.4.</strong> 用 use 进行导入嵌套</a></li></ol></li><li class="expanded "><a href="../../rust-2018/error-handling-and-panics/index.html"><strong aria-hidden="true">3.2.</strong> 错误处理与崩溃</a></li><li><ol class="section"><li class="expanded "><a href="../../rust-2018/error-handling-and-panics/the-question-mark-operator-for-easier-error-handling.html"><strong aria-hidden="true">3.2.1.</strong> ? 操作符对于早期错误的处理</a></li><li class="expanded "><a href="../../rust-2018/error-handling-and-panics/question-mark-in-main-and-tests.html"><strong aria-hidden="true">3.2.2.</strong> ? 在 main 和 tests中</a></li><li class="expanded "><a href="../../rust-2018/error-handling-and-panics/controlling-panics-with-std-panic.html"><strong aria-hidden="true">3.2.3.</strong> 用 std::panic 控制崩溃</a></li><li class="expanded "><a href="../../rust-2018/error-handling-and-panics/aborting-on-panic.html"><strong aria-hidden="true">3.2.4.</strong> 中止崩溃</a></li></ol></li><li class="expanded "><a href="../../rust-2018/control-flow/index.html"><strong aria-hidden="true">3.3.</strong> 流程控制</a></li><li><ol class="section"><li class="expanded "><a href="../../rust-2018/control-flow/loops-can-break-with-a-value.html"><strong aria-hidden="true">3.3.1.</strong> 循环可以停止并带有返回值</a></li><li class="expanded "><a href="../../rust-2018/control-flow/async-await-for-easier-concurrency.html"><strong aria-hidden="true">3.3.2.</strong> async/await 早期并发</a></li></ol></li><li class="expanded "><a href="../../rust-2018/trait-system/index.html"><strong aria-hidden="true">3.4.</strong> Trait 系统</a></li><li><ol class="section"><li class="expanded "><a href="../../rust-2018/trait-system/impl-trait-for-returning-complex-types-with-ease.html"><strong aria-hidden="true">3.4.1.</strong> impl Trait 轻松返回复杂的类型</a></li><li class="expanded "><a href="../../rust-2018/trait-system/dyn-trait-for-trait-objects.html"><strong aria-hidden="true">3.4.2.</strong> dyn Trait trait 对象</a></li><li class="expanded "><a href="../../rust-2018/trait-system/more-container-types-support-trait-objects.html"><strong aria-hidden="true">3.4.3.</strong> 支持 trait 对象的更多容器类型</a></li><li class="expanded "><a href="../../rust-2018/trait-system/associated-constants.html"><strong aria-hidden="true">3.4.4.</strong> 相关常数</a></li></ol></li><li class="expanded "><a href="../../rust-2018/slice-patterns.html"><strong aria-hidden="true">3.5.</strong> 切片模式</a></li><li class="expanded "><a href="../../rust-2018/ownership-and-lifetimes/index.html"><strong aria-hidden="true">3.6.</strong> 所有权和生命周期</a></li><li><ol class="section"><li class="expanded "><a href="../../rust-2018/ownership-and-lifetimes/default-match-bindings.html"><strong aria-hidden="true">3.6.1.</strong> 默认 match 绑定</a></li><li class="expanded "><a href="../../rust-2018/ownership-and-lifetimes/the-anonymous-lifetime.html"><strong aria-hidden="true">3.6.2.</strong> '_ 匿名生命周期</a></li><li class="expanded "><a href="../../rust-2018/ownership-and-lifetimes/lifetime-elision-in-impl.html"><strong aria-hidden="true">3.6.3.</strong> 在impl中省略生命周期</a></li><li class="expanded "><a href="../../rust-2018/ownership-and-lifetimes/inference-in-structs.html"><strong aria-hidden="true">3.6.4.</strong> T: 'a 结构体中的推导</a></li><li class="expanded "><a href="../../rust-2018/ownership-and-lifetimes/simpler-lifetimes-in-static-and-const.html"><strong aria-hidden="true">3.6.5.</strong> 在static和const中更简单的生命周期</a></li></ol></li><li class="expanded "><a href="../../rust-2018/data-types/index.html"><strong aria-hidden="true">3.7.</strong> 数据类型</a></li><li><ol class="section"><li class="expanded "><a href="../../rust-2018/data-types/field-init-shorthand.html"><strong aria-hidden="true">3.7.1.</strong> 字段初始化简写</a></li><li class="expanded "><a href="../../rust-2018/data-types/inclusive-ranges.html"><strong aria-hidden="true">3.7.2.</strong> ..= 包含取值范围</a></li><li class="expanded "><a href="../../rust-2018/data-types/128-bit-integers.html"><strong aria-hidden="true">3.7.3.</strong> 128位整型</a></li><li class="expanded "><a href="../../rust-2018/data-types/operator-equals-are-now-implementable.html"><strong aria-hidden="true">3.7.4.</strong> &quot;Operator-equals&quot; 的实现</a></li><li class="expanded "><a href="../../rust-2018/data-types/union-for-an-unsafe-form-of-enum.html"><strong aria-hidden="true">3.7.5.</strong> union: 一个非安全的 enum</a></li><li class="expanded "><a href="../../rust-2018/data-types/choosing-alignment-with-the-repr-attribute.html"><strong aria-hidden="true">3.7.6.</strong> repr 属性的对齐方式</a></li></ol></li><li class="expanded "><a href="../../rust-2018/simd-for-faster-computing.html"><strong aria-hidden="true">3.8.</strong> SIMD 更快的计算</a></li><li class="expanded "><a href="../../rust-2018/macros/index.html"><strong aria-hidden="true">3.9.</strong> 宏</a></li><li><ol class="section"><li class="expanded "><a href="../../rust-2018/macros/custom-derive.html"><strong aria-hidden="true">3.9.1.</strong> 自定义 Derive</a></li><li class="expanded "><a href="../../rust-2018/macros/macro-changes.html" class="active"><strong aria-hidden="true">3.9.2.</strong> 宏的变化</a></li></ol></li><li class="expanded "><a href="../../rust-2018/the-compiler/index.html"><strong aria-hidden="true">3.10.</strong> 编译器</a></li><li><ol class="section"><li class="expanded "><a href="../../rust-2018/the-compiler/improved-error-messages.html"><strong aria-hidden="true">3.10.1.</strong> 改进错误信息</a></li><li class="expanded "><a href="../../rust-2018/the-compiler/incremental-compilation-for-faster-compiles.html"><strong aria-hidden="true">3.10.2.</strong> 增量编译以加快编译速度</a></li><li class="expanded "><a href="../../rust-2018/the-compiler/an-attribute-for-deprecation.html"><strong aria-hidden="true">3.10.3.</strong> 弃用属性</a></li></ol></li><li class="expanded "><a href="../../rust-2018/rustup-for-managing-rust-versions.html"><strong aria-hidden="true">3.11.</strong> Rustup：Rust 版本管理器</a></li><li class="expanded "><a href="../../rust-2018/cargo-and-crates-io/index.html"><strong aria-hidden="true">3.12.</strong> Cargo 和 crates.io</a></li><li><ol class="section"><li class="expanded "><a href="../../rust-2018/cargo-and-crates-io/cargo-check-for-faster-checking.html"><strong aria-hidden="true">3.12.1.</strong> cargo check 用以快速检查</a></li><li class="expanded "><a href="../../rust-2018/cargo-and-crates-io/cargo-install-for-easy-installation-of-tools.html"><strong aria-hidden="true">3.12.2.</strong> cargo install 自动安装工具</a></li><li class="expanded "><a href="../../rust-2018/cargo-and-crates-io/cargo-new-defaults-to-a-binary-project.html"><strong aria-hidden="true">3.12.3.</strong> cargo new 创建可执行项目</a></li><li class="expanded "><a href="../../rust-2018/cargo-and-crates-io/cargo-rustc-for-passing-arbitrary-flags-to-rustc.html"><strong aria-hidden="true">3.12.4.</strong> cargo rustc 用于传递标记至 rustc</a></li><li class="expanded "><a href="../../rust-2018/cargo-and-crates-io/cargo-workspaces-for-multi-package-projects.html"><strong aria-hidden="true">3.12.5.</strong> Cargo workspaces 用于拥有多包的项目</a></li><li class="expanded "><a href="../../rust-2018/cargo-and-crates-io/multi-file-examples.html"><strong aria-hidden="true">3.12.6.</strong> 多文件的 examples</a></li><li class="expanded "><a href="../../rust-2018/cargo-and-crates-io/replacing-dependencies-with-patch.html"><strong aria-hidden="true">3.12.7.</strong> patch 替换依赖</a></li><li class="expanded "><a href="../../rust-2018/cargo-and-crates-io/cargo-can-use-a-local-registry-replacement.html"><strong aria-hidden="true">3.12.8.</strong> Cargo 更改源</a></li><li class="expanded "><a href="../../rust-2018/cargo-and-crates-io/crates-io-disallows-wildcard-dependencies.html"><strong aria-hidden="true">3.12.9.</strong> Crates.io 不允许使用通配符</a></li></ol></li><li class="expanded "><a href="../../rust-2018/documentation/index.html"><strong aria-hidden="true">3.13.</strong> 文档</a></li><li><ol class="section"><li class="expanded "><a href="../../rust-2018/documentation/new-editions-of-the-book.html"><strong aria-hidden="true">3.13.1.</strong> 新版&quot;the book&quot;</a></li><li class="expanded "><a href="../../rust-2018/documentation/the-rust-bookshelf.html"><strong aria-hidden="true">3.13.2.</strong> The Rust Bookshelf</a></li><li class="expanded "><a href="../../rust-2018/documentation/the-rustonomicon.html"><strong aria-hidden="true">3.13.3.</strong> The Rustonomicon</a></li><li class="expanded "><a href="../../rust-2018/documentation/std-os-has-documentation-for-all-platforms.html"><strong aria-hidden="true">3.13.4.</strong> std::os的平台相关文档</a></li></ol></li><li class="expanded "><a href="../../rust-2018/rustdoc/index.html"><strong aria-hidden="true">3.14.</strong> rustdoc</a></li><li><ol class="section"><li class="expanded "><a href="../../rust-2018/rustdoc/documentation-tests-can-now-compile-fail.html"><strong aria-hidden="true">3.14.1.</strong> 文档测试的 compile-fail</a></li><li class="expanded "><a href="../../rust-2018/rustdoc/rustdoc-uses-commonmark.html"><strong aria-hidden="true">3.14.2.</strong> Rustdoc 使用 CommonMark</a></li></ol></li><li class="expanded "><a href="../../rust-2018/platform-and-target-support/index.html"><strong aria-hidden="true">3.15.</strong> 平台支持和target</a></li><li><ol class="section"><li class="expanded "><a href="../../rust-2018/platform-and-target-support/libcore-for-low-level-rust.html"><strong aria-hidden="true">3.15.1.</strong> libcore 低层 Rust 使用</a></li><li class="expanded "><a href="../../rust-2018/platform-and-target-support/webassembly-support.html"><strong aria-hidden="true">3.15.2.</strong> WebAssembly 支持</a></li><li class="expanded "><a href="../../rust-2018/platform-and-target-support/global-allocators.html"><strong aria-hidden="true">3.15.3.</strong> 全局分配符</a></li><li class="expanded "><a href="../../rust-2018/platform-and-target-support/msvc-toolchain-support.html"><strong aria-hidden="true">3.15.4.</strong> MSVC toolchain 支持</a></li><li class="expanded "><a href="../../rust-2018/platform-and-target-support/musl-support-for-fully-static-binaries.html"><strong aria-hidden="true">3.15.5.</strong> MUSL 支持完全静态二进制文件</a></li><li class="expanded "><a href="../../rust-2018/platform-and-target-support/cdylib-crates-for-c-interoperability.html"><strong aria-hidden="true">3.15.6.</strong> cdylib 与 C 的互通性</a></li></ol></li></ol></li><li class="expanded "><a href="../../unstable-feature-status.html"><strong aria-hidden="true">4.</strong> 不稳定的特性状态</a></li></ol>
             </div>
             <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
@@ -110,7 +113,7 @@
                             
                         </div>
 
-                        <h1 class="menu-title">The Edition Guide</h1>
+                        <h1 class="menu-title">Rust 版本指南</h1>
 
                         <div class="right-buttons">
                             <a href="../../print.html" title="Print this book" aria-label="Print this book">
@@ -145,22 +148,20 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#macro-changes" id="macro-changes">Macro changes</a></h1>
-<p><img src="https://img.shields.io/badge/Minimum%20Rust%20Version-1.31-brightgreen.svg" alt="Minimum Rust version: 1.31" /></p>
-<h2><a class="header" href="#macro_rules-style-macros" id="macro_rules-style-macros"><code>macro_rules!</code> style macros</a></h2>
-<p>In Rust 2018, you can import specific macros from external crates via <code>use</code>
-statements, rather than the old <code>#[macro_use]</code> attribute.</p>
-<p>For example, consider a <code>bar</code> crate that implements a <code>baz!</code> macro. In
-<code>src/lib.rs</code>:</p>
+                        <h1><a class="header" href="#宏的变化" id="宏的变化">宏的变化</a></h1>
+<p><img src="https://img.shields.io/badge/Minimum%20Rust%20Version-nightly-red.svg" alt="Minimum Rust version: nightly" /></p>
+<p>在 Rust 2018 中，您可以通过 <code>use</code> 语句从外部包中导入特定的宏，而不是旧的 <code>#[macro_use]</code> 属性。</p>
+<p>举个例子，考虑 <code>bar</code> 包中实现了一个 <code>!bar</code> 宏，在 <code>src/lib.rs</code> 中：</p>
 <pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-#[macro_export]
+<span class="boring">#![allow(unused_variables)]
+</span><span class="boring">fn main() {
+</span>#[macro_export]
 macro_rules! baz {
     () =&gt; ()
 }
-#}</code></pre></pre>
-<p>In your crate, you would have written</p>
+<span class="boring">}
+</span></code></pre></pre>
+<p>在你的包中，你可以这样写：</p>
 <pre><code class="language-rust ignore">// Rust 2015
 
 #[macro_use]
@@ -170,8 +171,9 @@ fn main() {
     baz!();
 }
 </code></pre>
-<p>Now, you write:</p>
+<p>现在你可以这样：</p>
 <pre><code class="language-rust ignore">// Rust 2018
+#![feature(rust_2018_preview)]
 
 use bar::baz;
 
@@ -179,15 +181,11 @@ fn main() {
     baz!();
 }
 </code></pre>
-<p>This moves <code>macro_rules</code> macros to be a bit closer to other kinds of items.</p>
-<p>Note that you'll still need <code>#[macro_use]</code> to use macros you've defined
-in your own crate; this feature only works for importing macros from
-external crates.</p>
-<h2><a class="header" href="#procedural-macros" id="procedural-macros">Procedural macros</a></h2>
-<p>When using procedural macros to derive traits, you will have to name the macro
-that provides the custom derive. This generally matches the name of the trait,
-but check with the documentation of the crate providing the derives to be sure.</p>
-<p>For example, with Serde you would have written</p>
+<p>这会使 <code>macro_rules</code> 宏更接近其他类型的项目。</p>
+<h2><a class="header" href="#程序宏" id="程序宏">程序宏</a></h2>
+<p>使用过程宏来派生特征时，您必须命名提供自定义派生的宏。
+这通常与特征的名称相匹配，但请查阅提供派生的包的文档以确认。</p>
+<p>举个例子，在 Serde 中，你可以这样写：</p>
 <pre><code class="language-rust ignore">// Rust 2015
 extern crate serde;
 #[macro_use] extern crate serde_derive;
@@ -195,187 +193,16 @@ extern crate serde;
 #[derive(Serialize, Deserialize)]
 struct Bar;
 </code></pre>
-<p>Now, you write instead:</p>
+<p>现在你可以这样：</p>
 <pre><code class="language-rust ignore">// Rust 2018
+#![feature(rust_2018_preview)]
 use serde_derive::{Serialize, Deserialize};
 
 #[derive(Serialize, Deserialize)]
 struct Bar;
 </code></pre>
-<h2><a class="header" href="#more-details" id="more-details">More details</a></h2>
-<p>This only works for macros defined in external crates.
-For macros defined locally, <code>#[macro_use] mod foo;</code> is still required, as it was in Rust 2015.</p>
-<h3><a class="header" href="#local-helper-macros" id="local-helper-macros">Local helper macros</a></h3>
-<p>Sometimes it is helpful or necessary to have helper macros inside your module. This can make
-supporting both versions of rust more complicated.</p>
-<p>For example, let's make a simplified (and slightly contrived) version of the <code>log</code> crate in 2015
-edition style:</p>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-use std::fmt;
-
-/// How important/severe the log message is.
-#[derive(Copy, Clone)]
-pub enum LogLevel {
-    Warn,
-    Error
-}
-
-impl fmt::Display for LogLevel {
-    fn fmt(&amp;self, f: &amp;mut fmt::Formatter) -&gt; fmt::Result {
-        match self {
-            LogLevel::Warn =&gt; write!(f, &quot;warning&quot;),
-            LogLevel::Error =&gt; write!(f, &quot;error&quot;),
-        }
-    }
-}
-
-// A helper macro to log the message.
-#[doc(hidden)]
-#[macro_export]
-macro_rules! __impl_log {
-    ($level:expr, $msg:expr) =&gt; {{
-        println!(&quot;{}: {}&quot;, $level, $msg)
-    }}
-}
-
-/// Warn level log message
-#[macro_export]
-macro_rules! warn {
-    ($($args:tt)*) =&gt; {
-        __impl_log!($crate::LogLevel::Warn, format_args!($($args)*))
-    }
-}
-
-/// Error level log message
-#[macro_export]
-macro_rules! error {
-    ($($args:tt)*) =&gt; {
-        __impl_log!($crate::LogLevel::Error, format_args!($($args)*))
-    }
-}
-#}</code></pre></pre>
-<p>Our <code>__impl_log!</code> macro is private to our module, but needs to be exported as it is called by other
-macros, and in 2015 edition all used macros must be exported.</p>
-<p>Now, in 2018 this example will not compile:</p>
-<pre><code class="language-rust ignore">use log::error;
-
-fn main() {
-    error!(&quot;error message&quot;);
-}
-</code></pre>
-<p>will give an error message about not finding the <code>__impl_log!</code> macro. This is because unlike in 
-the 2015 edition, macros are namespaced and we must import them. We could do</p>
-<pre><code class="language-rust ignore">use log::{__impl_log, error};
-</code></pre>
-<p>which would make our code compile, but <code>__impl_log</code> is meant to be an implementation detail!</p>
-<h4><a class="header" href="#macros-with-crate-prefix" id="macros-with-crate-prefix">Macros with <code>$crate::</code> prefix.</a></h4>
-<p>The cleanest way to handle this situation is to use the <code>$crate::</code> prefix for macros, the same as
-you would for any other path. Versions of the compiler &gt;= 1.30 will handle this in both editions:</p>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-macro_rules! warn {
-    ($($args:tt)*) =&gt; {
-        $crate::__impl_log!($crate::LogLevel::Warn, format_args!($($args)*))
-    }
-}
-
-// ...
-#}</code></pre></pre>
-<p>However, this will not work for older versions of the compiler that don't understand the
-<code>$crate::</code> prefix for macros.</p>
-<h4><a class="header" href="#macros-using-local_inner_macros" id="macros-using-local_inner_macros">Macros using <code>local_inner_macros</code></a></h4>
-<p>We also have the <code>local_inner_macros</code> modifier that we can add to our <code>#[macro_export]</code> attribute.
-This has the advantage of working with older rustc versions (older versions just ignore the extra
-modifier). The downside is that it's a bit messier:</p>
-<pre><code class="language-rust ignore">#[macro_export(local_inner_macros)]
-macro_rules! warn {
-    ($($args:tt)*) =&gt; {
-        __impl_log!($crate::LogLevel::Warn, format_args!($($args)*))
-    }
-}
-</code></pre>
-<p>So the code knows to look for any macros used locally. But wait - this won't compile, because we
-use the <code>format_args!</code> macro that isn't in our local crate (hence the convoluted example). The
-solution is to add a level of indirection: we create a macro that wraps <code>format_args</code>, but is local 
-to our crate. That way everything works in both editions (sadly we have to pollute the global
-namespace a bit, but that's ok).</p>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-// I've used the pattern `_&lt;my crate  name&gt;__&lt;macro name&gt;` to name this macro, hopefully avoiding
-// name clashes.
-#[doc(hidden)]
-#[macro_export]
-macro_rules! _log__format_args {
-    ($($inner:tt)*) =&gt; {
-        format_args! { $($inner)* }
-    }
-}
-#}</code></pre></pre>
-<p>Here we're using the most general macro pattern possible, a list of token trees. We just pass
-whatever tokens we get to the inner macro, and rely on it to report errors.</p>
-<p>So the full 2015/2018 working example would be:</p>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-use std::fmt;
-
-/// How important/severe the log message is.
-#[derive(Debug, Copy, Clone)]
-pub enum LogLevel {
-    Warn,
-    Error
-}
-
-impl fmt::Display for LogLevel {
-    fn fmt(&amp;self, f: &amp;mut fmt::Formatter) -&gt; fmt::Result {
-        match self {
-            LogLevel::Warn =&gt; write!(f, &quot;warning&quot;),
-            LogLevel::Error =&gt; write!(f, &quot;error&quot;),
-        }
-    }
-}
-
-// A helper macro to log the message.
-#[doc(hidden)]
-#[macro_export]
-macro_rules! __impl_log {
-    ($level:expr, $msg:expr) =&gt; {{
-        println!(&quot;{}: {}&quot;, $level, $msg)
-    }}
-}
-
-/// Warn level log message
-#[macro_export(local_inner_macros)]
-macro_rules! warn {
-    ($($args:tt)*) =&gt; {
-        __impl_log!($crate::LogLevel::Warn, _log__format_args!($($args)*))
-    }
-}
-
-/// Error level log message
-#[macro_export(local_inner_macros)]
-macro_rules! error {
-    ($($args:tt)*) =&gt; {
-        __impl_log!($crate::LogLevel::Error, _log__format_args!($($args)*))
-    }
-}
-
-#[doc(hidden)]
-#[macro_export]
-macro_rules! _log__format_args {
-    ($($inner:tt)*) =&gt; {
-        format_args! { $($inner)* }
-    }
-}
-#}</code></pre></pre>
-<p>Once everyone is using a rustc version &gt;= 1.30, we can all just use the <code>$crate::</code> method (2015
-crates are guaranteed to carry on compiling fine with later versions of the compiler). We need to
-wait for package managers and larger organisations to update their compilers before this happens,
-so in the mean time we can use the <code>local_inner_macros</code> method to support everybody. :)</p>
+<h2><a class="header" href="#更多细节" id="更多细节">更多细节：</a></h2>
+<p>这仅适用于外部包中定义的宏。 对于本地定义的宏，<code>#[macro_use] mod foo;</code> 还是需要的，如同 Rust 2015 一样。</p>
 
                     </main>
 
@@ -388,7 +215,7 @@ so in the mean time we can use the <code>local_inner_macros</code> method to sup
                         
 
                         
-                            <a rel="next" href="../../rust-2018/macros/at-most-once.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next" href="../../rust-2018/the-compiler/index.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
                         
@@ -406,7 +233,7 @@ so in the mean time we can use the <code>local_inner_macros</code> method to sup
                 
 
                 
-                    <a href="../../rust-2018/macros/at-most-once.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a href="../../rust-2018/the-compiler/index.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
                 
@@ -416,6 +243,14 @@ so in the mean time we can use the <code>local_inner_macros</code> method to sup
 
         
 
+        
+
+        
+        
+        
+        <script type="text/javascript">
+            window.playpen_copyable = true;
+        </script>
         
 
         
