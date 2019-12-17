@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>重新分配</title>
+        
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+        
+        <style>
+.task-list-item { list-style-type: none; } .task-list-item-checkbox { margin-left: -20px; vertical-align: middle; }
+</style>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        
+        
+    </head>
+    <body class="vscode-light">
+        <h1 id="%e9%87%8d%e6%96%b0%e5%88%86%e9%85%8d">重新分配</h1>
+<blockquote>
+<p>源-<a href="https://github.com/rust-lang-nursery/nomicon/blob/master/src/vec-dealloc.md">vec-dealloc.md</a>   Commit: e9335c82a2a73ad68f0516ff241c973dfa31ee16</p>
+</blockquote>
+<p>接下来我们应该实现Drop，否则就要造成大量的资源泄露了。最简单的方法是循环调用<code>pop</code>直到产生None为止，然后再回收我们的缓存。注意，当<code>T: !Drop</code>的时候，调用<code>pop</code>不是必须的。理论上我们可以问一问Rust<code>T</code>是不是<code>need_drop</code>然后再省略一些<code>pop</code>调用。可实际上LLVM很擅长移除像这样的无副作用的代码，所以我们不需要再做多余的事，除非你发现LLVM不能成功移除（在这里它能）。</p>
+<p>在<code>self.cap == 0</code>的时候，我们一定不要调用<code>heap::deallocate</code>，因为这时我们还没有实际分配过任何内存。</p>
+<pre><code class="language-Rust"><div><span class="hljs-keyword">impl</span>&lt;T&gt; <span class="hljs-built_in">Drop</span> <span class="hljs-keyword">for</span> <span class="hljs-built_in">Vec</span>&lt;T&gt; {
+    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">drop</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) {
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">self</span>.cap != <span class="hljs-number">0</span> {
+            <span class="hljs-keyword">while</span> <span class="hljs-keyword">let</span> <span class="hljs-literal">Some</span>(_) = <span class="hljs-keyword">self</span>.pop() { }
+
+            <span class="hljs-keyword">let</span> align = mem::align_of::&lt;T&gt;();
+            <span class="hljs-keyword">let</span> elem_size = mem::size_of::&lt;T&gt;();
+            <span class="hljs-keyword">let</span> num_bytes = elem_size * <span class="hljs-keyword">self</span>.cap;
+            <span class="hljs-keyword">unsafe</span> {
+                heap::deallocate(<span class="hljs-keyword">self</span>.ptr.as_ptr() <span class="hljs-keyword">as</span> *<span class="hljs-keyword">mut</span> _, num_bytes, align);
+            }
+        }
+    }
+}
+</div></code></pre>
+
+    </body>
+    </html>

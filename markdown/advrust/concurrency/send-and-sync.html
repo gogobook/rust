@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>`Send`和`Sync`</title>
+        
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+        
+        <style>
+.task-list-item { list-style-type: none; } .task-list-item-checkbox { margin-left: -20px; vertical-align: middle; }
+</style>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        
+        
+    </head>
+    <body class="vscode-light">
+        <h1 id="send%e5%92%8csync"><code>Send</code>和<code>Sync</code></h1>
+<blockquote>
+<p>原文跟踪<a href="https://github.com/rust-lang-nursery/nomicon/blob/master/src/send-and-sync.md">send-and-sync.md</a>   Commit: b0275ab6fd268e470114216f8b0b83481814c713</p>
+</blockquote>
+<p>并非一切都遵循继承的可变性。 某些类型允许您在变异时，在内存中有多个别名的位置。 除非这些类型使用同步来管理这种访问，否则它们绝对不是线程安全的。 Rust通过<code>Send</code>和<code>Sync</code>特质做到这一点。</p>
+<ul>
+<li>如果可以安全地将类型发送到另一个线程，则类型为<code>Send</code>。</li>
+<li>如果在线程之间共享是安全的，则类型为<code>Sync</code>（<code>＆T</code>为<code>Send</code>）。</li>
+</ul>
+<p><code>Send</code>和<code>Sync</code>是Rust的并发故事的基础。 因此，存在大量特殊工具以使其正常工作。 首先和最重要的是，它们是<strong>unsafe traits</strong>。 这意味着它们是不安全实现，和其他不安全的代码可以假设它们是正确的实现。 因为它们是<strong>标记特质</strong>（它们没有相关的项，如方法），正确实施只是意味着它们具有内在的实现者应具有的属性。 错误地实现<code>Send</code>和<code>Sync</code>可以导致未定义的行为。</p>
+<p><code>Send</code>和<code>Sync</code>也是自动派生的特质。 这意味着，与其他所有特质不同，如果类型完全由<code>Send</code>和<code>Sync</code>类型组成，则它是<code>Send</code>或<code>Sync</code>。 几乎所有原语都是<code>Send</code>和<code>Sync</code>，因此几乎所有与之交互的类型都是<code>Send</code>和<code>Sync</code>。</p>
+<p>主要例外包括：</p>
+<ul>
+<li>原始指针既不是<code>Send</code>也不是<code>Sync</code>（因为它们没有安全防护）。</li>
+<li><code>UnsafeCell</code>不是<code>Sync</code>（因此<code>Cell</code>和<code>RefCell</code>也不是）。</li>
+<li><code>Rc</code>不是<code>Send</code>或<code>Sync</code>（因为<code>refcount</code>是共享和不同步的）。</li>
+</ul>
+<p><code>Rc</code>和<code>UnsafeCell</code>基本上不是线程安全的：它们启用了不同步的共享可变状态。 然而，严格来说，原始指针被标记为线程不安全，因为更多的是<em>lint</em>。 对原始指针执行任何有用的操作都需要取消引用它，这已经是不安全的。 从这个意义上讲，人们可以争辩说，将它们标记为线程安全是&quot;很好的&quot;。</p>
+<p>但是，重要的是它们不是线程安全的，以防止包含它们的类型被自动标记为线程安全。 这些类型具有非普通的未经跟踪的所有权，并且他们的作者不太可能思考线程安全性。 在<code>Rc</code>的情况下，我们有一个很好的例子，其中包含一个绝对不是线程安全的<code>* mut</code>。</p>
+<p>如果需要，非自动派生的类型可以简单地实现它们：</p>
+<pre><code class="language-rust"><div><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">MyBox</span></span>(*<span class="hljs-keyword">mut</span> <span class="hljs-built_in">u8</span>);
+
+<span class="hljs-keyword">unsafe</span> <span class="hljs-keyword">impl</span> <span class="hljs-built_in">Send</span> <span class="hljs-keyword">for</span> MyBox {}
+<span class="hljs-keyword">unsafe</span> <span class="hljs-keyword">impl</span> <span class="hljs-built_in">Sync</span> <span class="hljs-keyword">for</span> MyBox {}
+</div></code></pre>
+<p>在非常罕见的情况下，类型被不适当地自动派生为<code>Send</code>或<code>Sync</code>，那么人们也可以实现<code>Send</code>和<code>Sync</code>：</p>
+<pre><code class="language-rust"><div><span class="hljs-meta">#![feature(optin_builtin_traits)]</span>
+
+<span class="hljs-comment">// I have some magic semantics for some synchronization primitive!</span>
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">SpecialThreadToken</span></span>(<span class="hljs-built_in">u8</span>);
+
+<span class="hljs-keyword">impl</span> !<span class="hljs-built_in">Send</span> <span class="hljs-keyword">for</span> SpecialThreadToken {}
+<span class="hljs-keyword">impl</span> !<span class="hljs-built_in">Sync</span> <span class="hljs-keyword">for</span> SpecialThreadToken {}
+</div></code></pre>
+<p>请注意，它本身不可能错误地导出<code>Send</code>和<code>Sync</code>。 只有被其他不安全代码赋予特殊含义的类型才可能因错误<code>Send</code>或<code>Sync</code>而导致问题。</p>
+<p>原始指针的大多数用法应该封装在足够的抽象之后，可以导出<code>Send</code>和<code>Sync</code>。 例如，Rust的所有标准集合都是<code>Send</code>和<code>Sync</code>（当它们包含<code>Send</code>和<code>Sync</code>类型时），尽管它们普遍使用原始指针来管理分配和复杂的所有权。 类似地，进入这些集合的大多数迭代器都是<code>Send</code>和<code>Sync</code>，因为它们在很大程度上表现为集合中的<code>＆</code>或<code>＆mut</code>。</p>
+
+    </body>
+    </html>

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>实现Vec</title>
+        
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+        
+        <style>
+.task-list-item { list-style-type: none; } .task-list-item-checkbox { margin-left: -20px; vertical-align: middle; }
+</style>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        
+        
+    </head>
+    <body class="vscode-light">
+        <h1 id="%e5%ae%9e%e7%8e%b0vec">实现Vec</h1>
+<blockquote>
+<p>源：<a href="https://github.com/rust-lang-nursery/nomicon/blob/master/src/vec.md">vec.md</a>   Commit: 0e6c680ebd72f1860e46b2bd40e2a387ad8084ad</p>
+</blockquote>
+<p>我们要把所有的内容汇总起来，从头开始写一个std::Vec。因为所有编写非安全代码的工具都是不稳定的，这个项目只保证短期有效（从Rust 1.9.0开始）。除了分配器API，我们要用到的大部分不稳定代码都尽量保证和最新的形式一致。</p>
+<p>不过，如果可能的话，我们会尽量避免使用不稳定代码。特别是，我们不会使用内在函数(intrinsics)，虽然它可以使代码更好更高效，但它是永久不稳定的功能。尽管许多的内在函数已经在一些地方稳固使用了（std::ptr和str::mem使用了很多内在函数）。</p>
+<p>也就是说我们的实现不会借助所有可能的优化手段，即使部分手段其实已经比较成熟了。我们还会深入探究种种内在的细节，哪怕实际问题并不需要这样做。</p>
+<p>你想要高级的，我们就给你高级的。</p>
+
+    </body>
+    </html>

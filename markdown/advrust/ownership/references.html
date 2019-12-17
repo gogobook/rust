@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>引用</title>
+        
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+        
+        <style>
+.task-list-item { list-style-type: none; } .task-list-item-checkbox { margin-left: -20px; vertical-align: middle; }
+</style>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        
+        
+    </head>
+    <body class="vscode-light">
+        <h1 id="%e5%bc%95%e7%94%a8">引用</h1>
+<blockquote>
+<p>原文跟踪<a href="https://github.com/rust-lang-nursery/nomicon/blob/master/src/references.md">references.md</a>   Commit: c4822cd9077591c73e3a80ad7386b7e554a90f61</p>
+</blockquote>
+<p>有两种引用：</p>
+<ul>
+<li>共享引用：<code>＆</code></li>
+<li>可变引用：<code>＆mut</code></li>
+</ul>
+<p>遵守以下规则：</p>
+<ul>
+<li>引用不能超过它的引用者</li>
+<li>可变引用不能别名</li>
+</ul>
+<p>就这， 这是整个引用模型。</p>
+<p>当然，我们应该定义<em>别名</em>的含义。</p>
+<pre><code class="language-rust"><div>error[E0425]: cannot find value `aliased` <span class="hljs-keyword">in</span> this scope
+ --&gt; &lt;rust.rs&gt;:<span class="hljs-number">2</span>:<span class="hljs-number">20</span>
+  |
+<span class="hljs-number">2</span> |     <span class="hljs-built_in">println!</span>(<span class="hljs-string">"{}"</span>, aliased);
+  |                    ^^^^^^^ not found <span class="hljs-keyword">in</span> this scope
+
+error: aborting due to previous error
+</div></code></pre>
+<p>不幸的是，Rust实际上没有定义其别名模型。🙀</p>
+<p>当我们等待Rust开发人员指定他们语言的语义时，让我们下一节来讨论一般的别名，以及它为何重要。</p>
+
+    </body>
+    </html>

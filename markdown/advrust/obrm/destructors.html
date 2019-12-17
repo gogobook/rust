@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>析构函数</title>
+        
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+        
+        <style>
+.task-list-item { list-style-type: none; } .task-list-item-checkbox { margin-left: -20px; vertical-align: middle; }
+</style>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        
+        
+    </head>
+    <body class="vscode-light">
+        <h1 id="%e6%9e%90%e6%9e%84%e5%87%bd%e6%95%b0">析构函数</h1>
+<blockquote>
+<p>源：<a href="https://github.com/rust-lang-nursery/nomicon/blob/master/src/destructors.md">destructors.md</a>   Commit: 94964dee31224cf1a22c72400a12cb966f5a12bc</p>
+</blockquote>
+<p>Rust通过<code>Drop</code> trait提供了一个成熟的自动析构函数，包含了这个方法：</p>
+<pre><code class="language-Rust"><div><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">drop</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>);
+</div></code></pre>
+<p>这个方法给了类型一个彻底完成工作的机会。</p>
+<p><strong><code>drop</code>执行之后，Rust会d递归地销毁<code>self</code>的所有成员</strong></p>
+<p>这个功能很方便，你不需要每次都写一堆重复的代码来销毁子类型。如果一个结构体在销毁的时候，除了销毁子成员之外不需要做什么特殊的操作，那么它其实可以不用实现<code>Drop</code>。</p>
+<p><strong>在Rust 1.0中，没有什么合适的方法可以打断这个过程。</strong></p>
+<p>注意，参数是<code>&amp;mut self</code>意味着即使你可以阻止递归销毁，Rust也不允许你将子成员的所有权移出。对于大多数类型来说，这一点完全没问题。</p>
+<p>比如，一个自定义的<code>Box</code>的实现，它的<code>Drop</code>可能长这样：</p>
+<pre><code class="language-Rust"><div><span class="hljs-meta">#![feature(ptr_internals, allocator_api)]</span>
+
+<span class="hljs-keyword">use</span> std::alloc::{Alloc, Global, GlobalAlloc, Layout};
+<span class="hljs-keyword">use</span> std::mem;
+<span class="hljs-keyword">use</span> std::ptr::{drop_in_place, NonNull, Unique};
+
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Box</span></span>&lt;T&gt;{ ptf: Unique&lt;T&gt; }
+
+<span class="hljs-keyword">impl</span>&lt;T&gt; <span class="hljs-built_in">Drop</span> <span class="hljs-keyword">for</span> <span class="hljs-built_in">Box</span>&lt;T&gt; {
+    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">drop</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) {
+        <span class="hljs-keyword">unsafe</span> {
+            drop_in_place(<span class="hljs-keyword">self</span>.ptr.as_ptr());
+            <span class="hljs-keyword">let</span> c: NonNull&lt;T&gt; = <span class="hljs-keyword">self</span>.ptr.into();
+            Global.dealloc(c.cast(), Layout::new::&lt;T&gt;())
+        }
+    }
+}
+</div></code></pre>
+<p>这段代码是正确的，因为当Rust要销毁<code>ptr</code>的时候，它见到的是一个<a href="https://doc.rust-lang.org/nomicon/phantom-data.html">Unique</a>，没有<code>Drop</code>的实现。类似的，也没有人能在销毁后再使用<code>ptr</code>，因为drop函数退出之后，他就不可见了。</p>
+<p>可是这段代码是错误的：</p>
+<pre><code class="language-Rust"><div><span class="hljs-meta">#![feature(allocator_api, ptr_internals)]</span>
+
+<span class="hljs-keyword">use</span> std::alloc::{Alloc, Global, GlobalAlloc, Layout};
+<span class="hljs-keyword">use</span> std::ptr::{drop_in_place, Unique, NonNull};
+<span class="hljs-keyword">use</span> std::mem;
+
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Box</span></span>&lt;T&gt; { ptr: Unique&lt;T&gt; }
+
+<span class="hljs-keyword">impl</span>&lt;T&gt; <span class="hljs-built_in">Drop</span> <span class="hljs-keyword">for</span> <span class="hljs-built_in">Box</span>&lt;T&gt; {
+    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">drop</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) {
+        <span class="hljs-keyword">unsafe</span> {
+            drop_in_place(<span class="hljs-keyword">self</span>.ptr.as_ptr());
+            <span class="hljs-keyword">let</span> c: NonNull&lt;T&gt; = <span class="hljs-keyword">self</span>.ptr.into();
+            Global.dealloc(c.cast(), LayOut::new::&lt;T&gt;());
+        }
+    }
+}
+
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">SuperBox</span></span>&lt;T&gt; ( my_box: <span class="hljs-built_in">Box</span>&lt;T&gt; )
+
+<span class="hljs-keyword">impl</span>&lt;T&gt; <span class="hljs-built_in">Drop</span> <span class="hljs-keyword">for</span> SuperBox&lt;T&gt; {
+    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">drop</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) {
+        <span class="hljs-comment">// 回收box的内容，而不是drop它的内容</span>
+        <span class="hljs-keyword">let</span> c: NonNull&lt;T&gt; = <span class="hljs-keyword">self</span>.my_box.ptr.into();
+        Global.dealloc(c.cast::&lt;<span class="hljs-built_in">u8</span>&gt;(), LayOut::new::&lt;T&gt;());
+    }
+}
+</div></code></pre>
+<p>当我们在<code>SuperBox</code>的析构函数里回收了<code>box</code>的<code>ptr</code>之后，Rust会继续让<code>box</code>销毁它自己,这时销毁后使用(use-after-free)和两次释放(double-free)的问题立刻接踵而至，摧毁一切。</p>
+<p>注意，递归销毁适用于所有的结构体和枚举类型，不管它有没有实现<code>Drop</code>。所以，这段代码</p>
+<pre><code class="language-Rust"><div><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Boxy</span></span>&lt;T&gt; {
+    data1: <span class="hljs-built_in">Box</span>&lt;T&gt;,
+    data2: <span class="hljs-built_in">Box</span>&lt;T&gt;,
+    info: <span class="hljs-built_in">u32</span>,
+}
+</div></code></pre>
+<p>在销毁的时候也会调用<code>data1</code>和<code>data2</code>的析构函数，尽管这个结构体本身并没有实现<code>Drop</code>。这样的类型“需要Drop却不是Drop”。</p>
+<p>类似的</p>
+<pre><code class="language-Rust"><div><span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-title">Link</span></span> {
+    Next(<span class="hljs-built_in">Box</span>&lt;Link&gt;),
+    <span class="hljs-literal">None</span>,
+}
+</div></code></pre>
+<p>当（且仅当）一个实例储存着<code>Next</code>变量时，它就会销毁内部的<code>Box</code>成员。</p>
+<p>一般来说这其实是一个很好的设计，它让你在重构数据布局的时候无需费心添加/删除<code>drop</code>函数。但也有很多的场景要求我们必须在析构函数中玩一些花招。</p>
+<p>如果想阻止递归销毁并且在<code>drop</code>过程中将<code>self</code>的所有权移出，通常的安全的做法是使用<code>Option</code>：</p>
+<pre><code class="language-Rust"><div><span class="hljs-meta">#![feature(allocator_api, ptr_internals)]</span>
+
+<span class="hljs-keyword">use</span> std::alloc::{Alloc, GlobalAlloc, Global, LayOut};
+<span class="hljs-keyword">use</span> std::ptr::{drop_in_place, Unique, NonNull};
+<span class="hljs-keyword">use</span> std::mem;
+
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Box</span></span>&lt;T&gt;{ ptr: Unique&lt;T&gt; }
+
+<span class="hljs-keyword">impl</span>&lt;T&gt; <span class="hljs-built_in">Drop</span> <span class="hljs-keyword">for</span> <span class="hljs-built_in">Box</span>&lt;T&gt; {
+    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">drop</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) {
+        <span class="hljs-keyword">unsafe</span> {
+            drop_in_place(<span class="hljs-keyword">self</span>.ptr.as_ptr());
+            <span class="hljs-keyword">let</span> c: NonNull&lt;T&gt; = <span class="hljs-keyword">self</span>.ptr.into();
+            Global.dealloc(c.cast(), LayOut::new::&lt;T&gt;());
+        }
+    }
+}
+
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">SuperBox</span></span>&lt;T&gt; { my_box: <span class="hljs-built_in">Option</span>&lt;<span class="hljs-built_in">Box</span>&lt;T&gt;&gt; }
+
+<span class="hljs-keyword">impl</span>&lt;T&gt; <span class="hljs-built_in">Drop</span> <span class="hljs-keyword">for</span> SuperBox&lt;T&gt; {
+    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">drop</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) {
+        <span class="hljs-keyword">unsafe</span> {
+            <span class="hljs-comment">// 回收box的内容，而不是drop它的内容</span>
+            <span class="hljs-comment">// 需要将box设置为None，以阻止Rust销毁它</span>
+            <span class="hljs-keyword">let</span> my_box = <span class="hljs-keyword">self</span>.my_box.take().unwrap();
+            <span class="hljs-keyword">let</span> c: NonNull&lt;T&gt; = my_box.ptr.into();
+            Global.dealloc(c.cast(), LayOut::new::&lt;T&gt;());
+            mem::feorget(my_box);
+        }
+    }
+}
+</div></code></pre>
+<p>但是这段代码显得很奇怪：我们认为一个永远都是<code>Some</code>的成员有可能是<code>None</code>，仅仅因为析构函数中用到了一次。但反过来说这种设计又很合理：你可以在析构函数中调用<code>self</code>的任意方法。<em>在成员被反初始化之后就完全不能这么做了，而不是禁止你搞出一些随意的非法状态</em>。（斜体部分没看懂，建议看原文）</p>
+<p>权衡之后，这是一个可以接受的方案。你可以将它作为你的默认选项。但是，我们希望以后能有一个方法明确声明哪一个成员不会自动销毁。</p>
+
+    </body>
+    </html>

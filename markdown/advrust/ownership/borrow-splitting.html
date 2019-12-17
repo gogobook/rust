@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>分解借用</title>
+        
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+        
+        <style>
+.task-list-item { list-style-type: none; } .task-list-item-checkbox { margin-left: -20px; vertical-align: middle; }
+</style>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        
+        
+    </head>
+    <body class="vscode-light">
+        <h1 id="%e5%88%86%e8%a7%a3%e5%80%9f%e7%94%a8">分解借用</h1>
+<blockquote>
+<p>源：<a href="https://github.com/rust-lang-nursery/nomicon/blob/master/src/borrow-splitting.md">borrow-splitting.md</a>   Commit: d870b6788ba078ba398f020305ef9210f7cbd740</p>
+</blockquote>
+<p>可变引用的Mutex属性在处理复合类型时能力非常有限。借用检查器只能理解一些简单的东西，而且极易失败。他对结构体还算是充分了解，知道结构体的成员可能被分别借用。所以这段代码现在可以正常工作：</p>
+<pre><code class="language-Rust"><div><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Foo</span></span> {
+    a: <span class="hljs-built_in">i32</span>,
+    b: <span class="hljs-built_in">i32</span>,
+    c: <span class="hljs-built_in">i32</span>,
+}
+
+<span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> x = Foo {a: <span class="hljs-number">0</span>, b: <span class="hljs-number">0</span>, c: <span class="hljs-number">0</span>};
+<span class="hljs-keyword">let</span> a = &amp;<span class="hljs-keyword">mut</span> x.a;
+<span class="hljs-keyword">let</span> b = &amp;<span class="hljs-keyword">mut</span> x.b;
+<span class="hljs-keyword">let</span> c = &amp;x.c;
+*b += <span class="hljs-number">1</span>;
+<span class="hljs-keyword">let</span> c2 = &amp;x.c;
+*a += <span class="hljs-number">10</span>;
+<span class="hljs-built_in">println!</span>(<span class="hljs-string">"{} {} {} {}"</span>, a, b, c, c2);
+</div></code></pre>
+<p>但是，借用检查器对于数组和slice的理解却是一团浆糊，所以这段代码无法通过检查：</p>
+<pre><code class="language-Rust"><div><span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> x = [<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>];
+<span class="hljs-keyword">let</span> a = &amp;<span class="hljs-keyword">mut</span> x[<span class="hljs-number">0</span>];
+<span class="hljs-keyword">let</span> b = &amp;<span class="hljs-keyword">mut</span> x[<span class="hljs-number">1</span>];
+<span class="hljs-built_in">println!</span>(<span class="hljs-string">"{} {}"</span>, a, b);
+</div></code></pre>
+<pre><code><code><div>error[E0499]: cannot borrow `x[..]` as mutable more than once at a time
+ --&gt; src/lib.rs:4:18
+  |
+3 |     let a = &amp;mut x[0];
+  |                  ---- first mutable borrow occurs here
+4 |     let b = &amp;mut x[1];
+  |                  ^^^^ second mutable borrow occurs here
+5 |     println!(&quot;{} {}&quot;, a, b);
+6 | }
+  | - first borrow ends here
+error: aborting due to previous error
+</div></code></code></pre>
+<p>借用检查器连这个简单的场景都理解不了，那它更不可能理解一些通用容器类型了，比如说树，尤其是出现不同的键对应相同的值的时候。</p>
+<p>为了能“教育”借用检查器我们的所作所为是正确的，我们还是要使用非安全代码。比如，可变slice暴露了一个<code>split_at_mut</code>的方法，它接收一个slice然后返回两个可变slice。一个包括索引值左边所有的值，另一个包含右边所有的值。我们知道这个方法是安全的，因为两个slice没有重叠部分，也就不会出现别名问题。但是它的实现还是要涉及到非安全的内容：</p>
+<pre><code class="language-Rust"><div><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">split_at_mut</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>, mid: <span class="hljs-built_in">usize</span>) -&gt; (&amp;<span class="hljs-keyword">mut</span> [T], &amp;<span class="hljs-keyword">mut</span> [T]) {
+    <span class="hljs-keyword">let</span> len = <span class="hljs-keyword">self</span>.len();
+    <span class="hljs-keyword">let</span> ptr = <span class="hljs-keyword">self</span>.as_mut_ptr();
+    <span class="hljs-built_in">assert!</span>(mid &lt;= len);
+    <span class="hljs-keyword">unsafe</span> {
+        (from_raw_parts_mut(ptr, mid)),
+         from_raw_parts_mut(ptr.offset(mid <span class="hljs-keyword">as</span> <span class="hljs-built_in">isize</span>), len - mid))
+    }
+}
+</div></code></pre>
+<p>这有一点难懂。为了避免两个<code>&amp;mut</code>指向相同的值，我们通过裸指针显式创建了两个全新的slice。</p>
+<p>不过迭代器产生可变引用的方法更加难懂。迭代器trait的定义如下：</p>
+<pre><code class="language-Rust"><div><span class="hljs-class"><span class="hljs-keyword">trait</span> <span class="hljs-title">Iterator</span></span> {
+    typr Item;
+
+    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">next</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) -&gt; <span class="hljs-built_in">Option</span>&lt;Self::Item&gt;;
+}
+</div></code></pre>
+<p>这份定义里，<code>Self::Item</code>与<code>slef</code>没有直接关系。也就是说我们可以连续调用<code>next</code>很多次，并且同时保存着所有的结果。对于值的迭代器这么做完全可以，完全符合语义。对于共享引用这么做也没什么问题，因为允许任意过个共享引用指向同一个值（当然迭代器本身需要是独立于被共享内容的对象）。</p>
+<p>但是可变引用就麻烦了。乍一看，可变引用完全不适用这个API，因为那会产生多个指向相同对象的可变引用。</p>
+<p>可实际上它能够正常工作，这是因为迭代器是一个一次性对象。<code>IterMut</code>生成的东西最多只会生成一次，所以实际上我们没有生成多个指向相同数据的可变指针。</p>
+<p>更不可思议的是，可变迭代器对于许多类型的实现甚至不需要非安全代码！</p>
+<p>例如，下面是单向列表的代码：</p>
+<pre><code class="language-Rust"><div><span class="hljs-class"><span class="hljs-keyword">type</span> <span class="hljs-title">Link</span></span>&lt;T&gt; = <span class="hljs-built_in">Option</span>&lt;<span class="hljs-built_in">Box</span>&lt;Node&lt;T&gt;&gt;&gt;;
+
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Node</span></span>&lt;T&gt; {
+    elem: T,
+    next: Link&lt;T&gt;,
+}
+
+<span class="hljs-keyword">pub</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">LinkedList</span></span>&lt;T&gt; {
+    head: Link&lt;T&gt;,
+}
+
+<span class="hljs-keyword">pub</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">IterMut</span></span>&lt;<span class="hljs-symbol">'a</span>, T: <span class="hljs-symbol">'a</span>&gt;(<span class="hljs-built_in">Option</span>&lt;&amp;<span class="hljs-symbol">'a</span> <span class="hljs-keyword">mut</span> Node&lt;T&gt;&gt;);
+
+<span class="hljs-keyword">impl</span>&lt;T&gt; LinkedList&lt;T&gt; {
+    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">iter_mut</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) -&gt; IterMut&lt;T&gt; {
+        IterMut(<span class="hljs-keyword">self</span>.head.as_mut().map(|node| &amp;<span class="hljs-keyword">mut</span> **node))
+    }
+}
+
+<span class="hljs-keyword">impl</span>&lt;<span class="hljs-symbol">'a</span>, T&gt; <span class="hljs-built_in">Iterator</span> <span class="hljs-keyword">for</span> IterMut&lt;<span class="hljs-symbol">'a</span>, T&gt; {
+    <span class="hljs-class"><span class="hljs-keyword">type</span> <span class="hljs-title">Item</span></span> = &amp;<span class="hljs-symbol">'a</span> <span class="hljs-keyword">mut</span> T;
+
+    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">next</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) -&gt; <span class="hljs-built_in">Option</span>&lt;Self::Item&gt; {
+        <span class="hljs-keyword">self</span>.<span class="hljs-number">0</span>.take().map(|node| {
+            <span class="hljs-keyword">self</span>.<span class="hljs-number">0</span> = node.next.as_mut().map(|node| &amp;<span class="hljs-keyword">mut</span> **node);
+            &amp;<span class="hljs-keyword">mut</span> node.elem
+        })
+    }
+}
+</div></code></pre>
+<p>这是可变slice：</p>
+<pre><code class="language-Rust"><div><span class="hljs-keyword">use</span> std::mem;
+
+<span class="hljs-keyword">pub</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">IterMut</span></span>&lt;<span class="hljs-symbol">'a</span>, T: <span class="hljs-symbol">'a</span>&gt;(&amp;<span class="hljs-symbol">'a</span> <span class="hljs-keyword">mut</span>[T]);
+
+<span class="hljs-keyword">impl</span>&lt;<span class="hljs-symbol">'a</span>, T&gt; <span class="hljs-built_in">Iterator</span> <span class="hljs-keyword">for</span> IterMut&lt;<span class="hljs-symbol">'a</span>, T&gt; {
+    <span class="hljs-class"><span class="hljs-keyword">type</span> <span class="hljs-title">Item</span></span> = &amp;<span class="hljs-symbol">'a</span> <span class="hljs-keyword">mut</span> T;
+
+    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">next</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) -&gt; <span class="hljs-built_in">Option</span>&lt;Self::Item&gt; {
+        <span class="hljs-keyword">let</span> slice = mem::replace(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>.<span class="hljs-number">0</span>, &amp;<span class="hljs-keyword">mut</span> []);
+        <span class="hljs-keyword">if</span> slice.is_empty() { <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span>; }
+
+        <span class="hljs-keyword">let</span> (l, r) = slice.split_at_mut(<span class="hljs-number">1</span>);
+        <span class="hljs-keyword">self</span>.<span class="hljs-number">0</span> = r;
+        l.get_mut(<span class="hljs-number">0</span>)
+    }
+}
+
+<span class="hljs-keyword">impl</span>&lt;<span class="hljs-symbol">'a</span>, T&gt; <span class="hljs-built_in">DoubleEndedIterator</span> <span class="hljs-keyword">for</span> IterMut&lt;<span class="hljs-symbol">'a</span>, T&gt; {
+    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">next_back</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) -&gt; <span class="hljs-built_in">Option</span>&lt;Self::Item&gt; {
+        <span class="hljs-keyword">let</span> slice = mem::replace(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>.<span class="hljs-number">0</span>, &amp;<span class="hljs-keyword">mut</span> []);
+        <span class="hljs-keyword">if</span> slice.is_empty() { <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span>; }
+
+        <span class="hljs-keyword">let</span> new_len = slice.len() - <span class="hljs-number">1</span>;
+        <span class="hljs-keyword">let</span> (l, r) = slice.split_at_mut(new_len);
+        <span class="hljs-keyword">self</span>.<span class="hljs-number">0</span> = l;
+        r.get_mut(<span class="hljs-number">0</span>)
+    }
+}
+</div></code></pre>
+<p>还有二叉树：</p>
+<pre><code class="language-Rust"><div><span class="hljs-keyword">use</span> std::collections::VecDeque;
+
+<span class="hljs-class"><span class="hljs-keyword">type</span> <span class="hljs-title">Link</span></span>&lt;T&gt; = <span class="hljs-built_in">Option</span>&lt;<span class="hljs-built_in">Box</span>&lt;Node&lt;T&gt;&gt;&gt;;
+
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Node</span></span>&lt;T&gt; {
+    elem: T,
+    left: Link&lt;T&gt;,
+    right: Link&lt;T&gt;,
+}
+
+<span class="hljs-keyword">pub</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Tree</span></span>&lt;T&gt; {
+    root: Link&lt;T&gt;,
+}
+
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">NodeIterMut</span></span>&lt;<span class="hljs-symbol">'a</span>, T: <span class="hljs-symbol">'a</span>&gt; {
+    elem: <span class="hljs-built_in">Option</span>&lt;&amp;<span class="hljs-symbol">'a</span> <span class="hljs-keyword">mut</span> T&gt;,
+    left: <span class="hljs-built_in">Option</span>&lt;&amp;<span class="hljs-symbol">'a</span> <span class="hljs-keyword">mut</span> Node&lt;T&gt;&gt;,
+    right: <span class="hljs-built_in">Option</span>&lt;&amp;<span class="hljs-symbol">'a</span> <span class="hljs-keyword">mut</span> Node&lt;T&gt;&gt;,
+}
+
+<span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-title">State</span></span>&lt;<span class="hljs-symbol">'a</span>, T: <span class="hljs-symbol">'a</span>&gt; {
+    Elem(&amp;<span class="hljs-symbol">'a</span> <span class="hljs-keyword">mut</span> T),
+    Node(&amp;<span class="hljs-symbol">'a</span> <span class="hljs-keyword">mut</span> Node&lt;T&gt;),
+}
+
+<span class="hljs-keyword">pub</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">IterMut</span></span>&lt;<span class="hljs-symbol">'a</span>, T: <span class="hljs-symbol">'a</span>&gt;(VecDeque&lt;NodeIterMut&lt;<span class="hljs-symbol">'a</span>, T&gt;&gt;);
+
+<span class="hljs-keyword">impl</span>&lt;T&gt; Tree&lt;T&gt; {
+    <span class="hljs-keyword">pub</span> <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">iter_mut</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) -&gt; IterMut&lt;T&gt; {
+        <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> deque = VecDeque::new();
+        <span class="hljs-keyword">self</span>.root.as_mut().map(|root| deque.push_front(root.iter_mut()));
+        IterMut(deque)
+    }
+}
+
+<span class="hljs-keyword">impl</span>&lt;T&gt; Node&lt;T&gt; {
+    <span class="hljs-keyword">pub</span> <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">iter_mut</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) -&gt; NodeIterMut&lt;T&gt; {
+        NodeIterMut {
+            elem: <span class="hljs-literal">Some</span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>.elem),
+            left: <span class="hljs-keyword">self</span>.left.as_mut().map(|node| &amp;<span class="hljs-keyword">mut</span> **node),
+            right: <span class="hljs-keyword">self</span>.right.as_mut().map(|node| &amp;<span class="hljs-keyword">mut</span> **node),
+        }
+    }
+}
+
+
+<span class="hljs-keyword">impl</span>&lt;<span class="hljs-symbol">'a</span>, T&gt; <span class="hljs-built_in">Iterator</span> <span class="hljs-keyword">for</span> NodeIterMut&lt;<span class="hljs-symbol">'a</span>, T&gt; {
+    <span class="hljs-class"><span class="hljs-keyword">type</span> <span class="hljs-title">Item</span></span> = State&lt;<span class="hljs-symbol">'a</span>, T&gt;;
+
+    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">next</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) -&gt; <span class="hljs-built_in">Option</span>&lt;Self::Item&gt; {
+        <span class="hljs-keyword">match</span> <span class="hljs-keyword">self</span>.left.take() {
+            <span class="hljs-literal">Some</span>(node) =&gt; <span class="hljs-literal">Some</span>(State::Node(node)),
+            <span class="hljs-literal">None</span> =&gt; <span class="hljs-keyword">match</span> <span class="hljs-keyword">self</span>.elem.take() {
+                <span class="hljs-literal">Some</span>(elem) =&gt; <span class="hljs-literal">Some</span>(State::Elem(elem)),
+                <span class="hljs-literal">None</span> =&gt; <span class="hljs-keyword">match</span> <span class="hljs-keyword">self</span>.right.take() {
+                    <span class="hljs-literal">Some</span>(node) =&gt; <span class="hljs-literal">Some</span>(State::Node(node)),
+                    <span class="hljs-literal">None</span> =&gt; <span class="hljs-literal">None</span>,
+                }
+            }
+        }
+    }
+}
+
+<span class="hljs-keyword">impl</span>&lt;<span class="hljs-symbol">'a</span>, T&gt; <span class="hljs-built_in">DoubleEndedIterator</span> <span class="hljs-keyword">for</span> NodeIterMut&lt;<span class="hljs-symbol">'a</span>, T&gt; {
+    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">next_back</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) -&gt; <span class="hljs-built_in">Option</span>&lt;Self::Item&gt; {
+        <span class="hljs-keyword">match</span> <span class="hljs-keyword">self</span>.right.take() {
+            <span class="hljs-literal">Some</span>(node) =&gt; <span class="hljs-literal">Some</span>(State::Node(node)),
+            <span class="hljs-literal">None</span> =&gt; <span class="hljs-keyword">match</span> <span class="hljs-keyword">self</span>.elem.take() {
+                <span class="hljs-literal">Some</span>(elem) =&gt; <span class="hljs-literal">Some</span>(State::Elem(elem)),
+                <span class="hljs-literal">None</span> =&gt; <span class="hljs-keyword">match</span> <span class="hljs-keyword">self</span>.left.take() {
+                    <span class="hljs-literal">Some</span>(node) =&gt; <span class="hljs-literal">Some</span>(State::Node(node)),
+                    <span class="hljs-literal">None</span> =&gt; <span class="hljs-literal">None</span>,
+                }
+            }
+        }
+    }
+}
+
+<span class="hljs-keyword">impl</span>&lt;<span class="hljs-symbol">'a</span>, T&gt; <span class="hljs-built_in">Iterator</span> <span class="hljs-keyword">for</span> IterMut&lt;<span class="hljs-symbol">'a</span>, T&gt; {
+    <span class="hljs-class"><span class="hljs-keyword">type</span> <span class="hljs-title">Item</span></span> = &amp;<span class="hljs-symbol">'a</span> <span class="hljs-keyword">mut</span> T;
+    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">next</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) -&gt; <span class="hljs-built_in">Option</span>&lt;Self::Item&gt; {
+        <span class="hljs-keyword">loop</span> {
+            <span class="hljs-keyword">match</span> <span class="hljs-keyword">self</span>.<span class="hljs-number">0</span>.front_mut().and_then(|node_it| node_it.next()) {
+                <span class="hljs-literal">Some</span>(State::Elem(elem)) =&gt; <span class="hljs-keyword">return</span> <span class="hljs-literal">Some</span>(elem),
+                <span class="hljs-literal">Some</span>(State::Node(node)) =&gt; <span class="hljs-keyword">self</span>.<span class="hljs-number">0</span>.push_front(node.iter_mut()),
+                <span class="hljs-literal">None</span> =&gt; <span class="hljs-keyword">if</span> <span class="hljs-keyword">let</span> <span class="hljs-literal">None</span> = <span class="hljs-keyword">self</span>.<span class="hljs-number">0</span>.pop_front() { <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span> },
+            }
+        }
+    }
+}
+
+<span class="hljs-keyword">impl</span>&lt;<span class="hljs-symbol">'a</span>, T&gt; <span class="hljs-built_in">DoubleEndedIterator</span> <span class="hljs-keyword">for</span> IterMut&lt;<span class="hljs-symbol">'a</span>, T&gt; {
+    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">next_back</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) -&gt; <span class="hljs-built_in">Option</span>&lt;Self::Item&gt; {
+        <span class="hljs-keyword">loop</span> {
+            <span class="hljs-keyword">match</span> <span class="hljs-keyword">self</span>.<span class="hljs-number">0</span>.back_mut().and_then(|node_it| node_it.next_back()) {
+                <span class="hljs-literal">Some</span>(State::Elem(elem)) =&gt; <span class="hljs-keyword">return</span> <span class="hljs-literal">Some</span>(elem),
+                <span class="hljs-literal">Some</span>(State::Node(node)) =&gt; <span class="hljs-keyword">self</span>.<span class="hljs-number">0</span>.push_back(node.iter_mut()),
+                <span class="hljs-literal">None</span> =&gt; <span class="hljs-keyword">if</span> <span class="hljs-keyword">let</span> <span class="hljs-literal">None</span> = <span class="hljs-keyword">self</span>.<span class="hljs-number">0</span>.pop_back() { <span class="hljs-keyword">return</span> <span class="hljs-literal">None</span> },
+            }
+        }
+    }
+}
+</div></code></pre>
+<p>所有这些都是完全安全而且能稳定运行的！这已经超出了我们之前看过的简单结构体的例子：Rust能够理解你把一个可变引用安全地分解为多个部分。接下来我们可以通过Option永久地访问这个引用（或者像对于slice那样，替换为一个空的slice）。</p>
+
+    </body>
+    </html>

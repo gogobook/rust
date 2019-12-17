@@ -90,12 +90,6 @@
                             aria-label="Toggle Table of Contents" aria-controls="sidebar">
                             <i class="fa fa-bars"></i>
                         </button>
-                        <!-- START - Rust Cookbook customization -->
-                        <button id="edit-button" class="icon-button" type="button" title="Fork and edit"
-                            aria-label="Fork and edit" aria-haspopup="true" aria-expanded="false" aria-controls="edit">
-                            <i class="fa fa-edit">Edit</i>
-                        </button>
-                        <!-- END - Rust Cookbook customization -->
                         <button id="theme-toggle" class="icon-button" type="button" title="Change theme"
                             aria-label="Change theme" aria-haspopup="true" aria-expanded="false"
                             aria-controls="theme-list">
@@ -152,13 +146,6 @@
                     link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
                 });
             </script>
-
-            <!-- // START - Rust Cookbook customization -->
-            <script>
-                document.getElementById("edit-button").addEventListener("click", function () {
-                    var editWindow = window.open("https://github.com/chinanf-boy/async-book-zh/edit/master/src/index.md");
-                });</script>
-            <!-- // END - Rust Cookbook customization -->
 
             <div id="content" class="content">
                 <main>

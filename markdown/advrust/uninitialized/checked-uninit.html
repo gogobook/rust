@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>检查未初始化的内存</title>
+        
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+        
+        <style>
+.task-list-item { list-style-type: none; } .task-list-item-checkbox { margin-left: -20px; vertical-align: middle; }
+</style>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        
+        
+    </head>
+    <body class="vscode-light">
+        <h1 id="%e6%a3%80%e6%9f%a5%e6%9c%aa%e5%88%9d%e5%a7%8b%e5%8c%96%e7%9a%84%e5%86%85%e5%ad%98">检查未初始化的内存</h1>
+<blockquote>
+<p>原文跟踪<a href="https://github.com/rust-lang-nursery/nomicon/blob/master/src/checked-uninit.md">checked-uninit.md</a>   Commit: d870b6788ba078ba398f020305ef9210f7cbd740</p>
+</blockquote>
+<p>与C一样，Rust中的所有堆栈变量都是未初始化的，直到明确赋值给它们为止。 与C不同，Rust会在您执行以下操作之前静态地阻止您读它们：</p>
+<pre><code class="language-rust"><div><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">main</span></span>() {
+    <span class="hljs-keyword">let</span> x: <span class="hljs-built_in">i32</span>;
+    <span class="hljs-built_in">println!</span>(<span class="hljs-string">"{}"</span>, x);
+}
+</div></code></pre>
+<pre><code class="language-rust"><div>  |
+<span class="hljs-number">3</span> |     <span class="hljs-built_in">println!</span>(<span class="hljs-string">"{}"</span>, x);
+  |                    ^ <span class="hljs-keyword">use</span> of possibly uninitialized `x`
+</div></code></pre>
+<p>这基于一个基本的分支分析：每个分支必须在第一次使用之前为x赋值。 有趣的是，如果每个分支只分配一次，则Rust不要求变量是可变的来执行延迟初始化。 然而，分析没有利用常数分析或类似的东西。 所以这个编译：</p>
+<pre><code class="language-rust"><div><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">main</span></span>() {
+    <span class="hljs-keyword">let</span> x: <span class="hljs-built_in">i32</span>;
+
+    <span class="hljs-keyword">if</span> <span class="hljs-literal">true</span> {
+        x = <span class="hljs-number">1</span>;
+    } <span class="hljs-keyword">else</span> {
+        x = <span class="hljs-number">2</span>;
+    }
+
+    <span class="hljs-built_in">println!</span>(<span class="hljs-string">"{}"</span>, x);
+}
+</div></code></pre>
+<p>但这不行：</p>
+<pre><code class="language-rust"><div><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">main</span></span>() {
+    <span class="hljs-keyword">let</span> x: <span class="hljs-built_in">i32</span>;
+    <span class="hljs-keyword">if</span> <span class="hljs-literal">true</span> {
+        x = <span class="hljs-number">1</span>;
+    }
+    <span class="hljs-built_in">println!</span>(<span class="hljs-string">"{}"</span>, x);
+}
+</div></code></pre>
+<pre><code class="language-rust"><div>  |
+<span class="hljs-number">6</span> |     <span class="hljs-built_in">println!</span>(<span class="hljs-string">"{}"</span>, x);
+  |                    ^ <span class="hljs-keyword">use</span> of possibly uninitialized `x`
+</div></code></pre>
+<p>这样可以:</p>
+<pre><code class="language-rust"><div><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">main</span></span>() {
+    <span class="hljs-keyword">let</span> x: <span class="hljs-built_in">i32</span>;
+    <span class="hljs-keyword">if</span> <span class="hljs-literal">true</span> {
+        x = <span class="hljs-number">1</span>;
+        <span class="hljs-built_in">println!</span>(<span class="hljs-string">"{}"</span>, x);
+    }
+    <span class="hljs-comment">// Don't care that there are branches where it's not initialized</span>
+    <span class="hljs-comment">// since we don't use the value in those branches</span>
+}
+</div></code></pre>
+<p>当然，虽然分析不考虑实际值，但它确实对依赖关系和控制流有了相对复杂的理解。 例如，这有效：</p>
+<pre><code class="language-rust"><div><span class="hljs-keyword">let</span> x: <span class="hljs-built_in">i32</span>;
+
+<span class="hljs-keyword">loop</span> {
+    <span class="hljs-comment">// Rust doesn't understand that this branch will be taken unconditionally,</span>
+    <span class="hljs-comment">// because it relies on actual values.</span>
+    <span class="hljs-keyword">if</span> <span class="hljs-literal">true</span> {
+        <span class="hljs-comment">// But it does understand that it will only be taken once because</span>
+        <span class="hljs-comment">// we unconditionally break out of it. Therefore `x` doesn't</span>
+        <span class="hljs-comment">// need to be marked as mutable.</span>
+        x = <span class="hljs-number">0</span>;
+        <span class="hljs-keyword">break</span>;
+    }
+}
+<span class="hljs-comment">// It also knows that it's impossible to get here without reaching the break.</span>
+<span class="hljs-comment">// And therefore that `x` must be initialized here!</span>
+<span class="hljs-built_in">println!</span>(<span class="hljs-string">"{}"</span>, x);
+</div></code></pre>
+<p>如果某个值移出变量作用域，那么如果值的类型不是Copy，则该变量在逻辑上将变为未初始化。 那是：</p>
+<pre><code class="language-rust"><div><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">main</span></span>() {
+    <span class="hljs-keyword">let</span> x = <span class="hljs-number">0</span>;
+    <span class="hljs-keyword">let</span> y = <span class="hljs-built_in">Box</span>::new(<span class="hljs-number">0</span>);
+    <span class="hljs-keyword">let</span> z1 = x; <span class="hljs-comment">// x is still valid because i32 is Copy</span>
+    <span class="hljs-keyword">let</span> z2 = y; <span class="hljs-comment">// y is now logically uninitialized because Box isn't Copy</span>
+}
+</div></code></pre>
+<p>但是，在此示例中重新分配<code>y</code>将需要将<code>y</code>标记为可变，因为<code>Safe Rust</code>程序可以观察到<code>y</code>的值已更改：</p>
+<pre><code class="language-rust"><div><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">main</span></span>() {
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> y = <span class="hljs-built_in">Box</span>::new(<span class="hljs-number">0</span>);
+    <span class="hljs-keyword">let</span> z = y; <span class="hljs-comment">// y is now logically uninitialized because Box isn't Copy</span>
+    y = <span class="hljs-built_in">Box</span>::new(<span class="hljs-number">1</span>); <span class="hljs-comment">// reinitialize y</span>
+}
+</div></code></pre>
+<p>否则就像<code>y</code>是一个全新的变量。</p>
+
+    </body>
+    </html>

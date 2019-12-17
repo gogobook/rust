@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>IntoIter</title>
+        
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+        
+        <style>
+.task-list-item { list-style-type: none; } .task-list-item-checkbox { margin-left: -20px; vertical-align: middle; }
+</style>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        
+        
+    </head>
+    <body class="vscode-light">
+        <h1 id="intoiter">IntoIter</h1>
+<blockquote>
+<p>源-<a href="https://github.com/rust-lang-nursery/nomicon/blob/master/src/vec-into-iter.md">vec-into-iter.md</a>   Commit: e9335c82a2a73ad68f0516ff241c973dfa31ee16</p>
+</blockquote>
+<p>我们继续编写迭代器。<code>iter</code>和<code>iter_mut</code>其实已经写过了，感谢神奇的DeRef。但是还有两个有意思的迭代器是Vec提供的而slice没有的：<code>into_iter</code>和<code>drain</code>。</p>
+<p>IntoIter以值而不是引用的形式访问Vec，同时也是以值的形式返回元素。为了实现这一点，IntoIter需要获取Vec的分配空间的所有权。</p>
+<p>IntoIter也需要DoubleEnd，即从两个方向读数据。从尾部读数据可以通过调用<code>pop</code>实现，但是从头读数据就困难了。我们可以调用<code>remove(0)</code>，但是它的开销太大了。我们选择直接使用<code>ptr::read</code>从Vec的两端拷贝数据，而完全不去改变缓存。</p>
+<p>我们要用一个典型的C访问数组的方式来实现这一点。我们先创建两个指针，一个指向数组的开头，另一个指向结尾后面的那个元素。如果我们需要一端的元素，我们就从那一端指针指向的位置处读出值，然后把指针移动一位。当两个指针相等时，就说明迭代完成了。</p>
+<p>注意，<code>next</code>和<code>next_back</code>中的读和offset的顺序是相反的。对于<code>next_back</code>，指针总是指向它下一次要读的元素的后面，而<code>next</code>的指针总是指向它下一次要读的元素。为什么要这样呢？考虑一下只剩一个元素还未被读取的情况。</p>
+<p>这时的数组像这样：</p>
+<pre><code><code><div>          S  E
+[X, X, X, O, X, X, X]
+</div></code></code></pre>
+<p>如果E直接指向它下一次要读的元素，我们就无法把上面的情况和所有元素都读过了的情况区分开了。</p>
+<p>我们还需要保存Vec的分配空间的信息，虽然在迭代过程中我们并不关心它，但我们在IntoIter被drop的时候需要这些信息来释放空间。</p>
+<p>所以我们要用下面这个结构体：</p>
+<pre><code class="language-Rust"><div><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">IntoIter</span></span>&lt;T&gt; {
+    buf: Unique&lt;T&gt;,
+    cap: <span class="hljs-built_in">usize</span>,
+    start: *<span class="hljs-keyword">const</span> T,
+    end: *<span class="hljs-keyword">const</span> T,
+}
+</div></code></pre>
+<p>这是初始化的代码：</p>
+<pre><code class="language-Rust"><div><span class="hljs-keyword">impl</span>&lt;T&gt; <span class="hljs-built_in">Vec</span>&lt;T&gt; {
+    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">into_iter</span></span>(<span class="hljs-keyword">self</span>) -&gt; IntoIter&lt;T&gt; {
+        <span class="hljs-comment">// 因为Vec是Drop，不能销毁它</span>
+        <span class="hljs-keyword">let</span> ptr = <span class="hljs-keyword">self</span>.ptr;
+        <span class="hljs-keyword">let</span> cap = <span class="hljs-keyword">self</span>.cap;
+        <span class="hljs-keyword">let</span> len = <span class="hljs-keyword">self</span>.len;
+
+        <span class="hljs-comment">// 确保Vec不会被drop，因为那样会释放内存空间</span>
+        mem::forget(<span class="hljs-keyword">self</span>);
+
+        <span class="hljs-keyword">unsafe</span> {
+            IntoIter {
+                buf: ptr,
+                cap: cap,
+                start: *ptr,
+                end: <span class="hljs-keyword">if</span> cap == <span class="hljs-number">0</span> {
+                    <span class="hljs-comment">// 没有分配空间，不能计算指针偏移量</span>
+                    *ptr
+                } <span class="hljs-keyword">else</span> {
+                    ptr.offset(len <span class="hljs-keyword">as</span> <span class="hljs-built_in">isize</span>)
+                }
+            }
+        }
+    }
+}
+</div></code></pre>
+<p>这是前向迭代的代码：</p>
+<pre><code class="language-Rust"><div><span class="hljs-keyword">impl</span>&lt;T&gt; <span class="hljs-built_in">Iterator</span> <span class="hljs-keyword">for</span> IntoIter&lt;T&gt; {
+    <span class="hljs-class"><span class="hljs-keyword">type</span> <span class="hljs-title">Item</span></span> = T;
+    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">next</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) -&gt; <span class="hljs-built_in">Option</span>&lt;T&gt; {
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">self</span>.start == <span class="hljs-keyword">self</span>.end {
+            <span class="hljs-literal">None</span>
+        } <span class="hljs-keyword">else</span> {
+            <span class="hljs-keyword">unsafe</span> {
+                <span class="hljs-keyword">let</span> result = ptr::read(<span class="hljs-keyword">self</span>.start);
+                <span class="hljs-keyword">self</span>.start = <span class="hljs-keyword">self</span>.start.offset(<span class="hljs-number">1</span>);
+                <span class="hljs-literal">Some</span>(result)
+            }
+        }
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">size_hint</span></span>(&amp;<span class="hljs-keyword">self</span>) -&gt; (<span class="hljs-built_in">usize</span>, <span class="hljs-built_in">Option</span>&lt;<span class="hljs-built_in">usize</span>&gt;) {
+        <span class="hljs-keyword">let</span> len = (<span class="hljs-keyword">self</span>.end <span class="hljs-keyword">as</span> <span class="hljs-built_in">usize</span> - <span class="hljs-keyword">self</span>.start <span class="hljs-keyword">as</span> <span class="hljs-built_in">usize</span>)
+                  / mem::size_of::&lt;T&gt;();
+        (len, <span class="hljs-literal">Some</span>(len))
+    }
+}
+</div></code></pre>
+<p>这是逆向迭代的代码：</p>
+<pre><code class="language-Rust"><div><span class="hljs-keyword">impl</span>&lt;T&gt; <span class="hljs-built_in">DoubleEndedIterator</span> <span class="hljs-keyword">for</span> IntoIter&lt;T&gt; {
+    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">next_back</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) -&gt; <span class="hljs-built_in">Option</span>&lt;T&gt; {
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">self</span>.start == <span class="hljs-keyword">self</span>.end {
+            <span class="hljs-literal">None</span>
+        } <span class="hljs-keyword">else</span> {
+            <span class="hljs-keyword">unsafe</span> {
+                <span class="hljs-keyword">self</span>.end = <span class="hljs-keyword">self</span>.end.offset(-<span class="hljs-number">1</span>);
+                <span class="hljs-literal">Some</span>(ptr::read(<span class="hljs-keyword">self</span>.end))
+            }
+        }
+    }
+}
+</div></code></pre>
+<p>因为IntoIter获得了分配空间的所有权，它需要实现Drop来释放空间。同时Drop也要销毁所有它拥有但是没有读取到的元素。</p>
+<pre><code class="language-Rust"><div><span class="hljs-keyword">impl</span>&lt;T&gt; <span class="hljs-built_in">Drop</span> <span class="hljs-keyword">for</span> IntoIter&lt;T&gt; {
+    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">drop</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) {
+        <span class="hljs-keyword">if</span> <span class="hljs-keyword">self</span>.cap != <span class="hljs-number">0</span> {
+            <span class="hljs-comment">// drop剩下的元素</span>
+            <span class="hljs-keyword">for</span> _ <span class="hljs-keyword">in</span> &amp;<span class="hljs-keyword">mut</span> *<span class="hljs-keyword">self</span> {}
+
+            <span class="hljs-keyword">let</span> align = mem::align_of::&lt;T&gt;();
+            <span class="hljs-keyword">let</span> elem_size = mem::size_of::&lt;T&gt;();
+            <span class="hljs-keyword">let</span> num_bytes = elem_size * <span class="hljs-keyword">self</span>.cap;
+            <span class="hljs-keyword">unsafe</span> {
+                heap::deallocate(<span class="hljs-keyword">self</span>.buf.as_ptr() <span class="hljs-keyword">as</span> *<span class="hljs-keyword">mut</span> _, num_bytes, align);
+            }
+        }
+    }
+}
+</div></code></pre>
+
+    </body>
+    </html>

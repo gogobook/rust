@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>替代数据布局</title>
+        
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+        
+        <style>
+.task-list-item { list-style-type: none; } .task-list-item-checkbox { margin-left: -20px; vertical-align: middle; }
+</style>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        
+        
+    </head>
+    <body class="vscode-light">
+        <h1 id="%e6%9b%bf%e4%bb%a3%e6%95%b0%e6%8d%ae%e5%b8%83%e5%b1%80">替代数据布局</h1>
+<blockquote>
+<p>源-<a href="https://github.com/rust-lang-nursery/nomicon/blob/master/src/other-reprs.md">other-reprs</a>   Commit: 7f019ec5c87da39fe0b9b5149e413d914528e945</p>
+</blockquote>
+<p>Rust允许您使用特定的内存布局策略以替代默认的策略。 这里有<a href="https://github.com/rust-rfcs/unsafe-code-guidelines/tree/master/reference/src/representation">reference</a>.</p>
+<h2 id="reprc">repr(C)</h2>
+<p>这是最重要的一种<code>repr</code>。它的目的很简单，就是和C保持一致。数据的顺序、大小、对齐方式都和你在C或C++中见到的一模一样。所有你需要通过FFI交互的类型都应该指定<code>repr(C)</code>，因为C是程序设计领域的世界语。而且如果我们要在数据布局方面玩一些花样的话，比如把数据重新解析成另一种类型，<code>repr(C)</code>也是很有必要的。</p>
+<p>我们强烈建议您使用<a href="https://rust-lang-nursery.github.io/rust-bindgen/">rust-bindgen</a>和/或[cbdingen]来管理您的FFI边界。 Rust团队与这些项目密切合作，以确保它们运行稳健，并与当前和未来有关类型布局和<code>reprs</code>保证兼容。</p>
+<p>必须牢记<code>repr（C）</code>与Rust更具特殊的数据布局特性的相互作用。 由于其&quot;用于FFI&quot;和&quot;用于布局控制&quot;的双重目的，<code>repr（C）</code>可以应用于通过FFI边界时无意义或有问题的类型。</p>
+<ul>
+<li>
+<p>ZST的大小是0，尽管这在C语言中不是标准行为，而且它也与C++中的空类型有着明显的不同，C++的空类型还是要占用一个字节的空间的。</p>
+</li>
+<li>
+<p>DST的指针（胖指针），元组都是C中没有的，因此也不是FFI安全的。</p>
+</li>
+<li>
+<p>携带变量的Enum成员这种概念也时C/C++中所没有的，但有一个定义好的合法的bridge类型<a href="https://github.com/rust-lang/rfcs/blob/master/text/2195-really-tagged-unions.md">really-tagged</a>。</p>
+</li>
+<li>
+<p>如果<code>T</code>是 <a href="ffi.html#the-nullable-pointer-optimization">FFI安全的不可空指针</a>的，就能保证<code>Option&lt;T&gt;</code>和<code>T</code>有着同样的内存布局和ABI，因此<code>Option&lt;T&gt;</code>也是FFI安全的。如前言所写，<code>T</code>如果被转换为<code>&amp;</code>、<code>&amp;mut</code>或者函数指针，也永远都不会是空指针。</p>
+</li>
+<li>
+<p>Tuple结构体会像普通结构体一样对待<code>repr(C)</code>，与普通结构体的唯一的区别就是Tuple结构体的成员是匿名的。</p>
+</li>
+<li>
+<p>Fieldless的Enum，<code>repr(C)</code>等价于<code>repr(u*)</code>（见下一部分）之一。目标平台上的C语言的ABI决定了会使用等价于C的Enum的默认大小作为Rust侧Enum的大小。要注意，在C语言中，Enum的内存布局是由实现定义（Implementation defined）的，所以这确实需要全力猜测（笑。特别地，C代码的某些编译选项也会影响到猜测结果。</p>
+</li>
+<li>
+<p><code>repr(C)</code> is equivalent to one of <code>repr(u*)</code> (see the next section) for
+fieldless enums. The chosen size is the default enum size for the target platform's C
+application binary interface (ABI). Note that enum representation in C is implementation
+defined, so this is really a &quot;best guess&quot;. In particular, this may be incorrect
+when the C code of interest is compiled with certain flags.</p>
+</li>
+<li>
+<p>Fieldless enums with <code>repr(C)</code> or <code>repr(u*)</code> still may not be set to an
+integer value without a corresponding variant, even though this is
+permitted behavior in C or C++. It is undefined behavior to (unsafely)
+construct an instance of an enum that does not match one of its
+variants. (This allows exhaustive matches to continue to be written and
+compiled as normal.)</p>
+</li>
+</ul>
+<h2 id="reprtransparent">repr(transparent)</h2>
+<p>This can only be used on structs with a single non-zero-sized field (there may
+be additional zero-sized fields). The effect is that the layout and ABI of the
+whole struct is guaranteed to be the same as that one field.</p>
+<p>The goal is to make it possible to transmute between the single field and the
+struct. An example of that is <a href="../std/cell/struct.UnsafeCell.html"><code>UnsafeCell</code></a>, which can be transmuted into
+the type it wraps.</p>
+<p>Also, passing the struct through FFI where the inner field type is expected on
+the other side is guaranteed to work. In particular, this is necessary for <code>struct Foo(f32)</code> to always have the same ABI as <code>f32</code>.</p>
+<p>More details are in the <a href="https://github.com/rust-lang/rfcs/blob/master/text/1758-repr-transparent.md">RFC</a>.</p>
+<h2 id="repru-repri">repr(u*), repr(i*)</h2>
+<p>These specify the size to make a fieldless enum. If the discriminant overflows the integer it has to fit in, it will produce a compile-time error. You can manually ask Rust to allow this by setting the overflowing element to explicitly be 0. However Rust will not allow you to create an enum where two variants have the same discriminant.</p>
+<p>&quot;fieldless enum&quot; 的意思是枚举的每一个变量里都不关联数据。不指定repr(u*)或repr(i*)的无成员枚举依然是一个Rust的合法原生类型，它们都没有固定的ABI表示方法。给它们指定<code>repr</code>使其有了固定的类型大小，方便在ABI中使用。</p>
+<p>如果枚举有字段，则效果类似于<code>repr（C）</code>，因为有一个定义的类型布局。 这使得它可以将枚举传递给C代码，或直接访问类型的原始表示操纵它的标签和字段。 有关详细信息，请参阅RFC <a href="https://github.com/rust-lang/rfcs/blob/master/text/2195-really-tagged-unions.md">really-tagged</a>。</p>
+<p>为枚举显式指定<code>repr</code>将抑制空指针优化。</p>
+<p>这些<code>repr</code>对于结构体无效。</p>
+<h2 id="reprpacked">repr(packed)</h2>
+<p><code>repr(packed)</code>强制Rust不填充空数据，只将类型与一个字节对齐。 这可能会改善内存占用，但可能会产生其他负面影响。</p>
+<p>特别是，大多数架构都强烈推荐将数据对齐。 这意味着加载未对齐的数据会很低效（x86)，甚至是错误的(一些ARM芯片)。 对于直接加载或存储打包字段的简单情况，编译器可能能够通过移位和掩码来解决对齐问题。 但是，如果您对打包字段进行引用，则编译器不太可能生成代码以避免未对齐的加载。</p>
+<p><strong><a href="https://github.com/rust-lang/rust/issues/27060">从Rust 2018开始，这仍然会导致未定义的行为</a></strong></p>
+<p><code>repr(packed)</code> 不能轻易使用。 除非您有极端要求，否则不应使用此选项。</p>
+<p>这个repr是<code>repr（C）</code>和<code>repr（rust）</code>的修改。</p>
+<h2 id="repralignn">repr(align(n))</h2>
+<p><code>repr(align(n))</code> (where <code>n</code> is a power of two) forces the type to have an
+alignment of <em>at least</em> n.</p>
+<p>This enables several tricks, like making sure neighboring elements of an array
+never share the same cache line with each other (which may speed up certain
+kinds of concurrent code).</p>
+<p>This is a modifier on <code>repr(C)</code> and <code>repr(rust)</code>. It is incompatible with
+<code>repr(packed)</code>.</p>
+
+    </body>
+    </html>

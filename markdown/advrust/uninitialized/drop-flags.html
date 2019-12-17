@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>析构(Drop)标志</title>
+        
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+        
+        <style>
+.task-list-item { list-style-type: none; } .task-list-item-checkbox { margin-left: -20px; vertical-align: middle; }
+</style>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        
+        
+    </head>
+    <body class="vscode-light">
+        <h1 id="%e6%9e%90%e6%9e%84drop%e6%a0%87%e5%bf%97">析构(Drop)标志</h1>
+<blockquote>
+<p>原文跟踪<a href="https://github.com/rust-lang-nursery/nomicon/blob/master/src/drop-flags.md">drop-flags.md</a>   Commit: a73391dd35c32061bec678257d4c3ddac268c51b</p>
+</blockquote>
+<p>上一节中的示例为Rust引入了一个有趣的问题。 我们已经看到，可以完全安全地有条件地初始化，取消初始化和重新初始化内存位置。 对于<code>Copy</code>类型，这并不是特别值得注意，因为它们只是一堆随机的<code>bits</code>。 但是，带有析构函数的类型是一个不同的故事：Rust需要知道是否在分配变量时调用析构函数，或者变量超出范围。 如何通过条件初始化来做到这一点？</p>
+<p>请注意，这不是所有分配都需要担心的问题。 特别是，通过解引用进行分配将无条件地析构(drop)，在<code>let</code>中分配无条件不会析构(drop)：</p>
+<pre><code class="language-rust"><div><span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> x = <span class="hljs-built_in">Box</span>::new(<span class="hljs-number">0</span>); <span class="hljs-comment">// let makes a fresh variable, so never need to drop</span>
+<span class="hljs-keyword">let</span> y = &amp;<span class="hljs-keyword">mut</span> x;
+*y = <span class="hljs-built_in">Box</span>::new(<span class="hljs-number">1</span>); <span class="hljs-comment">// Deref assumes the referent is initialized, so always drops</span>
+</div></code></pre>
+<p>当覆盖先前初始化的变量或其子字段之一时，这是一个问题。</p>
+<p>事实证明，Rust实际上跟踪是否应该在运行时删除类型。 当变量初始化并且未初始化时，将切换该变量的drop标志。 当可能需要删除变量时，将评估此标志以确定是否应删除该变量。</p>
+<p>当然，通常情况下，可以在程序的每个点静态地知道值的初始化状态。 如果是这种情况，那么编译器理论上可以生成更高效的代码！ 例如，<code>straight- line</code>代码具有这样的静态析构语义(static drop semantics)：</p>
+<pre><code class="language-rust"><div><span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> x = <span class="hljs-built_in">Box</span>::new(<span class="hljs-number">0</span>); <span class="hljs-comment">// x was uninit; just overwrite.</span>
+<span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> y = x;           <span class="hljs-comment">// y was uninit; just overwrite and make x uninit.</span>
+x = <span class="hljs-built_in">Box</span>::new(<span class="hljs-number">0</span>);         <span class="hljs-comment">// x was uninit; just overwrite.</span>
+y = x;                   <span class="hljs-comment">// y was init; Drop y, overwrite it, and make x uninit!</span>
+                         <span class="hljs-comment">// y goes out of scope; y was init; Drop y!</span>
+                         <span class="hljs-comment">// x goes out of scope; x was uninit; do nothing.</span>
+</div></code></pre>
+<p>类似地，所有分支在初始化方面具有相同行为的分支代码具有静态析构语义(static drop semantics)：</p>
+<pre><code class="language-rust"><div># <span class="hljs-keyword">let</span> condition = <span class="hljs-literal">true</span>;
+<span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> x = <span class="hljs-built_in">Box</span>::new(<span class="hljs-number">0</span>);    <span class="hljs-comment">// x was uninit; just overwrite.</span>
+<span class="hljs-keyword">if</span> condition {
+    <span class="hljs-built_in">drop</span>(x)                 <span class="hljs-comment">// x gets moved out; make x uninit.</span>
+} <span class="hljs-keyword">else</span> {
+    <span class="hljs-built_in">println!</span>(<span class="hljs-string">"{}"</span>, x);
+    <span class="hljs-built_in">drop</span>(x)                 <span class="hljs-comment">// x gets moved out; make x uninit.</span>
+}
+x = <span class="hljs-built_in">Box</span>::new(<span class="hljs-number">0</span>);            <span class="hljs-comment">// x was uninit; just overwrite.</span>
+                            <span class="hljs-comment">// x goes out of scope; x was init; Drop x!</span>
+</div></code></pre>
+<p>但是这样的代码需要运行时信息才能正确析构：</p>
+<pre><code class="language-rust"><div># <span class="hljs-keyword">let</span> condition = <span class="hljs-literal">true</span>;
+<span class="hljs-keyword">let</span> x;
+<span class="hljs-keyword">if</span> condition {
+    x = <span class="hljs-built_in">Box</span>::new(<span class="hljs-number">0</span>);        <span class="hljs-comment">// x was uninit; just overwrite.</span>
+    <span class="hljs-built_in">println!</span>(<span class="hljs-string">"{}"</span>, x);
+}
+                            <span class="hljs-comment">// x goes out of scope; x might be uninit;</span>
+                            <span class="hljs-comment">// check the flag!</span>
+</div></code></pre>
+<p>当然，在这种情况下，检索静态析构语义是微不足道的：</p>
+<pre><code class="language-rust"><div># <span class="hljs-keyword">let</span> condition = <span class="hljs-literal">true</span>;
+<span class="hljs-keyword">if</span> condition {
+    <span class="hljs-keyword">let</span> x = <span class="hljs-built_in">Box</span>::new(<span class="hljs-number">0</span>);
+    <span class="hljs-built_in">println!</span>(<span class="hljs-string">"{}"</span>, x);
+}
+</div></code></pre>
+<p><code>drop</code>标记在堆栈上被跟踪，不再存储在实现<code>drop</code>的类型中。</p>
+
+    </body>
+    </html>

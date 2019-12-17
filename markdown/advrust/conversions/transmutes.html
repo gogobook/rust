@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>变形(Transmutes)</title>
+        
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+        
+        <style>
+.task-list-item { list-style-type: none; } .task-list-item-checkbox { margin-left: -20px; vertical-align: middle; }
+</style>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        
+        
+    </head>
+    <body class="vscode-light">
+        <h1 id="%e5%8f%98%e5%bd%a2transmutes">变形(Transmutes)</h1>
+<blockquote>
+<p>源：<a href="https://github.com/rust-lang-nursery/nomicon/blob/master/src/transmutes.md">transmutes.md</a>   Commit: 0e6c680ebd72f1860e46b2bd40e2a387ad8084ad</p>
+</blockquote>
+<p>类型系统你给我滚开！我要自己解析这些字节，不成功便成仁！虽然本书都是关于非安全的内容，我还是希望你能仔细考虑避免使用本章讲到的内容。这是你在Rust中所能做到的真真正正、彻彻底底、最最可怕的非安全行为。所有的保护机制都形同虚设。</p>
+<p><code>mem::transmute&lt;T, U&gt;</code>接受一个<code>T</code>类型的值，然后将它重新解析为类型<code>U</code>。唯一的限制是<code>T</code>和<code>U</code>必须有同样的大小。可能产生未定义行为的情况让人看着头疼。</p>
+<ul>
+<li>最重要的，创建任一类型的处于不合法状态的示例，都将产生不可预知的混乱</li>
+<li>transmute有一个重载的返回类型。如果没有明确指定返回类型，它会返回一个满足类型推断的奇怪类型</li>
+<li>使用不合法的值构建基本类型是未定义行为</li>
+<li>非repr(C)的类型之间相互变形是未定义行为</li>
+<li><code>&amp;</code>变形为<code>&amp;mut</code>是未定义行为
+<ul>
+<li><code>&amp;</code>变形为<code>&amp;mut</code><strong>永远</strong>都是未定义行为</li>
+<li>不要多想，你绝对不能这么做</li>
+<li>不要多想，你没有什么特殊的</li>
+</ul>
+</li>
+<li>变形为一个未指定生命周期的引用会产生<a href="https://doc.rust-lang.org/nomicon/unbounded-lifetimes.html">无界生命周期</a></li>
+</ul>
+<p><code>mem::transmute_copy&lt;T, U&gt;</code>很神奇地比这更加不安全。它从<code>&amp;T</code>拷贝<code>size_of&lt;U&gt;</code>个字节并将它们解析为<code>U</code>。<code>mem::transmute</code>仅有的类型大小的检查都不见了（因为拷贝类型前缀有可能是合法的），只不过<code>U</code>的尺寸比<code>T</code>大会被视为一个未定义行为。</p>
+<p>当然，本章大部分的功能都可以通过指针的显式转换实现。</p>
+
+    </body>
+    </html>

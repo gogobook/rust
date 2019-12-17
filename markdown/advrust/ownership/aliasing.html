@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>别名</title>
+        
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+        
+        <style>
+.task-list-item { list-style-type: none; } .task-list-item-checkbox { margin-left: -20px; vertical-align: middle; }
+</style>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        
+        
+    </head>
+    <body class="vscode-light">
+        <h1 id="%e5%88%ab%e5%90%8d">别名</h1>
+<blockquote>
+<p>源：<a href="https://github.com/rust-lang-nursery/nomicon/blob/master/src/aliasing.md">aliasing.md</a>   Commit: 9e1c1703ec8947fe4bc327242d62731257eb3fd4</p>
+</blockquote>
+<p>首先，有几点重要声明：</p>
+<ul>
+<li>以下的讨论将采用最广泛意义上的别名的定义。而Rust的定义可能会更加严格,需要考虑到可变性和生命周期。</li>
+<li>我们假设程序都是单线程且不会中断的，同时也不会去考虑存储器映射之类的问题。除非特别指定，否则Rust默认这些事情不存在。更多的细节请见<a href="https://doc.rust-lang.org/nomicon/concurrency.html">并发章节</a>。</li>
+</ul>
+<p>基于这些，我们给出定义：当变量和指针表示的内存区域有重叠时，它们互为对方的别名。</p>
+<h2 id="%e4%b8%ba%e4%bb%80%e4%b9%88%e5%88%ab%e5%90%8d%e5%be%88%e9%87%8d%e8%a6%81">为什么别名很重要</h2>
+<p>为什么我们要关注别名？</p>
+<p>看下面这个简单的函数。</p>
+<pre><code class="language-Rust"><div><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">compute</span></span>(input: &amp;<span class="hljs-built_in">u32</span>, output: &amp;<span class="hljs-keyword">mut</span> <span class="hljs-built_in">u32</span>) {
+    <span class="hljs-keyword">if</span> *input &gt; <span class="hljs-number">10</span> {
+        *output = <span class="hljs-number">1</span>;
+    }
+    <span class="hljs-keyword">if</span> *input &gt; <span class="hljs-number">5</span> {
+        *output *= <span class="hljs-number">2</span>;
+    }
+}
+</div></code></pre>
+<p>我们可能会这样优化它：</p>
+<pre><code class="language-Rust"><div><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">compute</span></span>(input: &amp;<span class="hljs-built_in">u32</span>, output: &amp;<span class="hljs-keyword">mut</span> <span class="hljs-built_in">u32</span>) {
+    <span class="hljs-keyword">let</span> cached_input = *input; <span class="hljs-comment">// 将*input放入缓存</span>
+    <span class="hljs-keyword">if</span> cached_input &gt; <span class="hljs-number">10</span> {
+        *output = <span class="hljs-number">2</span>; <span class="hljs-comment">// x &gt; 10 则必然 x &gt; 5，所以直接加倍并立即退出</span>
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> cached_input &gt; <span class="hljs-number">5</span> {
+        *output *= <span class="hljs-number">2</span>;
+    }
+}
+</div></code></pre>
+<p>在Rust中，这种优化是正确的。但对于其他几乎所有的语言，都是有错误的（除非编译器进行全局分析）。这是因为优化方案成立的前提是不存在别名，而绝大多数语言并不会限制这一点。例子中我们需要特别担心的是传递给<code>input</code>和<code>output</code>的参数可能会重合，比如<code>comput(&amp;x, &amp;mut x)</code>。</p>
+<p>对于上面的参数，程序流程会是这样：</p>
+<pre><code class="language-Rust"><div>                  <span class="hljs-comment">//  input ==  output == 0xabad1dea</span>
+                  <span class="hljs-comment">// *input == *output == 20</span>
+<span class="hljs-keyword">if</span> *input &gt; <span class="hljs-number">10</span> {  <span class="hljs-comment">// true (*input == 20)</span>
+    *output = <span class="hljs-number">1</span>;  <span class="hljs-comment">// 同时覆盖了 *input，以为他们是一样的</span>
+} 
+<span class="hljs-keyword">if</span> *input &gt; <span class="hljs-number">5</span> {      <span class="hljs-comment">// false (*input == 1)</span>
+    *output *= <span class="hljs-number">2</span>;
+}
+                  <span class="hljs-comment">// *input == *output == 1</span>
+</div></code></pre>
+<p>我们优化过的函数的结果是<code>*output == 2</code>，所以对于这样的输入参数，优化函数是不正确的。</p>
+<p>在Rust中我们知道不会出现上面那样的输入参数，因为<code>&amp;mut</code>不允许存在别名。所以我们可以安全的忽略这种可能性而使用优化方案。对于大多数其他语言，这种输入的可能性是存在的，必须特别的考虑到。</p>
+<p>这就是别名分析的重要性：它允许编译器做出一些有用的优化。举几个例子：</p>
+<ul>
+<li>将值放入缓存变量中，因为可以确定没有指针可以访问变量的内存。</li>
+<li>省略一些读操作，因为可以确定在上一次读内存之后，内存没有发生变化</li>
+<li>省略一些写操作，因为可以确定下一次写内存之前，内存不会被读取</li>
+<li>移动或重排读写操作的顺序，因为可以确定它们并不互相依赖</li>
+</ul>
+<p>这些优化也可以进一步证明更大程度的优化的可行性，比如循环向量化、常量替换和不可达代码消除等。</p>
+<p>在前面的例子中，我们根据<code>&amp;mut u32</code>不存在别名的原则证明了<code>*output</code>不可能影响<code>*input</code>。这使得我们缓存了<code>*input</code>，并且省略了一次读操作。</p>
+<p>通过缓存读操作的结果，我们知道在<code>&gt;10</code>的分支中的写操作不会影响执行<code>&gt;5</code>分支的判断条件，这样我们在<code>*input &gt; 10</code>的情况下省略了一次读-改-写操作(<code>*output</code>加倍)。</p>
+<p>关于别名分析需要记住的一个关键点是，写操作是优化的主要障碍。我们不能随意移动读操作的唯一原因，就是可能存在向相同位置写数据的操作，这种移动会破坏他们之间的顺序关系。</p>
+<p>比如，下面这个版本的函数中，我们不需要担心别名问题，因为我们把唯一的一次写<code>*output</code>的操作放到了函数的最后。这让我们可以随意地改变之前的读<code>*input</code>操作的顺序：</p>
+<pre><code class="language-Rust"><div><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">compute</span></span>(input: &amp;<span class="hljs-built_in">u32</span>, output: &amp;<span class="hljs-keyword">mut</span> <span class="hljs-built_in">u32</span>) {
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> temp = *output;
+    <span class="hljs-keyword">if</span> *input &gt; <span class="hljs-number">10</span> {
+        temp = <span class="hljs-number">1</span>;
+    }
+    <span class="hljs-keyword">if</span> *input &gt; <span class="hljs-number">5</span> {
+        temp *= <span class="hljs-number">2</span>;
+    }
+    *output = temp;
+}
+</div></code></pre>
+<p>我们仍然需要别名分析来证明<code>temp</code>不是<code>input</code>的别名，但是这时的证明过程要简单得多：一个本地别量不可能是在它的声明之前就存在的变量的别名。这是所有编程语言共有的一个前提，所以这一版本的函数可以按照与其他语言相同的方式去优化它。</p>
+<p>这也就是Rust可能采用的“别名”定义与生命周期和可变性有关的原因：在没有写内存操作存在的情况下，我们实际上不需要关注是否存在别名。</p>
+<p>当然，一个完整的别名模型也要考虑到诸如函数调用（可能改变我们不可见的内容）、裸指针（不存在限制别名的需求），以及UnsafeCell（允许被<code>&amp;</code>引用的内容可变）。</p>
+
+    </body>
+    </html>

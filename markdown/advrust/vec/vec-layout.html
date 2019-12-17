@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>布局</title>
+        
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+        
+        <style>
+.task-list-item { list-style-type: none; } .task-list-item-checkbox { margin-left: -20px; vertical-align: middle; }
+</style>
+        <style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        
+        
+    </head>
+    <body class="vscode-light">
+        <h1 id="%e5%b8%83%e5%b1%80">布局</h1>
+<blockquote>
+<p>源：<a href="https://github.com/rust-lang-nursery/nomicon/blob/master/src/vec-layout.md">vec-layout.md</a>   Commit: 94964dee31224cf1a22c72400a12cb966f5a12bc</p>
+</blockquote>
+<p>我们先来看看结构体的布局。Vec由三部分组成：一个指向分配空间的指针、空间的大小、以及已经初始化的元素的数量。</p>
+<p>简单来说，我们的设计只要这样：</p>
+<pre><code class="language-Rust"><div><span class="hljs-keyword">pub</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Vec</span></span>&lt;T&gt; {
+    ptr: *<span class="hljs-keyword">mut</span> T,
+    cap: <span class="hljs-built_in">usize</span>,
+    len: <span class="hljs-built_in">usize</span>,
+}
+</div></code></pre>
+<p>这段代码可以通过编译。可不幸的是，它是不正确的。首先，编译器产生的变性过于严格。所以<code>&amp;Vev&lt;&amp;'static str&gt;</code>不能当做<code>&amp;Vev&lt;&amp;'a str&gt;</code>使用。更主要的是，它会给drop检查器传递错误的所有权信息,因为编译器会保守地假设我们不拥有任何的值。关于变性和drop检查的细节，请见<a href="https://rustlang-cn.org/office/rust/advrust/ownership/ownership.html">所有权和生命周期</a>。</p>
+<p>.
+正如我们在所有权一章见到的，当裸指针指向一块我们拥有所有权的位置，我们应该使用<code>Unique&lt;T&gt;</code>代替<code>*mut T</code>。尽管Unique是不稳定的，我们尽可能不去使用它。</p>
+<p>复习一下，Unique封装了一个裸指针，并且声明它自己：</p>
+<ul>
+<li>对<code>T</code>可变</li>
+<li>拥有类型T的值（用于drop检查）</li>
+<li>如果<code>T</code>是Send/Sync，那就也是Send/Sync</li>
+<li>指针永远不为null（所以`Option&lt;Vec<T>&gt;可以做空指针优化）</li>
+</ul>
+<p>除了最后一点，其余的我们都可以用稳定的Rust实现：</p>
+<pre><code class="language-Rust"><div><span class="hljs-keyword">use</span> std::marker::PhantomData;
+<span class="hljs-keyword">use</span> std::ops::Deref;
+<span class="hljs-keyword">use</span> std::mem;
+
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Unique</span></span>&lt;T&gt; {
+    ptr: *<span class="hljs-keyword">const</span> T,            <span class="hljs-comment">// 使用*const保证变性  </span>
+    _marker: PhantomData&lt;T&gt;,  <span class="hljs-comment">// 用于drop检查</span>
+}
+
+<span class="hljs-comment">// 设置Send和Sync是安全地，因为我们是Unique中的数据的所有者</span>
+<span class="hljs-comment">// Unique&lt;t&gt;好像就是T一样</span>
+<span class="hljs-keyword">unsafe</span> <span class="hljs-keyword">impl</span>&lt;T: <span class="hljs-built_in">Send</span>&gt; <span class="hljs-built_in">Send</span> <span class="hljs-keyword">for</span> Unique&lt;T&gt; {}
+<span class="hljs-keyword">unsafe</span> <span class="hljs-keyword">impl</span>&lt;T: <span class="hljs-built_in">Sync</span>&gt; <span class="hljs-built_in">Sync</span> <span class="hljs-keyword">for</span> Unique&lt;T&gt; {}
+
+<span class="hljs-keyword">impl</span>&lt;T&gt; Unique&lt;T&gt; {
+    <span class="hljs-keyword">pub</span> <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">new</span></span>(ptr: *<span class="hljs-keyword">mut</span> T) -&gt; <span class="hljs-keyword">Self</span> {
+        Unique { ptr: ptr, _marker: PhantomData }
+    }
+
+    <span class="hljs-keyword">pub</span> <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">as_ptr</span></span>(&amp;<span class="hljs-keyword">self</span>) -&gt; *<span class="hljs-keyword">mut</span> T {
+        <span class="hljs-keyword">self</span>.ptr <span class="hljs-keyword">as</span> *<span class="hljs-keyword">mut</span> T
+    }
+}
+</div></code></pre>
+<p>可是，声明数据不为0的方法是不稳定的，而且短期内都不太可能会稳定下来。so我们还是接受现实，使用比标准库的Unique：</p>
+<pre><code class="language-Rust"><div><span class="hljs-meta">#![feature(ptr_internals)]</span>
+
+<span class="hljs-keyword">use</span> std::ptr::{Unique, <span class="hljs-keyword">self</span>};
+
+<span class="hljs-keyword">pub</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Vec</span></span>&lt;T&gt; {
+    ptr: Unique&lt;T&gt;,
+    cap: <span class="hljs-built_in">usize</span>,
+    len: <span class="hljs-built_in">usize</span>,
+}
+</div></code></pre>
+<p>如果你不太在意空指针优化，那么你可以使用稳定代码。但是我们之后的代码会依赖于这个优化去设计。还要注意，调用<code>Unique::new</code>是非安全的，因为给它传递null属于未定义行为。我们的稳定Unique就不需要让<code>new</code>是非安全的，因为它没有对于它的内容做其他的保证。</p>
+
+    </body>
+    </html>
