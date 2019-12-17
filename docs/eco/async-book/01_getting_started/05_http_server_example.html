@@ -1,370 +1,349 @@
 <!DOCTYPE HTML>
-<html lang="zh-CN" class="sidebar-visible no-js">
+<html lang="en" class="sidebar-visible no-js light">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>Applied: HTTP Server - Asynchronous Programming in Rust</title>
+        
 
-<head>
-    <!-- Book generated using mdBook -->
-    <meta charset="UTF-8">
-    <title>已应用：HTTP 服务器 - Asynchronous Programming in Rust</title>
-    <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-    <meta name="description" content="Rust 异步编程非官方中文.">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#ffffff" />
+        <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff" />
 
-    <link rel="shortcut icon" href="../favicon.png">
-    <link rel="stylesheet" href="../css/variables.css">
-    <link rel="stylesheet" href="../css/general.css">
-    <link rel="stylesheet" href="../css/chrome.css">
-    <link rel="stylesheet" href="../css/print.css" media="print">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
 
-    <!-- Fonts -->
-    <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
-    <link
-        href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800"
-        rel="stylesheet" type="text/css">
-    <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css">
+        <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500" rel="stylesheet" type="text/css">
 
-    <!-- Highlight.js Stylesheets -->
-    <link rel="stylesheet" href="../highlight.css">
-    <link rel="stylesheet" href="../tomorrow-night.css">
-    <link rel="stylesheet" href="../ayu-highlight.css">
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
 
-    <!-- Custom theme stylesheets -->
-    
+        <!-- Custom theme stylesheets -->
+        
 
-    
-</head>
+        
+    </head>
+    <body>
+        <!-- Provide site root to javascript -->
+        <script type="text/javascript">
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "light" : "light";
+        </script>
 
-<body class="light">
-    <!-- Provide site root to javascript -->
-    <script type="text/javascript">var path_to_root = "../";</script>
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script type="text/javascript">
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
 
-    <!-- Work around some values being stored in localStorage wrapped in quotes -->
-    <script type="text/javascript">
-        try {
-            var theme = localStorage.getItem('mdbook-theme');
-            var sidebar = localStorage.getItem('mdbook-sidebar');
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
 
-            if (theme.startsWith('"') && theme.endsWith('"')) {
-                localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script type="text/javascript">
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            var html = document.querySelector('html');
+            html.classList.remove('no-js')
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add('js');
+        </script>
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script type="text/javascript">
+            var html = document.querySelector('html');
+            var sidebar = 'hidden';
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
             }
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
 
-            if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
-                localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
-            }
-        } catch (e) { }
-    </script>
-
-    <!-- Set the theme before any content is loaded, prevents flash -->
-    <script type="text/javascript">
-        var theme;
-        try { theme = localStorage.getItem('mdbook-theme'); } catch (e) { }
-        if (theme === null || theme === undefined) { theme = 'light'; }
-        document.body.className = theme;
-        document.querySelector('html').className = theme + ' js';
-    </script>
-
-    <!-- Hide / unhide sidebar before it is displayed -->
-    <script type="text/javascript">
-        var html = document.querySelector('html');
-        var sidebar = 'hidden';
-        if (document.body.clientWidth >= 1080) {
-            try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch (e) { }
-            sidebar = sidebar || 'visible';
-        }
-        html.classList.remove('sidebar-visible');
-        html.classList.add("sidebar-" + sidebar);
-    </script>
-
-    <nav id="sidebar" class="sidebar" aria-label="Table of contents">
-        <ol class="chapter"><li class="expanded "><a href="../01_getting_started/01_chapter.html"><strong aria-hidden="true">1.</strong> 入门</a></li><li><ol class="section"><li class="expanded "><a href="../01_getting_started/02_why_async.html"><strong aria-hidden="true">1.1.</strong> 为什么要 async ？</a></li><li class="expanded "><a href="../01_getting_started/03_state_of_async_rust.html"><strong aria-hidden="true">1.2.</strong> async Rust 状态</a></li><li class="expanded "><a href="../01_getting_started/04_async_await_primer.html"><strong aria-hidden="true">1.3.</strong> async/.await底漆</a></li><li class="expanded "><a href="../01_getting_started/05_http_server_example.html" class="active"><strong aria-hidden="true">1.4.</strong> 已应用：HTTP 服务器</a></li></ol></li><li class="expanded "><a href="../02_execution/01_chapter.html"><strong aria-hidden="true">2.</strong> 幕后：执行Future和任务</a></li><li><ol class="section"><li class="expanded "><a href="../02_execution/02_future.html"><strong aria-hidden="true">2.1.</strong> Future Trait</a></li><li class="expanded "><a href="../02_execution/03_wakeups.html"><strong aria-hidden="true">2.2.</strong> 任务唤醒Waker</a></li><li class="expanded "><a href="../02_execution/04_executor.html"><strong aria-hidden="true">2.3.</strong> 已应用：生成一个执行器</a></li><li class="expanded "><a href="../02_execution/05_io.html"><strong aria-hidden="true">2.4.</strong> 执行器和系统 IO</a></li></ol></li><li class="expanded "><a href="../03_async_await/01_chapter.html"><strong aria-hidden="true">3.</strong> async/await</a></li><li class="expanded "><a href="../04_pinning/01_chapter.html"><strong aria-hidden="true">4.</strong> Pinning</a></li><li class="expanded "><a href="../05_streams/01_chapter.html"><strong aria-hidden="true">5.</strong> Streams</a></li><li><ol class="section"><li class="expanded "><a href="../05_streams/02_iteration_and_concurrency.html"><strong aria-hidden="true">5.1.</strong> 迭代与并发</a></li></ol></li><li class="expanded "><a href="../06_multiple_futures/01_chapter.html"><strong aria-hidden="true">6.</strong> 一次执行多个 Futures</a></li><li><ol class="section"><li class="expanded "><a href="../06_multiple_futures/02_join.html"><strong aria-hidden="true">6.1.</strong> join!</a></li><li class="expanded "><a href="../06_multiple_futures/03_select.html"><strong aria-hidden="true">6.2.</strong> select!</a></li><li class="expanded "><a href="../404.html"><strong aria-hidden="true">6.3.</strong> TODO: Spawning</a></li><li class="expanded "><a href="../404.html"><strong aria-hidden="true">6.4.</strong> TODO：取消和超时</a></li><li class="expanded "><a href="../404.html"><strong aria-hidden="true">6.5.</strong> TODO：FuturesUnordered</a></li></ol></li><li class="expanded "><a href="../07_workarounds/01_chapter.html"><strong aria-hidden="true">7.</strong> 走走看看，想想</a></li><li><ol class="section"><li class="expanded "><a href="../07_workarounds/02_return_type.html"><strong aria-hidden="true">7.1.</strong> 返回类型错误</a></li><li class="expanded "><a href="../07_workarounds/03_err_in_async_blocks.html"><strong aria-hidden="true">7.2.</strong> ?在async区块</a></li><li class="expanded "><a href="../07_workarounds/04_send_approximation.html"><strong aria-hidden="true">7.3.</strong> Send近似</a></li><li class="expanded "><a href="../07_workarounds/05_recursion.html"><strong aria-hidden="true">7.4.</strong> 递归</a></li><li class="expanded "><a href="../07_workarounds/06_async_in_traits.html"><strong aria-hidden="true">7.5.</strong> async在 Traits 上</a></li></ol></li><li class="expanded "><a href="../404.html"><strong aria-hidden="true">8.</strong> TODO：I/O</a></li><li><ol class="section"><li class="expanded "><a href="../404.html"><strong aria-hidden="true">8.1.</strong> TODO：AsyncRead以及AsyncWrite</a></li></ol></li><li class="expanded "><a href="../404.html"><strong aria-hidden="true">9.</strong> TODO:async 设计模式：解决方案和建议</a></li><li><ol class="section"><li class="expanded "><a href="../404.html"><strong aria-hidden="true">9.1.</strong> TODO:建模服务器和请求/响应模式</a></li><li class="expanded "><a href="../404.html"><strong aria-hidden="true">9.2.</strong> TODO:管理共享状态</a></li></ol></li><li class="expanded "><a href="../404.html"><strong aria-hidden="true">10.</strong> TODO: 生态系统：Tokio 等</a></li><li><ol class="section"><li class="expanded "><a href="../404.html"><strong aria-hidden="true">10.1.</strong> TODO: 多多，多得多的东西？...</a></li></ol></li></ol>
-    </nav>
-
-    <div id="page-wrapper" class="page-wrapper">
-
-        <div class="page">
-            
-            <div id="menu-bar" class="menu-bar">
-                <div id="menu-bar-sticky-container">
-                    <div class="left-buttons">
-                        <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents"
-                            aria-label="Toggle Table of Contents" aria-controls="sidebar">
-                            <i class="fa fa-bars"></i>
-                        </button>
-                        <!-- START - Rust Cookbook customization -->
-                        <button id="edit-button" class="icon-button" type="button" title="Fork and edit"
-                            aria-label="Fork and edit" aria-haspopup="true" aria-expanded="false" aria-controls="edit">
-                            <i class="fa fa-edit">Edit</i>
-                        </button>
-                        <!-- END - Rust Cookbook customization -->
-                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme"
-                            aria-label="Change theme" aria-haspopup="true" aria-expanded="false"
-                            aria-controls="theme-list">
-                            <i class="fa fa-paint-brush"></i>
-                        </button>
-                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light <span
-                                        class="default">(default)</span></button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
-                        </ul>
-                        
-                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)"
-                            aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S"
-                            aria-controls="searchbar">
-                            <i class="fa fa-search"></i>
-                        </button>
-                        
-                    </div>
-
-                    <h1 class="menu-title">Asynchronous Programming in Rust</h1>
-
-                    <div class="right-buttons">
-                        <a href="../print.html" title="Print this book" aria-label="Print this book">
-                            <i id="print-button" class="fa fa-print"></i>
-                        </a>
-                        
-                    </div>
-                </div>
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <div id="sidebar-scrollbox" class="sidebar-scrollbox">
+                <ol class="chapter"><li class="expanded "><a href="../01_getting_started/01_chapter.html"><strong aria-hidden="true">1.</strong> Getting Started</a></li><li><ol class="section"><li class="expanded "><a href="../01_getting_started/02_why_async.html"><strong aria-hidden="true">1.1.</strong> Why Async?</a></li><li class="expanded "><a href="../01_getting_started/03_state_of_async_rust.html"><strong aria-hidden="true">1.2.</strong> The State of Asynchronous Rust</a></li><li class="expanded "><a href="../01_getting_started/04_async_await_primer.html"><strong aria-hidden="true">1.3.</strong> async/.await Primer</a></li><li class="expanded "><a href="../01_getting_started/05_http_server_example.html" class="active"><strong aria-hidden="true">1.4.</strong> Applied: HTTP Server</a></li></ol></li><li class="expanded "><a href="../02_execution/01_chapter.html"><strong aria-hidden="true">2.</strong> Under the Hood: Executing Futures and Tasks</a></li><li><ol class="section"><li class="expanded "><a href="../02_execution/02_future.html"><strong aria-hidden="true">2.1.</strong> The Future Trait</a></li><li class="expanded "><a href="../02_execution/03_wakeups.html"><strong aria-hidden="true">2.2.</strong> Task Wakeups with Waker</a></li><li class="expanded "><a href="../02_execution/04_executor.html"><strong aria-hidden="true">2.3.</strong> Applied: Build an Executor</a></li><li class="expanded "><a href="../02_execution/05_io.html"><strong aria-hidden="true">2.4.</strong> Executors and System IO</a></li></ol></li><li class="expanded "><a href="../03_async_await/01_chapter.html"><strong aria-hidden="true">3.</strong> async/await</a></li><li class="expanded "><a href="../04_pinning/01_chapter.html"><strong aria-hidden="true">4.</strong> Pinning</a></li><li class="expanded "><a href="../05_streams/01_chapter.html"><strong aria-hidden="true">5.</strong> Streams</a></li><li><ol class="section"><li class="expanded "><a href="../05_streams/02_iteration_and_concurrency.html"><strong aria-hidden="true">5.1.</strong> Iteration and Concurrency</a></li></ol></li><li class="expanded "><a href="../06_multiple_futures/01_chapter.html"><strong aria-hidden="true">6.</strong> Executing Multiple Futures at a Time</a></li><li><ol class="section"><li class="expanded "><a href="../06_multiple_futures/02_join.html"><strong aria-hidden="true">6.1.</strong> join!</a></li><li class="expanded "><a href="../06_multiple_futures/03_select.html"><strong aria-hidden="true">6.2.</strong> select!</a></li><li class="expanded "><a href="../404.html"><strong aria-hidden="true">6.3.</strong> TODO: Spawning</a></li><li class="expanded "><a href="../404.html"><strong aria-hidden="true">6.4.</strong> TODO: Cancellation and Timeouts</a></li><li class="expanded "><a href="../404.html"><strong aria-hidden="true">6.5.</strong> TODO: FuturesUnordered</a></li></ol></li><li class="expanded "><a href="../07_workarounds/01_chapter.html"><strong aria-hidden="true">7.</strong> Workarounds to Know and Love</a></li><li><ol class="section"><li class="expanded "><a href="../07_workarounds/02_return_type.html"><strong aria-hidden="true">7.1.</strong> Return Type Errors</a></li><li class="expanded "><a href="../07_workarounds/03_err_in_async_blocks.html"><strong aria-hidden="true">7.2.</strong> ? in async Blocks</a></li><li class="expanded "><a href="../07_workarounds/04_send_approximation.html"><strong aria-hidden="true">7.3.</strong> Send Approximation</a></li><li class="expanded "><a href="../07_workarounds/05_recursion.html"><strong aria-hidden="true">7.4.</strong> Recursion</a></li><li class="expanded "><a href="../07_workarounds/06_async_in_traits.html"><strong aria-hidden="true">7.5.</strong> async in Traits</a></li></ol></li><li class="expanded "><a href="../404.html"><strong aria-hidden="true">8.</strong> TODO: I/O</a></li><li><ol class="section"><li class="expanded "><a href="../404.html"><strong aria-hidden="true">8.1.</strong> TODO: AsyncRead and AsyncWrite</a></li></ol></li><li class="expanded "><a href="../404.html"><strong aria-hidden="true">9.</strong> TODO: Asynchronous Design Patterns: Solutions and Suggestions</a></li><li><ol class="section"><li class="expanded "><a href="../404.html"><strong aria-hidden="true">9.1.</strong> TODO: Modeling Servers and the Request/Response Pattern</a></li><li class="expanded "><a href="../404.html"><strong aria-hidden="true">9.2.</strong> TODO: Managing Shared State</a></li></ol></li><li class="expanded "><a href="../404.html"><strong aria-hidden="true">10.</strong> TODO: The Ecosystem: Tokio and More</a></li><li><ol class="section"><li class="expanded "><a href="../404.html"><strong aria-hidden="true">10.1.</strong> TODO: Lots, lots more?...</a></li></ol></li></ol>
             </div>
-
-            
-            <div id="search-wrapper" class="hidden">
-                <form id="searchbar-outer" class="searchbar-outer">
-                    <input type="search" name="search" id="searchbar" name="searchbar"
-                        placeholder="Search this book ..." aria-controls="searchresults-outer"
-                        aria-describedby="searchresults-header">
-                </form>
-                <div id="searchresults-outer" class="searchresults-outer hidden">
-                    <div id="searchresults-header" class="searchresults-header"></div>
-                    <ul id="searchresults">
-                    </ul>
-                </div>
-            </div>
-            
-
-            <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
-            <script type="text/javascript">
-                document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
-                document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
-                Array.from(document.querySelectorAll('#sidebar a')).forEach(function (link) {
-                    link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
-                });
-            </script>
-
-            <!-- // START - Rust Cookbook customization -->
-            <script>
-                document.getElementById("edit-button").addEventListener("click", function () {
-                    var editWindow = window.open("https://github.com/chinanf-boy/async-book-zh/edit/master/src/01_getting_started/05_http_server_example.md");
-                });</script>
-            <!-- // END - Rust Cookbook customization -->
-
-            <div id="content" class="content">
-                <main>
-                    <h1><a class="header" href="#applied-simple-http-server" id="applied-simple-http-server">Applied: Simple HTTP Server</a></h1>
-<p>让我们用<code>async</code>/<code>.await</code>建立一个回声服务器！</p>
-<p>开始之前，运行<code>rustup update stable</code>，以确保你有 stable Rust 1.39 或更新的版本。一旦完成，就<code>cargo new async-await-echo</code>创建新项目，并打开输出的<code>async-await-echo</code>文件夹。</p>
-<p>让我们将一些依赖项，添加到<code>Cargo.toml</code>文件：</p>
-<pre><code class="language-toml">[dependencies]
-# The latest version of the &quot;futures&quot; library, which has lots of utilities
-# for writing async code. Enable the &quot;compat&quot; feature to include the
-# functions for using futures 0.3 and async/await with the Hyper library,
-# which use futures 0.1.
-futures = { version = &quot;0.3&quot;, features = [&quot;compat&quot;] }
-
-# Hyper is an asynchronous HTTP library. We'll use it to power our HTTP
-# server and to make HTTP requests.
-hyper = &quot;0.12.9&quot;
-</code></pre>
-<p>既然我们已经摆脱了依赖关系，让我们开始编写一些代码。我们有一些 imports 要添加：</p>
-<pre><pre class="playpen"><code class="language-rust">
-<span class="boring">#![allow(unused_variables)]
-</span><span class="boring">fn main() {
-</span>use {
-    hyper::{
-        // Miscellaneous types from Hyper for working with HTTP.
-        Body, Client, Request, Response, Server, Uri,
-
-        // This function turns a closure which returns a future into an
-        // implementation of the the Hyper `Service` trait, which is an
-        // asynchronous function from a generic `Request` to a `Response`.
-        service::service_fn,
-
-        // A function which runs a future to completion using the Hyper runtime.
-        rt::run,
-    },
-    futures::{
-        // Extension trait for futures 0.1 futures, adding the `.compat()` method
-        // which allows us to use `.await` on 0.1 futures.
-        compat::Future01CompatExt,
-        // Extension traits providing additional methods on futures.
-        // `FutureExt` adds methods that work for all futures, whereas
-        // `TryFutureExt` adds methods to futures that return `Result` types.
-        future::{FutureExt, TryFutureExt},
-    },
-    std::net::SocketAddr,
-};
-<span class="boring">}
-</span></code></pre></pre>
-<p>一旦搞定这些 imports，我们就可以开始整理样板文件，以便满足以下要求：</p>
-<pre><pre class="playpen"><code class="language-rust">async fn serve_req(_req: Request&lt;Body&gt;) -&gt; Result&lt;Response&lt;Body&gt;, hyper::Error&gt; {
-    // Always return successfully with a response containing a body with
-    // a friendly greeting ;)
-    Ok(Response::new(Body::from(&quot;hello, world!&quot;)))
-}
-
-async fn run_server(addr: SocketAddr) {
-    println!(&quot;Listening on http://{}&quot;, addr);
-
-    // Create a server bound on the provided address
-    let serve_future = Server::bind(&amp;addr)
-        // Serve requests using our `async serve_req` function.
-        // `serve` takes a closure which returns a type implementing the
-        // `Service` trait. `service_fn` returns a value implementing the
-        // `Service` trait, and accepts a closure which goes from request
-        // to a future of the response. To use our `serve_req` function with
-        // Hyper, we have to box it and put it in a compatability
-        // wrapper to go from a futures 0.3 future (the kind returned by
-        // `async fn`) to a futures 0.1 future (the kind used by Hyper).
-        .serve(|| service_fn(|req| serve_req(req).boxed().compat()));
-
-    // Wait for the server to complete serving or exit with an error.
-    // If an error occurred, print it to stderr.
-    if let Err(e) = serve_future.compat().await {
-        eprintln!(&quot;server error: {}&quot;, e);
-    }
-}
-
-fn main() {
-    // Set the address to run our socket on.
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
-
-    // Call our `run_server` function, which returns a future.
-    // As with every `async fn`, for `run_server` to do anything,
-    // the returned future needs to be run. Additionally,
-    // we need to convert the returned future from a futures 0.3 future into a
-    // futures 0.1 future.
-    let futures_03_future = run_server(addr);
-    let futures_01_future = futures_03_future.unit_error().boxed().compat();
-
-    // Finally, we can run the future to completion using the `run` function
-    // provided by Hyper.
-    run(futures_01_future);
-}
-</code></pre></pre>
-<p>如果你现在<code>cargo run</code>，你应该看到信息“Listening on http://127.0.0.1:3000“打印在你的终端上。如果你在你选择的浏览器中，打开这个网址，你会看到“hello, world!”出现在浏览器中。祝贺你！您刚刚在 Rust 中编写了，第一个异步 web 服务器。</p>
-<p>您还可以检查 request(请求) 本身，它包含诸如，request 的 URI、HTTP 版本、header 和其他元数据等信息。例如，我们可以打印出请求的 URI，如下所示：</p>
-<pre><pre class="playpen"><code class="language-rust">
-<span class="boring">#![allow(unused_variables)]
-</span><span class="boring">fn main() {
-</span>println!(&quot;Got request at {:?}&quot;, req.uri());
-<span class="boring">}
-</span></code></pre></pre>
-<p>您可能已经注意到，在处理请求时，我们还没有做任何异步操作，我们只是立即响应，所以我们没有利用上<code>async fn</code>给我们的灵活性。与其只返回静态消息，不如尝试使用 Hyper 的 HTTP 客户端，将用户的请求代理到另一个网站。</p>
-<p>我们首先解析出要请求的 URL：</p>
-<pre><pre class="playpen"><code class="language-rust">
-<span class="boring">#![allow(unused_variables)]
-</span><span class="boring">fn main() {
-</span>let url_str = &quot;http://www.rust-lang.org/en-US/&quot;;
-let url = url_str.parse::&lt;Uri&gt;().expect(&quot;failed to parse URL&quot;);
-<span class="boring">}
-</span></code></pre></pre>
-<p>然后，我们可以新建一个新的<code>hyper::Client</code>，并使用它，制造一个<code>GET</code>请求，将响应返回给用户：</p>
-<pre><pre class="playpen"><code class="language-rust">
-<span class="boring">#![allow(unused_variables)]
-</span><span class="boring">fn main() {
-</span>let res = Client::new().get(url).compat().await;
-// Return the result of the request directly to the user
-println!(&quot;request finished-- returning response&quot;);
-res
-<span class="boring">}
-</span></code></pre></pre>
-<p><code>Client::get</code>会返回一个<code>hyper::client::FutureResponse</code>，它实现了<code>Future&lt;Output = Result&lt;Response, Error&gt;&gt;</code>（或<code>Future&lt;Item = Response, Error = Error&gt;</code>在 futures 0.1 版）。当我们<code>.await</code>以后，会发送一个 HTTP 请求，挂起当前任务，并在响应可用时，任务会排队等待继续。</p>
-<p>现在，如果你现在<code>cargo run</code>，在浏览器中打开<code>http://127.0.0.1:3000/foo</code>，您将看到 Rust 主页和以下终端输出：</p>
-<pre><code>Listening on http://127.0.0.1:3000
-Got request at /foo
-making request to http://www.rust-lang.org/en-US/
-request finished-- returning response
-</code></pre>
-<p>祝贺你！你只是代理了一个 HTTP 请求。</p>
-
-                </main>
-
-                <nav class="nav-wrapper" aria-label="Page navigation">
-                    <!-- Mobile navigation buttons -->
-                    
-                    <a rel="prev" href="../01_getting_started/04_async_await_primer.html" class="mobile-nav-chapters previous"
-                        title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
-                        <i class="fa fa-angle-left"></i>
-                    </a>
-                    
-
-                    
-                    <a rel="next" href="../02_execution/01_chapter.html" class="mobile-nav-chapters next"
-                        title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
-                        <i class="fa fa-angle-right"></i>
-                    </a>
-                    
-
-                    <div style="clear: both"></div>
-                </nav>
-            </div>
-        </div>
-
-        <nav class="nav-wide-wrapper" aria-label="Page navigation">
-            
-            <a href="../01_getting_started/04_async_await_primer.html" class="nav-chapters previous" title="Previous chapter"
-                aria-label="Previous chapter" aria-keyshortcuts="Left">
-                <i class="fa fa-angle-left"></i>
-            </a>
-            
-
-            
-            <a href="../02_execution/01_chapter.html" class="nav-chapters next" title="Next chapter"
-                aria-label="Next chapter" aria-keyshortcuts="Right">
-                <i class="fa fa-angle-right"></i>
-            </a>
-            
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle"></div>
         </nav>
 
-    </div>
+        <div id="page-wrapper" class="page-wrapper">
 
-    
+            <div class="page">
+                
+                <div id="menu-bar" class="menu-bar">
+                    <div id="menu-bar-sticky-container">
+                        <div class="left-buttons">
+                            <button id="sidebar-toggle" class="icon-button" type="button" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                                <i class="fa fa-bars"></i>
+                            </button>
+                            <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                                <i class="fa fa-paint-brush"></i>
+                            </button>
+                            <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                                <li role="none"><button role="menuitem" class="theme" id="light">Light (default)</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                                <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                            </ul>
+                            
+                            <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                                <i class="fa fa-search"></i>
+                            </button>
+                            
+                        </div>
 
-    
-    <!-- Google Analytics Tag -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-128555056-1"></script>
+                        <h1 class="menu-title">Asynchronous Programming in Rust</h1>
 
-    <script type="text/javascript">
-        var localAddrs = ["localhost", "127.0.0.1", ""];
-        if (localAddrs.indexOf(document.location.hostname) === -1) {
-            window.dataLayer = window.dataLayer || [];
-            function gtag() { dataLayer.push(arguments); }
-            gtag('js', new Date());
+                        <div class="right-buttons">
+                            <a href="../print.html" title="Print this book" aria-label="Print this book">
+                                <i id="print-button" class="fa fa-print"></i>
+                            </a>
+                            
+                            <a href="https://github.com/rust-lang/async-book" title="Git repository" aria-label="Git repository">
+                                <i id="git-repository-button" class="fa fa-github"></i>
+                            </a>
+                            
+                        </div>
+                    </div>
+                </div>
 
-            gtag('config', 'UA-128555056-1');
-        }
-    </script>
-    
+                
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" name="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+                
 
-    
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script type="text/javascript">
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
 
-    
-    <script src="../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
-    <script src="../mark.min.js" type="text/javascript" charset="utf-8"></script>
-    <script src="../searcher.js" type="text/javascript" charset="utf-8"></script>
-    
+                <div id="content" class="content">
+                    <main>
+                        <h1><a class="header" href="#applied-simple-http-server" id="applied-simple-http-server">Applied: Simple HTTP Server</a></h1>
+                        <p>让我们用<code>async</code>/<code>.await</code>建立一个回声服务器！</p>
+                        <p>开始之前，运行<code>rustup update stable</code>，以确保你有 stable Rust 1.39 或更新的版本。一旦完成，就<code>cargo new async-await-echo</code>创建新项目，并打开输出的<code>async-await-echo</code>文件夹。</p>
+                        <p>让我们将一些依赖项，添加到<code>Cargo.toml</code>文件：</p>
+                        <pre><code class="language-toml">[dependencies]
+                        # The latest version of the &quot;futures&quot; library, which has lots of utilities
+                        # for writing async code. Enable the &quot;compat&quot; feature to include the
+                        # functions for using futures 0.3 and async/await with the Hyper library,
+                        # which use futures 0.1.
+                        futures = { version = &quot;0.3&quot;, features = [&quot;compat&quot;] }
+                        
+                        # Hyper is an asynchronous HTTP library. We'll use it to power our HTTP
+                        # server and to make HTTP requests.
+                        hyper = &quot;0.12.9&quot;
+                        </code></pre>
+                        <p>既然我们已经摆脱了依赖关系，让我们开始编写一些代码。我们有一些 imports 要添加：</p>
+                        <pre><pre class="playpen"><code class="language-rust">
+                        <span class="boring">#![allow(unused_variables)]
+                        </span><span class="boring">fn main() {
+                        </span>use {
+                            hyper::{
+                                // Miscellaneous types from Hyper for working with HTTP.
+                                Body, Client, Request, Response, Server, Uri,
+                        
+                                // This function turns a closure which returns a future into an
+                                // implementation of the the Hyper `Service` trait, which is an
+                                // asynchronous function from a generic `Request` to a `Response`.
+                                service::service_fn,
+                        
+                                // A function which runs a future to completion using the Hyper runtime.
+                                rt::run,
+                            },
+                            futures::{
+                                // Extension trait for futures 0.1 futures, adding the `.compat()` method
+                                // which allows us to use `.await` on 0.1 futures.
+                                compat::Future01CompatExt,
+                                // Extension traits providing additional methods on futures.
+                                // `FutureExt` adds methods that work for all futures, whereas
+                                // `TryFutureExt` adds methods to futures that return `Result` types.
+                                future::{FutureExt, TryFutureExt},
+                            },
+                            std::net::SocketAddr,
+                        };
+                        <span class="boring">}
+                        </span></code></pre></pre>
+                        <p>一旦搞定这些 imports，我们就可以开始整理样板文件，以便满足以下要求：</p>
+                        <pre><pre class="playpen"><code class="language-rust">async fn serve_req(_req: Request&lt;Body&gt;) -&gt; Result&lt;Response&lt;Body&gt;, hyper::Error&gt; {
+                            // Always return successfully with a response containing a body with
+                            // a friendly greeting ;)
+                            Ok(Response::new(Body::from(&quot;hello, world!&quot;)))
+                        }
+                        
+                        async fn run_server(addr: SocketAddr) {
+                            println!(&quot;Listening on http://{}&quot;, addr);
+                        
+                            // Create a server bound on the provided address
+                            let serve_future = Server::bind(&amp;addr)
+                                // Serve requests using our `async serve_req` function.
+                                // `serve` takes a closure which returns a type implementing the
+                                // `Service` trait. `service_fn` returns a value implementing the
+                                // `Service` trait, and accepts a closure which goes from request
+                                // to a future of the response. To use our `serve_req` function with
+                                // Hyper, we have to box it and put it in a compatability
+                                // wrapper to go from a futures 0.3 future (the kind returned by
+                                // `async fn`) to a futures 0.1 future (the kind used by Hyper).
+                                .serve(|| service_fn(|req| serve_req(req).boxed().compat()));
+                        
+                            // Wait for the server to complete serving or exit with an error.
+                            // If an error occurred, print it to stderr.
+                            if let Err(e) = serve_future.compat().await {
+                                eprintln!(&quot;server error: {}&quot;, e);
+                            }
+                        }
+                        
+                        fn main() {
+                            // Set the address to run our socket on.
+                            let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+                        
+                            // Call our `run_server` function, which returns a future.
+                            // As with every `async fn`, for `run_server` to do anything,
+                            // the returned future needs to be run. Additionally,
+                            // we need to convert the returned future from a futures 0.3 future into a
+                            // futures 0.1 future.
+                            let futures_03_future = run_server(addr);
+                            let futures_01_future = futures_03_future.unit_error().boxed().compat();
+                        
+                            // Finally, we can run the future to completion using the `run` function
+                            // provided by Hyper.
+                            run(futures_01_future);
+                        }
+                        </code></pre></pre>
+                        <p>如果你现在<code>cargo run</code>，你应该看到信息“Listening on http://127.0.0.1:3000“打印在你的终端上。如果你在你选择的浏览器中，打开这个网址，你会看到“hello, world!”出现在浏览器中。祝贺你！您刚刚在 Rust 中编写了，第一个异步 web 服务器。</p>
+                        <p>您还可以检查 request(请求) 本身，它包含诸如，request 的 URI、HTTP 版本、header 和其他元数据等信息。例如，我们可以打印出请求的 URI，如下所示：</p>
+                        <pre><pre class="playpen"><code class="language-rust">
+                        <span class="boring">#![allow(unused_variables)]
+                        </span><span class="boring">fn main() {
+                        </span>println!(&quot;Got request at {:?}&quot;, req.uri());
+                        <span class="boring">}
+                        </span></code></pre></pre>
+                        <p>您可能已经注意到，在处理请求时，我们还没有做任何异步操作，我们只是立即响应，所以我们没有利用上<code>async fn</code>给我们的灵活性。与其只返回静态消息，不如尝试使用 Hyper 的 HTTP 客户端，将用户的请求代理到另一个网站。</p>
+                        <p>我们首先解析出要请求的 URL：</p>
+                        <pre><pre class="playpen"><code class="language-rust">
+                        <span class="boring">#![allow(unused_variables)]
+                        </span><span class="boring">fn main() {
+                        </span>let url_str = &quot;http://www.rust-lang.org/en-US/&quot;;
+                        let url = url_str.parse::&lt;Uri&gt;().expect(&quot;failed to parse URL&quot;);
+                        <span class="boring">}
+                        </span></code></pre></pre>
+                        <p>然后，我们可以新建一个新的<code>hyper::Client</code>，并使用它，制造一个<code>GET</code>请求，将响应返回给用户：</p>
+                        <pre><pre class="playpen"><code class="language-rust">
+                        <span class="boring">#![allow(unused_variables)]
+                        </span><span class="boring">fn main() {
+                        </span>let res = Client::new().get(url).compat().await;
+                        // Return the result of the request directly to the user
+                        println!(&quot;request finished-- returning response&quot;);
+                        res
+                        <span class="boring">}
+                        </span></code></pre></pre>
+                        <p><code>Client::get</code>会返回一个<code>hyper::client::FutureResponse</code>，它实现了<code>Future&lt;Output = Result&lt;Response, Error&gt;&gt;</code>（或<code>Future&lt;Item = Response, Error = Error&gt;</code>在 futures 0.1 版）。当我们<code>.await</code>以后，会发送一个 HTTP 请求，挂起当前任务，并在响应可用时，任务会排队等待继续。</p>
+                        <p>现在，如果你现在<code>cargo run</code>，在浏览器中打开<code>http://127.0.0.1:3000/foo</code>，您将看到 Rust 主页和以下终端输出：</p>
+                        <pre><code>Listening on http://127.0.0.1:3000
+                        Got request at /foo
+                        making request to http://www.rust-lang.org/en-US/
+                        request finished-- returning response
+                        </code></pre>
+                        <p>祝贺你！你只是代理了一个 HTTP 请求。</p>
 
-    <script src="../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
-    <script src="../highlight.js" type="text/javascript" charset="utf-8"></script>
-    <script src="../book.js" type="text/javascript" charset="utf-8"></script>
+                    </main>
 
-    <!-- Custom JS scripts -->
-    
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                        
+                            <a rel="prev" href="../01_getting_started/04_async_await_primer.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+                        
 
-    
+                        
+                            <a rel="next" href="../02_execution/01_chapter.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+                        
 
-</body>
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
 
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                
+                    <a href="../01_getting_started/04_async_await_primer.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+                
+
+                
+                    <a href="../02_execution/01_chapter.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+                
+            </nav>
+
+        </div>
+
+        
+
+        
+
+        
+        
+        
+        <script type="text/javascript">
+            window.playpen_copyable = true;
+        </script>
+        
+
+        
+
+        
+        <script src="../elasticlunr.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../mark.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../searcher.js" type="text/javascript" charset="utf-8"></script>
+        
+
+        <script src="../clipboard.min.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../highlight.js" type="text/javascript" charset="utf-8"></script>
+        <script src="../book.js" type="text/javascript" charset="utf-8"></script>
+
+        <!-- Custom JS scripts -->
+        
+
+        
+
+    </body>
 </html>
