@@ -145,88 +145,51 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#what-unsafe-rust-can-do" id="what-unsafe-rust-can-do">What Unsafe Rust Can Do</a></h1>
-<p>The only things that are different in Unsafe Rust are that you can:</p>
-<ul>
-<li>Dereference raw pointers</li>
-<li>Call <code>unsafe</code> functions (including C functions, compiler intrinsics, and the raw allocator)</li>
-<li>Implement <code>unsafe</code> traits</li>
-<li>Mutate statics</li>
-<li>Access fields of <code>union</code>s</li>
-</ul>
-<p>That's it. The reason these operations are relegated to Unsafe is that misusing
-any of these things will cause the ever dreaded Undefined Behavior. Invoking
-Undefined Behavior gives the compiler full rights to do arbitrarily bad things
-to your program. You definitely <em>should not</em> invoke Undefined Behavior.</p>
-<p>Unlike C, Undefined Behavior is pretty limited in scope in Rust. All the core
-language cares about is preventing the following things:</p>
-<ul>
-<li>Dereferencing (using the <code>*</code> operator on) dangling or unaligned pointers (see below)</li>
-<li>Breaking the <a href="references.html">pointer aliasing rules</a></li>
-<li>Calling a function with the wrong call ABI or unwinding from a function with the wrong unwind ABI.</li>
-<li>Causing a <a href="races.html">data race</a></li>
-<li>Executing code compiled with <a href="../reference/attributes/codegen.html#the-target_feature-attribute">target features</a> that the current thread of execution does
-not support</li>
-<li>Producing invalid values (either alone or as a field of a compound type such
-as <code>enum</code>/<code>struct</code>/array/tuple):
-<ul>
-<li>a <code>bool</code> that isn't 0 or 1</li>
-<li>an <code>enum</code> with an invalid discriminant</li>
-<li>a null <code>fn</code> pointer</li>
-<li>a <code>char</code> outside the ranges [0x0, 0xD7FF] and [0xE000, 0x10FFFF]</li>
-<li>a <code>!</code> (all values are invalid for this type)</li>
-<li>an integer (<code>i*</code>/<code>u*</code>), floating point value (<code>f*</code>), or raw pointer read from
-<a href="uninitialized.html">uninitialized memory</a></li>
-<li>a reference/<code>Box</code> that is dangling, unaligned, or points to an invalid value.</li>
-<li>a wide reference, <code>Box</code>, or raw pointer that has invalid metadata:
-<ul>
-<li><code>dyn Trait</code> metadata is invalid if it is not a pointer to a vtable for
-<code>Trait</code> that matches the actual dynamic trait the pointer or reference points to</li>
-<li>slice metadata is invalid if the length is not a valid <code>usize</code>
-(i.e., it must not be read from uninitialized memory)</li>
-</ul>
-</li>
-<li>a <code>str</code> that isn't valid UTF-8</li>
-<li>a type with custom invalid values that is one of those values, such as a
-<code>NonNull</code> that is null. (Requesting custom invalid values is an unstable
-feature, but some stable libstd types, like <code>NonNull</code>, make use of it.)</li>
-</ul>
-</li>
-</ul>
-<p>&quot;Producing&quot; a value happens any time a value is assigned, passed to a
-function/primitive operation or returned from a function/primitive operation.</p>
-<p>A reference/pointer is &quot;dangling&quot; if it is null or not all of the bytes it
-points to are part of the same allocation (so in particular they all have to be
-part of <em>some</em> allocation). The span of bytes it points to is determined by the
-pointer value and the size of the pointee type. As a consequence, if the span is
-empty, &quot;dangling&quot; is the same as &quot;non-null&quot;. Note that slices point to their
-entire range, so it's important that the length metadata is never too large
-(in particular, allocations and therefore slices cannot be bigger than
-<code>isize::MAX</code> bytes). If for some reason this is too cumbersome, consider using
-raw pointers.</p>
-<p>That's it. That's all the causes of Undefined Behavior baked into Rust. Of
-course, unsafe functions and traits are free to declare arbitrary other
-constraints that a program must maintain to avoid Undefined Behavior. For
-instance, the allocator APIs declare that deallocating unallocated memory is
-Undefined Behavior.</p>
-<p>However, violations of these constraints generally will just transitively lead to one of
-the above problems. Some additional constraints may also derive from compiler
-intrinsics that make special assumptions about how code can be optimized. For instance,
-Vec and Box make use of intrinsics that require their pointers to be non-null at all times.</p>
-<p>Rust is otherwise quite permissive with respect to other dubious operations.
-Rust considers it &quot;safe&quot; to:</p>
-<ul>
-<li>Deadlock</li>
-<li>Have a <a href="races.html">race condition</a></li>
-<li>Leak memory</li>
-<li>Fail to call destructors</li>
-<li>Overflow integers</li>
-<li>Abort the program</li>
-<li>Delete the production database</li>
-</ul>
-<p>However any program that actually manages to do such a thing is <em>probably</em>
-incorrect. Rust provides lots of tools to make these things rare, but
-these problems are considered impractical to categorically prevent.</p>
+                        <h1 id="unsafe-rust-%e8%83%bd%e5%81%9a%e4%bb%80%e4%b9%88">Unsafe Rust 能做什么</h1>
+                        <blockquote>
+                        <p>原文跟踪<a href="https://github.com/rust-lang-nursery/nomicon/blob/master/src/what-unsafe-does.md">what-unsafe-does.md</a>   Commit: dd8054bef8c654aaa27ca7979e21aa984fd2abc6</p>
+                        </blockquote>
+                        <p>Usafe Rust 唯一的区别在于，它允许你多做如下事情:</p>
+                        <ul>
+                        <li>解引用原始指针</li>
+                        <li>调用 <code>unsafe</code> 函数（包括 C 函数, 编译器内部预置的和原始内存分配器）</li>
+                        <li>实现 <code>unsafe</code> trait</li>
+                        <li>修改静态变量</li>
+                        <li>访问 <code>union</code> 的字段</li>
+                        </ul>
+                        <p>这就是全部了, 把这些操作归为 Unsafe 的原因是, 滥用这些会导致可怕的未定义的行为. 触发未定义的行为就相当于给予编译器在你程序里做一些武断且不好事情的权力. 你应该<em>完全避免</em>触发任何未定义的行为.</p>
+                        <p>不像 C, Rust 中未定义的行为是限定在一定范围内的. 所有核心语法都会刻意的去预防如下这些事情：</p>
+                        <ul>
+                        <li>解引用 null、悬空或未对齐的指针</li>
+                        <li>读取<a href="uninitialized.html">未初始化的内存</a></li>
+                        <li>打破<a href="references.html">指针别名规则</a></li>
+                        <li>生成无效的原始值：
+                        <ul>
+                        <li>悬空或 null 引用</li>
+                        <li>空 <code>fn</code> 函数指针</li>
+                        <li>非 0 或 1 的布尔值</li>
+                        <li>未定义的 <code>enum</code> 判别式</li>
+                        <li>[0x0, 0xD7FF] 和 [0xE000, 0x10FFFF] 范围外的 <code>char</code> 值</li>
+                        <li>非 utf-8 的 <code>str</code></li>
+                        </ul>
+                        </li>
+                        <li>栈解退（Unwinding）到另一种语言</li>
+                        <li>引起<a href="races.html">数据争用</a></li>
+                        </ul>
+                        <p>就这些而已, 这就是Rust中未定义行为的所有原因. 当然, unsafe 函数和 trait 可以自由随意的去声明一些其他约束, 用来约束程序程序坚持去避免未定义的行为. 举个例子, 内存分配器的 API 声明取消分配那些没分配过的内存, 就是未定义的行为.</p>
+                        <p>但是, 违反这些约束通常只会导致上述问题的其中一个. 一些额外的约束也可以源自编译器内部, 并可以对如何优化代码做出特殊的假设. 举个例子, Vec 和 Box 使用编译器内部预置的函数, 要求它们的指针始终为非 null.</p>
+                        <p>对另一些可以的操作, Rust 也可以相当宽容. Rust 认为以下都是&quot;安全&quot;的:</p>
+                        <ul>
+                        <li>死锁</li>
+                        <li>有<a href="races.html">竞争条件</a></li>
+                        <li>内存泄漏</li>
+                        <li>调用析构函数失败</li>
+                        <li>整型溢出</li>
+                        <li>中止程序</li>
+                        <li>删除生产环境数据库</li>
+                        </ul>
+                        <p>但是, 真这么做了可能就不太好了, 尤其最后一条. Rust 提供了很多工具去阻止或减少这些事情的发生. 但是如果要完全避免这些问题是不切实际的.</p>
+                        
 
                     </main>
 

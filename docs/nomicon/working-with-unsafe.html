@@ -145,107 +145,71 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#working-with-unsafe" id="working-with-unsafe">Working with Unsafe</a></h1>
-<p>Rust generally only gives us the tools to talk about Unsafe Rust in a scoped and
-binary manner. Unfortunately, reality is significantly more complicated than
-that. For instance, consider the following toy function:</p>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-fn index(idx: usize, arr: &amp;[u8]) -&gt; Option&lt;u8&gt; {
-    if idx &lt; arr.len() {
-        unsafe {
-            Some(*arr.get_unchecked(idx))
-        }
-    } else {
-        None
-    }
-}
-#}</code></pre></pre>
-<p>This function is safe and correct. We check that the index is in bounds, and if it
-is, index into the array in an unchecked manner. But even in such a trivial
-function, the scope of the unsafe block is questionable. Consider changing the
-<code>&lt;</code> to a <code>&lt;=</code>:</p>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-fn index(idx: usize, arr: &amp;[u8]) -&gt; Option&lt;u8&gt; {
-    if idx &lt;= arr.len() {
-        unsafe {
-            Some(*arr.get_unchecked(idx))
-        }
-    } else {
-        None
-    }
-}
-#}</code></pre></pre>
-<p>This program is now unsound, and yet <em>we only modified safe code</em>. This is the
-fundamental problem of safety: it's non-local. The soundness of our unsafe
-operations necessarily depends on the state established by otherwise
-&quot;safe&quot; operations.</p>
-<p>Safety is modular in the sense that opting into unsafety doesn't require you
-to consider arbitrary other kinds of badness. For instance, doing an unchecked
-index into a slice doesn't mean you suddenly need to worry about the slice being
-null or containing uninitialized memory. Nothing fundamentally changes. However
-safety <em>isn't</em> modular in the sense that programs are inherently stateful and
-your unsafe operations may depend on arbitrary other state.</p>
-<p>This non-locality gets much worse when we incorporate actual persistent state.
-Consider a simple implementation of <code>Vec</code>:</p>
-<pre><pre class="playpen"><code class="language-rust">use std::ptr;
-
-// Note: This definition is naive. See the chapter on implementing Vec.
-pub struct Vec&lt;T&gt; {
-    ptr: *mut T,
-    len: usize,
-    cap: usize,
-}
-
-// Note this implementation does not correctly handle zero-sized types.
-// See the chapter on implementing Vec.
-impl&lt;T&gt; Vec&lt;T&gt; {
-    pub fn push(&amp;mut self, elem: T) {
-        if self.len == self.cap {
-            // not important for this example
-            self.reallocate();
-        }
-        unsafe {
-            ptr::write(self.ptr.offset(self.len as isize), elem);
-            self.len += 1;
-        }
-    }
-    # fn reallocate(&amp;mut self) { }
-}
-
-# fn main() {}
-</code></pre></pre>
-<p>This code is simple enough to reasonably audit and informally verify. Now consider
-adding the following method:</p>
-<pre><code class="language-rust ignore">fn make_room(&amp;mut self) {
-    // grow the capacity
-    self.cap += 1;
-}
-</code></pre>
-<p>This code is 100% Safe Rust but it is also completely unsound. Changing the
-capacity violates the invariants of Vec (that <code>cap</code> reflects the allocated space
-in the Vec). This is not something the rest of Vec can guard against. It <em>has</em>
-to trust the capacity field because there's no way to verify it.</p>
-<p>Because it relies on invariants of a struct field, this <code>unsafe</code> code
-does more than pollute a whole function: it pollutes a whole <em>module</em>.
-Generally, the only bullet-proof way to limit the scope of unsafe code is at the
-module boundary with privacy.</p>
-<p>However this works <em>perfectly</em>. The existence of <code>make_room</code> is <em>not</em> a
-problem for the soundness of Vec because we didn't mark it as public. Only the
-module that defines this function can call it. Also, <code>make_room</code> directly
-accesses the private fields of Vec, so it can only be written in the same module
-as Vec.</p>
-<p>It is therefore possible for us to write a completely safe abstraction that
-relies on complex invariants. This is <em>critical</em> to the relationship between
-Safe Rust and Unsafe Rust.</p>
-<p>We have already seen that Unsafe code must trust <em>some</em> Safe code, but shouldn't
-trust <em>generic</em> Safe code. Privacy is important to unsafe code for similar reasons:
-it prevents us from having to trust all the safe code in the universe from messing
-with our trusted state.</p>
-<p>Safety lives!</p>
+                        <h1 id="%e4%b8%8e-unsafe-%e7%8e%a9%e8%80%8d">与 Unsafe 玩耍</h1>
+                        <blockquote>
+                        <p>原文跟踪<a href="https://github.com/rust-lang-nursery/nomicon/blob/master/src/working-with-unsafe.md">working-with-unsafe.md</a>   Commit: 79d7569b693ea5b0225d4b912e34cd039e61d291</p>
+                        </blockquote>
+                        <p><code>Rust</code> 通常只给我们相应工具, 在一定范围内用二进制的方式去和 <code>Unsafe Rust</code> 对话. 不幸的是, 现实情况要远远复杂的多. 举个例子, 请看如下示例函数:</p>
+                        <pre><code class="language-rust"><div><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">index</span></span>(idx: <span class="hljs-built_in">usize</span>, arr: &amp;[<span class="hljs-built_in">u8</span>]) -&gt; <span class="hljs-built_in">Option</span>&lt;<span class="hljs-built_in">u8</span>&gt; {
+                            <span class="hljs-keyword">if</span> idx &lt; arr.len() {
+                                <span class="hljs-keyword">unsafe</span> {
+                                    <span class="hljs-literal">Some</span>(*arr.get_unchecked(idx))
+                                }
+                            } <span class="hljs-keyword">else</span> {
+                                <span class="hljs-literal">None</span>
+                            }
+                        }
+                        </div></code></pre>
+                        <p>这个函数是安全且正确的. 我们检查了其索引是在范围内的, 如果在范围内, 用未检查的方式去索引这个数组里的元素. 但是就算再这么一个小的函数里, <code>unsafe</code> 作用域范围内其实是有问题的. 考虑下把<code>&lt;</code> 改成 <code>&lt;=</code></p>
+                        <pre><code class="language-rust"><div><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">index</span></span>(idx: <span class="hljs-built_in">usize</span>, arr: &amp;[<span class="hljs-built_in">u8</span>]) -&gt; <span class="hljs-built_in">Option</span>&lt;<span class="hljs-built_in">u8</span>&gt; {
+                            <span class="hljs-keyword">if</span> idx &lt;= arr.len() {
+                                <span class="hljs-keyword">unsafe</span> {
+                                    <span class="hljs-literal">Some</span>(*arr.get_unchecked(idx))
+                                }
+                            } <span class="hljs-keyword">else</span> {
+                                <span class="hljs-literal">None</span>
+                            }
+                        }
+                        </div></code></pre>
+                        <p>安全是边界清晰的(译者注: 原文 <code>modular</code>, 直译模块化), 因为选择不安全并不要求您考虑任意其他类型的不良之处. 例如, 进行未检查边界的切片索引并不意味着你马上就要担心切片可能为空或者包含未初始化的内存. 没有什么根本上的变化. 但是安全又<strong>不是</strong>边界清晰的, 因为程序天然就是有状态的, 并且您的 <code>unsafe</code> 操作可能依赖其他任意的状态.</p>
+                        <p>当我们包含实际的持久状态时, 这种非本地的状态会更糟糕.
+                        考录有如下一个简单的 <code>Vec</code> 实现:</p>
+                        <pre><code class="language-rust"><div><span class="hljs-keyword">use</span> std::ptr;
+                        
+                        <span class="hljs-comment">// 注意: 这个定义比较简单. 更多信息可查阅 Vec 实现章节.</span>
+                        <span class="hljs-keyword">pub</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Vec</span></span>&lt;T&gt; {
+                            ptr: *<span class="hljs-keyword">mut</span> T,
+                            len: <span class="hljs-built_in">usize</span>,
+                            cap: <span class="hljs-built_in">usize</span>,
+                        }
+                        
+                        <span class="hljs-comment">// 注意这个实现没有正确处理 0长度时的情况.</span>
+                        <span class="hljs-comment">// 更多信息可查阅 `Vec` 实现章节.</span>
+                        <span class="hljs-keyword">impl</span>&lt;T&gt; <span class="hljs-built_in">Vec</span>&lt;T&gt; {
+                            <span class="hljs-keyword">pub</span> <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">push</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>, elem: T) {
+                                <span class="hljs-keyword">if</span> <span class="hljs-keyword">self</span>.len == <span class="hljs-keyword">self</span>.cap {
+                                    <span class="hljs-comment">// 作为实例, 无具体实现</span>
+                                    <span class="hljs-keyword">self</span>.reallocate();
+                                }
+                                <span class="hljs-keyword">unsafe</span> {
+                                    ptr::write(<span class="hljs-keyword">self</span>.ptr.offset(<span class="hljs-keyword">self</span>.len <span class="hljs-keyword">as</span> <span class="hljs-built_in">isize</span>), elem);
+                                    <span class="hljs-keyword">self</span>.len += <span class="hljs-number">1</span>;
+                                }
+                            }
+                        }
+                        </div></code></pre>
+                        <p>这段代码足够简单, 可以和进行审查和非正式的验证. 现在考虑添加如下方法:</p>
+                        <pre><code class="language-rust"><div><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">make_room</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) {
+                            <span class="hljs-comment">// 增长容量(`capacity`)</span>
+                            <span class="hljs-keyword">self</span>.cap += <span class="hljs-number">1</span>;
+                        }
+                        </div></code></pre>
+                        <p>这段代码 <code>100%</code> 是 <code>Safe Rust</code>, 但是他同时完全是错误的. 修改容量大小违反了 <code>Vec</code> 的不可变性(<code>cap</code> 反映了 <code>Vec</code> 里分配的空间). 这部分内容是无法通过 <code>Vec</code> 其余部分来来防御保证的. 他<strong>必须</strong>信任 <code>capacity</code> 这个字段因为这是没有办法验证的.</p>
+                        <p>因为它依赖于结构体中字段的不变性, 所以这个 <code>unsafe</code> 代码不仅仅污染了整个方法: 还污染了整个<strong>模块</strong>. 通常, 限制非安全代码范围边界的唯一有效办法是利用模块的私有边界, 通过声明为本模块私有实现.</p>
+                        <p>这样做简直<strong>完美</strong>. <code>make_room</code> 是否存在, 并不是 <code>Vec</code>程序健壮与否的问题所在, 因为我们并没有把它声明为 <code>public</code>. 只有定义这个方法的模块可以调用它. <code>make_room</code> 直接访问了<code>Vec</code> 的私有字段, 所以它也只能在同一个 <code>Vec</code> 模块中编写.</p>
+                        <p>因此, 我们就有可能编写一个依赖复杂不变性的完全安全的抽象. 这就是 <code>Safe Rust</code> 和 <code>Unsafe Rust</code> 之间关系的<strong>边界</strong>.</p>
+                        <p>我们已经看了 <code>Unsafe</code> 代码必须信任一些<code>Safe</code> 代码, 但是不应该信任 <strong>一般的(generic)</strong> <code>Safe</code> 代码. 同样的道理模块外部可见性是很重要的: 有了它, 我们就不必去信任全局所有的 <code>safe</code> 代码, 从而破坏其是否可信的状态.</p>
+                        <p>安全万岁!</p>
 
                     </main>
 
