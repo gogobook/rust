@@ -145,14 +145,13 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#working-with-uninitialized-memory" id="working-with-uninitialized-memory">Working With Uninitialized Memory</a></h1>
-<p>All runtime-allocated memory in a Rust program begins its life as
-<em>uninitialized</em>. In this state the value of the memory is an indeterminate pile
-of bits that may or may not even reflect a valid state for the type that is
-supposed to inhabit that location of memory. Attempting to interpret this memory
-as a value of <em>any</em> type will cause Undefined Behavior. Do Not Do This.</p>
-<p>Rust provides mechanisms to work with uninitialized memory in checked (safe) and
-unchecked (unsafe) ways.</p>
+                        <h1 id="%e4%bd%bf%e7%94%a8%e6%9c%aa%e5%88%9d%e5%a7%8b%e5%8c%96%e7%9a%84%e5%86%85%e5%ad%98">使用未初始化的内存</h1>
+                        <blockquote>
+                        <p>原文跟踪<a href="https://github.com/rust-lang-nursery/nomicon/blob/master/src/uninitialized.md">uninitialized.md</a>   Commit: 0e6c680ebd72f1860e46b2bd40e2a387ad8084ad</p>
+                        </blockquote>
+                        <p>Rust程序中所有运行时分配的内存都以未初始化的方式开始。 在这种状态下，存储器的值是不确定的一堆比特，这些比特可能或甚至不能反映应该驻留在该存储器位置的类型的有效状态。 尝试将此内存解释为任何类型的值将导致未定义的行为。 不要这样做。</p>
+                        <p>Rust提供了以已检查（安全）和未检查（不安全）方式处理未初始化内存的机制。</p>
+                        
 
                     </main>
 

@@ -145,40 +145,36 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#deref" id="deref">Deref</a></h1>
-<p>Alright! We've got a decent minimal stack implemented. We can push, we can
-pop, and we can clean up after ourselves. However there's a whole mess of
-functionality we'd reasonably want. In particular, we have a proper array, but
-none of the slice functionality. That's actually pretty easy to solve: we can
-implement <code>Deref&lt;Target=[T]&gt;</code>. This will magically make our Vec coerce to, and
-behave like, a slice in all sorts of conditions.</p>
-<p>All we need is <code>slice::from_raw_parts</code>. It will correctly handle empty slices
-for us. Later once we set up zero-sized type support it will also Just Work
-for those too.</p>
-<pre><code class="language-rust ignore">use std::ops::Deref;
+                        <h1 id="deref">Deref</h1>
+<blockquote>
+<p>源-<a href="https://github.com/rust-lang-nursery/nomicon/blob/master/src/vec-deref.md">vec-deref.md</a>   Commit: e9335c82a2a73ad68f0516ff241c973dfa31ee16</p>
+</blockquote>
+<p>不错！我们实现了一个成熟的小的栈。我们可以push、可以pop、也可以自动清理。但是还是有一堆的功能是我们需要的。特别是，我们已经有了一个很好的数组，但是还没有slice相关的功能。这非常容易解决：我们可以实现<code>Deref&lt;Target=[T]&gt;</code>。这样我们的Vec就神奇地变成了slice。</p>
+<p>我们只需要使用<code>slice::from_raw_parts</code>。它能够为我们正确处理空slice。等到后面我们完成了零尺寸类型的支持，它们依然可以完美配合。</p>
+<pre><code class="language-Rust"><div><span class="hljs-keyword">use</span> std::ops::Deref;
 
-impl&lt;T&gt; Deref for Vec&lt;T&gt; {
-    type Target = [T];
-    fn deref(&amp;self) -&gt; &amp;[T] {
-        unsafe {
-            ::std::slice::from_raw_parts(self.ptr.as_ptr(), self.len)
+<span class="hljs-keyword">impl</span>&lt;T&gt; Deref <span class="hljs-keyword">for</span> <span class="hljs-built_in">Vec</span>&lt;T&gt; {
+    <span class="hljs-class"><span class="hljs-keyword">type</span> <span class="hljs-title">Target</span></span> = [T];
+    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">deref</span></span>(&amp;<span class="hljs-keyword">self</span>) -&gt; &amp;[T] {
+        <span class="hljs-keyword">unsafe</span> {
+            ::std::slice::from_raw_parts(<span class="hljs-keyword">self</span>.ptr.as_ptr(), <span class="hljs-keyword">self</span>.len)
         }
     }
 }
-</code></pre>
-<p>And let's do DerefMut too:</p>
-<pre><code class="language-rust ignore">use std::ops::DerefMut;
+</div></code></pre>
+<p>我们把DefMut也实现了吧：</p>
+<pre><code class="language-Rust"><div><span class="hljs-keyword">use</span> std::ops::DerefMut;
 
-impl&lt;T&gt; DerefMut for Vec&lt;T&gt; {
-    fn deref_mut(&amp;mut self) -&gt; &amp;mut [T] {
-        unsafe {
-            ::std::slice::from_raw_parts_mut(self.ptr.as_ptr(), self.len)
+<span class="hljs-keyword">impl</span>&lt;T&gt; DerefMut <span class="hljs-keyword">for</span> <span class="hljs-built_in">Vec</span>&lt;T&gt; {
+    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">deref_mut</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) -&gt; &amp;<span class="hljs-keyword">mut</span> [T] {
+        <span class="hljs-keyword">unsafe</span> {
+            ::std::slice::from_raw_parts_mut(<span class="hljs-keyword">self</span>.ptr.as_ptr(), <span class="hljs-keyword">self</span>.len)
         }
     }
 }
-</code></pre>
-<p>Now we have <code>len</code>, <code>first</code>, <code>last</code>, indexing, slicing, sorting, <code>iter</code>,
-<code>iter_mut</code>, and all other sorts of bells and whistles provided by slice. Sweet!</p>
+</div></code></pre>
+<p>现在我们有了<code>len</code>、<code>first</code>、<code>last</code>、索引、分片、排序、<code>iter</code>、<code>iter_mut</code>，以及其他所有的slice提供的功能。完美！</p>
+
 
                     </main>
 

@@ -145,71 +145,49 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#casts" id="casts">Casts</a></h1>
-<p>Casts are a superset of coercions: every coercion can be explicitly
-invoked via a cast. However some conversions require a cast.
-While coercions are pervasive and largely harmless, these &quot;true casts&quot;
-are rare and potentially dangerous. As such, casts must be explicitly invoked
-using the <code>as</code> keyword: <code>expr as Type</code>.</p>
-<p>True casts generally revolve around raw pointers and the primitive numeric
-types. Even though they're dangerous, these casts are infallible at runtime.
-If a cast triggers some subtle corner case no indication will be given that
-this occurred. The cast will simply succeed. That said, casts must be valid
-at the type level, or else they will be prevented statically. For instance,
-<code>7u8 as bool</code> will not compile.</p>
-<p>That said, casts aren't <code>unsafe</code> because they generally can't violate memory
-safety <em>on their own</em>. For instance, converting an integer to a raw pointer can
-very easily lead to terrible things. However the act of creating the pointer
-itself is safe, because actually using a raw pointer is already marked as
-<code>unsafe</code>.</p>
-<p>Here's an exhaustive list of all the true casts. For brevity, we will use <code>*</code>
-to denote either a <code>*const</code> or <code>*mut</code>, and <code>integer</code> to denote any integral
-primitive:</p>
-<ul>
-<li><code>*T as *U</code> where <code>T, U: Sized</code></li>
-<li><code>*T as *U</code> TODO: explain unsized situation</li>
-<li><code>*T as integer</code></li>
-<li><code>integer as *T</code></li>
-<li><code>number as number</code></li>
-<li><code>field-less enum as integer</code></li>
-<li><code>bool as integer</code></li>
-<li><code>char as integer</code></li>
-<li><code>u8 as char</code></li>
-<li><code>&amp;[T; n] as *const T</code></li>
-<li><code>fn as *T</code> where <code>T: Sized</code></li>
-<li><code>fn as integer</code></li>
-</ul>
-<p>Note that lengths are not adjusted when casting raw slices -
-<code>*const [u16] as *const [u8]</code> creates a slice that only includes
-half of the original memory.</p>
-<p>Casting is not transitive, that is, even if <code>e as U1 as U2</code> is a valid
-expression, <code>e as U2</code> is not necessarily so.</p>
-<p>For numeric casts, there are quite a few cases to consider:</p>
-<ul>
-<li>casting between two integers of the same size (e.g. i32 -&gt; u32) is a no-op</li>
-<li>casting from a larger integer to a smaller integer (e.g. u32 -&gt; u8) will
-truncate</li>
-<li>casting from a smaller integer to a larger integer (e.g. u8 -&gt; u32) will
-<ul>
-<li>zero-extend if the source is unsigned</li>
-<li>sign-extend if the source is signed</li>
-</ul>
-</li>
-<li>casting from a float to an integer will round the float towards zero
-<ul>
-<li><strong><a href="https://github.com/rust-lang/rust/issues/10184">NOTE: currently this will cause Undefined Behavior if the rounded
-value cannot be represented by the target integer type</a></strong>.
-This includes Inf and NaN. This is a bug and will be fixed.</li>
-</ul>
-</li>
-<li>casting from an integer to float will produce the floating point
-representation of the integer, rounded if necessary (rounding to
-nearest, ties to even)</li>
-<li>casting from an f32 to an f64 is perfect and lossless</li>
-<li>casting from an f64 to an f32 will produce the closest possible value
-(rounding to nearest, ties to even)</li>
-</ul>
-
+                        <h1 id="%e6%98%be%e5%bc%8f%e7%b1%bb%e5%9e%8b%e8%bd%ac%e6%8d%a2">显式类型转换</h1>
+                        <blockquote>
+                        <p>源：<a href="https://github.com/rust-lang-nursery/nomicon/blob/master/src/casts.md">casts.md</a>   Commit: 9e800adf6f20a7ee899800ca1e42873baa8480ef</p>
+                        </blockquote>
+                        <p>显式类型转换是强制类型转换的超集：所有的强制类型转换都可以通过显式转换的方式主动触发。但有一些场景只适用于显式转换。强制类型转换很普遍而且通常无害，但是显式类型转换是一种“真正的转换“，它的应用就很稀少了，而且有潜在的危险。因此，显式转换必须通过关键字<code>as</code>主动地触发：<code>expr as Type</code>。</p>
+                        <p>真正的转换一般是针对裸指针和基本数字类型的。虽然说过它们存在风险，但是在运行期却是很稳定的。如果类型转换操作触发了一些奇怪的边界场景，Rust并不会给出任何提示。转换仍然会被认为是成功的。这就要求显式类型转换必须在类型层面是合法的，否则会在编译期被拒绝。比如，<code>7u8 as bool</code>不会编译成功。</p>
+                        <p>也就是说，显式类型转换不属于非安全(unsafe)行为，因为仅凭转换操作是不会违背内存安全性的。比如，将整型转换为裸指针很容易导致可怕的后果。但是，创建一个指针这个行为本身是安全的，而真正使用裸指针的操作则必须被标为<code>unsafe</code>。</p>
+                        <p>以下是所有显式类型转换的情况。简单起见，我们用<code>*</code>表示<code>*const</code>或者<code>*mut</code>，用<code>integer</code>表示任意整数基本类型：</p>
+                        <ul>
+                        <li><code>*T as *U</code>，其中<code>T, U: Sized</code></li>
+                        <li><code>*T as *U</code>，TODO：明确unsize的情况</li>
+                        <li><code>*T as integer</code></li>
+                        <li><code>integer as *T</code></li>
+                        <li><code>number as number</code></li>
+                        <li>无成员枚举<code>as integer</code></li>
+                        <li><code>bool as integer</code></li>
+                        <li><code>char as integer</code></li>
+                        <li><code>u8 as char</code></li>
+                        <li><code>&amp;[T; n] as *const T</code></li>
+                        <li><code>fn as *T</code>，其中<code>T: Sized</code></li>
+                        <li><code>fn as integer</code></li>
+                        </ul>
+                        <p>注意，裸slice转换后长度会改变，比如<code>*const [u16] as *const [u8]</code>创建的slice只包含原本一半的内存。</p>
+                        <p>显示类型转换不是可传递的，也就是说，即使<code>e as U1 as U2</code>是合法的表达式，也不能认为<code>e as U2</code>就一定是合法的。</p>
+                        <p>对于数字类型的转换，如下几点需要注意：</p>
+                        <ul>
+                        <li>相同大小的整型互相转换（比如i32-&gt;u32）是一个no-op</li>
+                        <li>大尺寸的整型转换为小尺寸的整型（比如u32-&gt;u8）会被截断</li>
+                        <li>小尺寸的整型转换为大尺寸的整型（比如u8-&gt;u32）
+                        <ul>
+                        <li>如果源类型是无符号的，将会补零</li>
+                        <li>如果源类型是有符号的，将会有符号补零</li>
+                        </ul>
+                        </li>
+                        <li>浮点类型转换为整型会舍去浮点部分
+                        <ul>
+                        <li><a href="https://github.com/rust-lang/rust/issues/10184">注意：如果目标整数类型不能表示舍入的结果，在目前这是一个未定义行为</a>。包括Inf和NaN。这是一个bug，会在后续版本中修复。</li>
+                        </ul>
+                        </li>
+                        <li>整型转换为浮点类型会产生这个整型的浮点型表示，</li>
+                        <li>f32转换为f64可以无损失地完美转换，必要的时候做舍入（舍入到最近的可能取值，距离相同的取偶数）</li>
+                        <li>f64转换为f32会生成最近可能值（舍入到最近的可能取值，距离相同的取偶数）</li>
+                        </ul>
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

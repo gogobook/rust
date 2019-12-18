@@ -145,85 +145,57 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#drop-flags" id="drop-flags">Drop Flags</a></h1>
-<p>The examples in the previous section introduce an interesting problem for Rust.
-We have seen that it's possible to conditionally initialize, deinitialize, and
-reinitialize locations of memory totally safely. For Copy types, this isn't
-particularly notable since they're just a random pile of bits. However types
-with destructors are a different story: Rust needs to know whether to call a
-destructor whenever a variable is assigned to, or a variable goes out of scope.
-How can it do this with conditional initialization?</p>
-<p>Note that this is not a problem that all assignments need worry about. In
-particular, assigning through a dereference unconditionally drops, and assigning
-in a <code>let</code> unconditionally doesn't drop:</p>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-let mut x = Box::new(0); // let makes a fresh variable, so never need to drop
-let y = &amp;mut x;
-*y = Box::new(1); // Deref assumes the referent is initialized, so always drops
-#}</code></pre></pre>
-<p>This is only a problem when overwriting a previously initialized variable or
-one of its subfields.</p>
-<p>It turns out that Rust actually tracks whether a type should be dropped or not
-<em>at runtime</em>. As a variable becomes initialized and uninitialized, a <em>drop flag</em>
-for that variable is toggled. When a variable might need to be dropped, this
-flag is evaluated to determine if it should be dropped.</p>
-<p>Of course, it is often the case that a value's initialization state can be
-statically known at every point in the program. If this is the case, then the
-compiler can theoretically generate more efficient code! For instance, straight-
-line code has such <em>static drop semantics</em>:</p>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-let mut x = Box::new(0); // x was uninit; just overwrite.
-let mut y = x;           // y was uninit; just overwrite and make x uninit.
-x = Box::new(0);         // x was uninit; just overwrite.
-y = x;                   // y was init; Drop y, overwrite it, and make x uninit!
-                         // y goes out of scope; y was init; Drop y!
-                         // x goes out of scope; x was uninit; do nothing.
-#}</code></pre></pre>
-<p>Similarly, branched code where all branches have the same behavior with respect
-to initialization has static drop semantics:</p>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-# let condition = true;
-let mut x = Box::new(0);    // x was uninit; just overwrite.
-if condition {
-    drop(x)                 // x gets moved out; make x uninit.
-} else {
-    println!(&quot;{}&quot;, x);
-    drop(x)                 // x gets moved out; make x uninit.
-}
-x = Box::new(0);            // x was uninit; just overwrite.
-                            // x goes out of scope; x was init; Drop x!
-#}</code></pre></pre>
-<p>However code like this <em>requires</em> runtime information to correctly Drop:</p>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-# let condition = true;
-let x;
-if condition {
-    x = Box::new(0);        // x was uninit; just overwrite.
-    println!(&quot;{}&quot;, x);
-}
-                            // x goes out of scope; x might be uninit;
-                            // check the flag!
-#}</code></pre></pre>
-<p>Of course, in this case it's trivial to retrieve static drop semantics:</p>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-# let condition = true;
-if condition {
-    let x = Box::new(0);
-    println!(&quot;{}&quot;, x);
-}
-#}</code></pre></pre>
-<p>The drop flags are tracked on the stack and no longer stashed in types that
-implement drop.</p>
+                        <h1 id="%e6%9e%90%e6%9e%84drop%e6%a0%87%e5%bf%97">析构(Drop)标志</h1>
+                        <blockquote>
+                        <p>原文跟踪<a href="https://github.com/rust-lang-nursery/nomicon/blob/master/src/drop-flags.md">drop-flags.md</a>   Commit: a73391dd35c32061bec678257d4c3ddac268c51b</p>
+                        </blockquote>
+                        <p>上一节中的示例为Rust引入了一个有趣的问题。 我们已经看到，可以完全安全地有条件地初始化，取消初始化和重新初始化内存位置。 对于<code>Copy</code>类型，这并不是特别值得注意，因为它们只是一堆随机的<code>bits</code>。 但是，带有析构函数的类型是一个不同的故事：Rust需要知道是否在分配变量时调用析构函数，或者变量超出范围。 如何通过条件初始化来做到这一点？</p>
+                        <p>请注意，这不是所有分配都需要担心的问题。 特别是，通过解引用进行分配将无条件地析构(drop)，在<code>let</code>中分配无条件不会析构(drop)：</p>
+                        <pre><code class="language-rust"><div><span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> x = <span class="hljs-built_in">Box</span>::new(<span class="hljs-number">0</span>); <span class="hljs-comment">// let makes a fresh variable, so never need to drop</span>
+                        <span class="hljs-keyword">let</span> y = &amp;<span class="hljs-keyword">mut</span> x;
+                        *y = <span class="hljs-built_in">Box</span>::new(<span class="hljs-number">1</span>); <span class="hljs-comment">// Deref assumes the referent is initialized, so always drops</span>
+                        </div></code></pre>
+                        <p>当覆盖先前初始化的变量或其子字段之一时，这是一个问题。</p>
+                        <p>事实证明，Rust实际上跟踪是否应该在运行时删除类型。 当变量初始化并且未初始化时，将切换该变量的drop标志。 当可能需要删除变量时，将评估此标志以确定是否应删除该变量。</p>
+                        <p>当然，通常情况下，可以在程序的每个点静态地知道值的初始化状态。 如果是这种情况，那么编译器理论上可以生成更高效的代码！ 例如，<code>straight- line</code>代码具有这样的静态析构语义(static drop semantics)：</p>
+                        <pre><code class="language-rust"><div><span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> x = <span class="hljs-built_in">Box</span>::new(<span class="hljs-number">0</span>); <span class="hljs-comment">// x was uninit; just overwrite.</span>
+                        <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> y = x;           <span class="hljs-comment">// y was uninit; just overwrite and make x uninit.</span>
+                        x = <span class="hljs-built_in">Box</span>::new(<span class="hljs-number">0</span>);         <span class="hljs-comment">// x was uninit; just overwrite.</span>
+                        y = x;                   <span class="hljs-comment">// y was init; Drop y, overwrite it, and make x uninit!</span>
+                                                 <span class="hljs-comment">// y goes out of scope; y was init; Drop y!</span>
+                                                 <span class="hljs-comment">// x goes out of scope; x was uninit; do nothing.</span>
+                        </div></code></pre>
+                        <p>类似地，所有分支在初始化方面具有相同行为的分支代码具有静态析构语义(static drop semantics)：</p>
+                        <pre><code class="language-rust"><div># <span class="hljs-keyword">let</span> condition = <span class="hljs-literal">true</span>;
+                        <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> x = <span class="hljs-built_in">Box</span>::new(<span class="hljs-number">0</span>);    <span class="hljs-comment">// x was uninit; just overwrite.</span>
+                        <span class="hljs-keyword">if</span> condition {
+                            <span class="hljs-built_in">drop</span>(x)                 <span class="hljs-comment">// x gets moved out; make x uninit.</span>
+                        } <span class="hljs-keyword">else</span> {
+                            <span class="hljs-built_in">println!</span>(<span class="hljs-string">"{}"</span>, x);
+                            <span class="hljs-built_in">drop</span>(x)                 <span class="hljs-comment">// x gets moved out; make x uninit.</span>
+                        }
+                        x = <span class="hljs-built_in">Box</span>::new(<span class="hljs-number">0</span>);            <span class="hljs-comment">// x was uninit; just overwrite.</span>
+                                                    <span class="hljs-comment">// x goes out of scope; x was init; Drop x!</span>
+                        </div></code></pre>
+                        <p>但是这样的代码需要运行时信息才能正确析构：</p>
+                        <pre><code class="language-rust"><div># <span class="hljs-keyword">let</span> condition = <span class="hljs-literal">true</span>;
+                        <span class="hljs-keyword">let</span> x;
+                        <span class="hljs-keyword">if</span> condition {
+                            x = <span class="hljs-built_in">Box</span>::new(<span class="hljs-number">0</span>);        <span class="hljs-comment">// x was uninit; just overwrite.</span>
+                            <span class="hljs-built_in">println!</span>(<span class="hljs-string">"{}"</span>, x);
+                        }
+                                                    <span class="hljs-comment">// x goes out of scope; x might be uninit;</span>
+                                                    <span class="hljs-comment">// check the flag!</span>
+                        </div></code></pre>
+                        <p>当然，在这种情况下，检索静态析构语义是微不足道的：</p>
+                        <pre><code class="language-rust"><div># <span class="hljs-keyword">let</span> condition = <span class="hljs-literal">true</span>;
+                        <span class="hljs-keyword">if</span> condition {
+                            <span class="hljs-keyword">let</span> x = <span class="hljs-built_in">Box</span>::new(<span class="hljs-number">0</span>);
+                            <span class="hljs-built_in">println!</span>(<span class="hljs-string">"{}"</span>, x);
+                        }
+                        </div></code></pre>
+                        <p><code>drop</code>标记在堆栈上被跟踪，不再存储在实现<code>drop</code>的类型中。</p>
+                        
 
                     </main>
 

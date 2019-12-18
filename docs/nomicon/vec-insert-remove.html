@@ -145,49 +145,46 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#insert-and-remove" id="insert-and-remove">Insert and Remove</a></h1>
-<p>Something <em>not</em> provided by slice is <code>insert</code> and <code>remove</code>, so let's do those
-next.</p>
-<p>Insert needs to shift all the elements at the target index to the right by one.
-To do this we need to use <code>ptr::copy</code>, which is our version of C's <code>memmove</code>.
-This copies some chunk of memory from one location to another, correctly
-handling the case where the source and destination overlap (which will
-definitely happen here).</p>
-<p>If we insert at index <code>i</code>, we want to shift the <code>[i .. len]</code> to <code>[i+1 .. len+1]</code>
-using the old len.</p>
-<pre><code class="language-rust ignore">pub fn insert(&amp;mut self, index: usize, elem: T) {
-    // Note: `&lt;=` because it's valid to insert after everything
-    // which would be equivalent to push.
-    assert!(index &lt;= self.len, &quot;index out of bounds&quot;);
-    if self.cap == self.len { self.grow(); }
+                        <h1 id="%e6%8f%92%e5%85%a5%e5%92%8c%e5%88%a0%e9%99%a4">插入和删除</h1>
+<blockquote>
+<p>源-<a href="https://github.com/rust-lang-nursery/nomicon/blob/master/src/vec-insert-remove.md">vec-insert-remove.md</a>   Commit: 0e6c680ebd72f1860e46b2bd40e2a387ad8084ad</p>
+</blockquote>
+<p>Slice并没有提供插入和删除功能，接下来我们就实现它们。</p>
+<p>插入需要把目标位置后的所有元素都向右移动1。这里我们需要用到<code>ptr::copy</code>，它就是C中的<code>memmove</code>的Rust版。它把一块内存从一个地方拷贝到另一个地方，而且可以正确处理源和目标内存区域有重叠的情况（也正是我们这里遇到的情况）。</p>
+<p>如果我们在<code>i</code>的位置插入，我们需要把[i .. len]移动到[i+1 .. len+1]，len指的是插入前的值。</p>
+<pre><code class="language-Rust"><div><span class="hljs-keyword">pub</span> <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">insert</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>, index: <span class="hljs-built_in">usize</span>, elem: T) {
+    <span class="hljs-comment">// 注意：&lt;=是因为我们可以把值插到所有元素的后面</span>
+    <span class="hljs-comment">// 这种情况等同于push</span>
+    <span class="hljs-built_in">assert!</span>(index &lt;= <span class="hljs-keyword">self</span>.len, <span class="hljs-string">"index out of bounds"</span>);
+    <span class="hljs-keyword">if</span> <span class="hljs-keyword">self</span>.cap == <span class="hljs-keyword">self</span>.len { <span class="hljs-keyword">self</span>.grow(); }
 
-    unsafe {
-        if index &lt; self.len {
-            // ptr::copy(src, dest, len): &quot;copy from source to dest len elems&quot;
-            ptr::copy(self.ptr.offset(index as isize),
-                      self.ptr.offset(index as isize + 1),
-                      self.len - index);
+    <span class="hljs-keyword">unsafe</span> {
+        <span class="hljs-keyword">if</span> index &lt; <span class="hljs-keyword">self</span>.len {
+            <span class="hljs-comment">// ptr::copy(src, dest, len): "从src拷贝len个元素到dest"</span>
+            ptr::copy(<span class="hljs-keyword">self</span>.ptr.offset(index <span class="hljs-keyword">as</span> <span class="hljs-built_in">isize</span>),
+                      <span class="hljs-keyword">self</span>.ptr.offset(index <span class="hljs-keyword">as</span> <span class="hljs-built_in">isize</span> + <span class="hljs-number">1</span>),
+                      <span class="hljs-keyword">self</span>.len - index);
         }
-        ptr::write(self.ptr.offset(index as isize), elem);
-        self.len += 1;
+        ptr::write(<span class="hljs-keyword">self</span>.ptr.offset(index <span class="hljs-keyword">as</span> <span class="hljs-built_in">isize</span>), elem);
+        <span class="hljs-keyword">self</span>.len += <span class="hljs-number">1</span>;
     }
 }
-</code></pre>
-<p>Remove behaves in the opposite manner. We need to shift all the elements from
-<code>[i+1 .. len + 1]</code> to <code>[i .. len]</code> using the <em>new</em> len.</p>
-<pre><code class="language-rust ignore">pub fn remove(&amp;mut self, index: usize) -&gt; T {
-    // Note: `&lt;` because it's *not* valid to remove after everything
-    assert!(index &lt; self.len, &quot;index out of bounds&quot;);
-    unsafe {
-        self.len -= 1;
-        let result = ptr::read(self.ptr.offset(index as isize));
-        ptr::copy(self.ptr.offset(index as isize + 1),
-                  self.ptr.offset(index as isize),
-                  self.len - index);
+</div></code></pre>
+<p>删除则是完全相反的行为。我们要把元素[i+1 .. len + 1]移动到[i .. len]，len是删除后的值。</p>
+<pre><code class="language-Rust"><div><span class="hljs-keyword">pub</span> <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">remove</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>, index: <span class="hljs-built_in">usize</span>) -&gt; T {
+    <span class="hljs-comment">// 注意：&lt;是因为我们不能删除所有元素之后的位置</span>
+    <span class="hljs-built_in">assert!</span>(index &lt; <span class="hljs-keyword">self</span>.len, <span class="hljs-string">"index out of bounds"</span>);
+    <span class="hljs-keyword">unsafe</span> {
+        <span class="hljs-keyword">self</span>.len -= <span class="hljs-number">1</span>;
+        <span class="hljs-keyword">let</span> result = ptr::read(<span class="hljs-keyword">self</span>.ptr.offset(index <span class="hljs-keyword">as</span> <span class="hljs-built_in">isize</span>));
+        ptr::copy(<span class="hljs-keyword">self</span>.ptr.offset(index <span class="hljs-keyword">as</span> <span class="hljs-built_in">isize</span> + <span class="hljs-number">1</span>),
+                  <span class="hljs-keyword">self</span>.ptr.offset(index <span class="hljs-keyword">as</span> <span class="hljs-built_in">isize</span>),
+                  <span class="hljs-keyword">self</span>.len - index);
         result
     }
 }
-</code></pre>
+</div></code></pre>
+
 
                     </main>
 

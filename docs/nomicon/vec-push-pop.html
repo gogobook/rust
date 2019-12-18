@@ -145,51 +145,38 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#push-and-pop" id="push-and-pop">Push and Pop</a></h1>
-<p>Alright. We can initialize. We can allocate. Let's actually implement some
-functionality! Let's start with <code>push</code>. All it needs to do is check if we're
-full to grow, unconditionally write to the next index, and then increment our
-length.</p>
-<p>To do the write we have to be careful not to evaluate the memory we want to write
-to. At worst, it's truly uninitialized memory from the allocator. At best it's the
-bits of some old value we popped off. Either way, we can't just index to the memory
-and dereference it, because that will evaluate the memory as a valid instance of
-T. Worse, <code>foo[idx] = x</code> will try to call <code>drop</code> on the old value of <code>foo[idx]</code>!</p>
-<p>The correct way to do this is with <code>ptr::write</code>, which just blindly overwrites the
-target address with the bits of the value we provide. No evaluation involved.</p>
-<p>For <code>push</code>, if the old len (before push was called) is 0, then we want to write
-to the 0th index. So we should offset by the old len.</p>
-<pre><code class="language-rust ignore">pub fn push(&amp;mut self, elem: T) {
-    if self.len == self.cap { self.grow(); }
-
-    unsafe {
-        ptr::write(self.ptr.offset(self.len as isize), elem);
-    }
-
-    // Can't fail, we'll OOM first.
-    self.len += 1;
-}
-</code></pre>
-<p>Easy! How about <code>pop</code>? Although this time the index we want to access is
-initialized, Rust won't just let us dereference the location of memory to move
-the value out, because that would leave the memory uninitialized! For this we
-need <code>ptr::read</code>, which just copies out the bits from the target address and
-interprets it as a value of type T. This will leave the memory at this address
-logically uninitialized, even though there is in fact a perfectly good instance
-of T there.</p>
-<p>For <code>pop</code>, if the old len is 1, we want to read out of the 0th index. So we
-should offset by the new len.</p>
-<pre><code class="language-rust ignore">pub fn pop(&amp;mut self) -&gt; Option&lt;T&gt; {
-    if self.len == 0 {
-        None
-    } else {
-        self.len -= 1;
-        unsafe {
-            Some(ptr::read(self.ptr.offset(self.len as isize)))
-        }
-    }
-}
-</code></pre>
+                        <h1 id="push%e4%b8%8epop">Push与Pop</h1>
+                        <blockquote>
+                        <p>源-<a href="https://github.com/rust-lang-nursery/nomicon/blob/master/src/vec-push-pop.md">vec-push-pop.md</a>   Commit: 0e6c680ebd72f1860e46b2bd40e2a387ad8084ad</p>
+                        </blockquote>
+                        <p>很好。我们可以初始化，我们也可以分配内存。现在我们开始实现一些真正的功能！我们就从<code>push</code>开始吧。它要做的事情就是检查空间是否已满，满了就扩容，然后写数据到下一个索引位置，最后增加长度。</p>
+                        <p>写数据时，我们一定要小心，不要计算我们要写入的内存位置的值。最坏的情况，那块内存是一块未初始化的内存。最好的情况是那里存着我们已经pop出去的值。不管哪种情况，我们都不能直接索引这块内存然后解引用它，因为这样其实是把内存中的值当做了一个合法的T的实例。更糟糕的是，<code>foo[idx] = x</code>会调用<code>foo[idx]</code>处旧有值的<code>drop</code>方法！</p>
+                        <p>正确的方法是使用<code>ptr::write</code>，它直接用值的二进制覆盖目标地址，不会计算任何的值。</p>
+                        <p>对于<code>push</code>，如果原有的长度（调用push之前的长度）为0，那么我们就要写到第0个索引位置。所以我们应该用原有的长度做offset。</p>
+                        <pre><code class="language-Rust"><div><span class="hljs-keyword">pub</span> <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">push</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>, elem: T) {
+                            <span class="hljs-keyword">if</span> <span class="hljs-keyword">self</span>.len == <span class="hljs-keyword">self</span>.cap { <span class="hljs-keyword">self</span>.grow(); }
+                        
+                            <span class="hljs-keyword">unsafe</span> {
+                                ptr::write(<span class="hljs-keyword">self</span>.ptr.offset(<span class="hljs-keyword">self</span>.len <span class="hljs-keyword">as</span> <span class="hljs-built_in">isize</span>), elem);
+                            }
+                        
+                            <span class="hljs-comment">// 这一句不会失败，而会首先OOM</span>
+                            <span class="hljs-keyword">self</span>.len += <span class="hljs-number">1</span>;
+                        }
+                        </div></code></pre>
+                        <p>小菜一碟！那么<code>pop</code>是什么样的呢？尽管现在我们要访问的索引位置已经初始化了，Rust不允许我们用解引用的方式将值移出，因为那样的话整个内存都会回到未初始化状态！这时我们需要用<code>ptr:read</code>，它从目标位置拷贝出二进制值，然后解析成类型T的值。这时原有位置处的内存逻辑上是未初始化的，可实际上那里还是存在这一个正常的T的实例。</p>
+                        <p>对于<code>pop</code>，如果原有长度是1，我们要读的是第0个索引位置。所以我们应该是按新的长度做offset。</p>
+                        <pre><code class="language-Rust"><div><span class="hljs-keyword">pub</span> <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">pop</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) -&gt; <span class="hljs-built_in">Option</span>&lt;T&gt; {
+                            <span class="hljs-keyword">if</span> <span class="hljs-keyword">self</span>.len == <span class="hljs-number">0</span> {
+                                <span class="hljs-literal">None</span>
+                            } <span class="hljs-keyword">else</span> {
+                                <span class="hljs-keyword">self</span>.len -= <span class="hljs-number">1</span>;
+                                <span class="hljs-keyword">unsafe</span> {
+                                    <span class="hljs-literal">Some</span>(ptr::read(<span class="hljs-keyword">self</span>.ptr.offset(<span class="hljs-keyword">self</span>.len <span class="hljs-keyword">as</span> <span class="hljs-built_in">isize</span>)))
+                                }
+                            }
+                        }
+                        </div></code></pre>
 
                     </main>
 

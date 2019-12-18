@@ -145,84 +145,66 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#layout" id="layout">Layout</a></h1>
-<p>First off, we need to come up with the struct layout. A Vec has three parts:
-a pointer to the allocation, the size of the allocation, and the number of
-elements that have been initialized.</p>
-<p>Naively, this means we just want this design:</p>
-<pre><pre class="playpen"><code class="language-rust">pub struct Vec&lt;T&gt; {
-    ptr: *mut T,
-    cap: usize,
-    len: usize,
-}
-# fn main() {}
-</code></pre></pre>
-<p>And indeed this would compile. Unfortunately, it would be incorrect. First, the
-compiler will give us too strict variance. So a <code>&amp;Vec&lt;&amp;'static str&gt;</code>
-couldn't be used where an <code>&amp;Vec&lt;&amp;'a str&gt;</code> was expected. More importantly, it
-will give incorrect ownership information to the drop checker, as it will
-conservatively assume we don't own any values of type <code>T</code>. See <a href="ownership.html">the chapter
-on ownership and lifetimes</a> for all the details on variance and
-drop check.</p>
-<p>As we saw in the ownership chapter, we should use <code>Unique&lt;T&gt;</code> in place of
-<code>*mut T</code> when we have a raw pointer to an allocation we own. Unique is unstable,
-so we'd like to not use it if possible, though.</p>
-<p>As a recap, Unique is a wrapper around a raw pointer that declares that:</p>
-<ul>
-<li>We are variant over <code>T</code></li>
-<li>We may own a value of type <code>T</code> (for drop check)</li>
-<li>We are Send/Sync if <code>T</code> is Send/Sync</li>
-<li>Our pointer is never null (so <code>Option&lt;Vec&lt;T&gt;&gt;</code> is null-pointer-optimized)</li>
-</ul>
-<p>We can implement all of the above requirements except for the last
-one in stable Rust:</p>
-<pre><pre class="playpen"><code class="language-rust">use std::marker::PhantomData;
-use std::ops::Deref;
-use std::mem;
-
-struct Unique&lt;T&gt; {
-    ptr: *const T,              // *const for variance
-    _marker: PhantomData&lt;T&gt;,    // For the drop checker
-}
-
-// Deriving Send and Sync is safe because we are the Unique owners
-// of this data. It's like Unique&lt;T&gt; is &quot;just&quot; T.
-unsafe impl&lt;T: Send&gt; Send for Unique&lt;T&gt; {}
-unsafe impl&lt;T: Sync&gt; Sync for Unique&lt;T&gt; {}
-
-impl&lt;T&gt; Unique&lt;T&gt; {
-    pub fn new(ptr: *mut T) -&gt; Self {
-        Unique { ptr: ptr, _marker: PhantomData }
-    }
-
-    pub fn as_ptr(&amp;self) -&gt; *mut T {
-        self.ptr as *mut T
-    }
-}
-
-# fn main() {}
-</code></pre></pre>
-<p>Unfortunately the mechanism for stating that your value is non-zero is
-unstable and unlikely to be stabilized soon. As such we're just going to
-take the hit and use std's Unique:</p>
-<pre><pre class="playpen"><code class="language-rust">#![feature(ptr_internals)]
-
-use std::ptr::{Unique, self};
-
-pub struct Vec&lt;T&gt; {
-    ptr: Unique&lt;T&gt;,
-    cap: usize,
-    len: usize,
-}
-
-# fn main() {}
-</code></pre></pre>
-<p>If you don't care about the null-pointer optimization, then you can use the
-stable code. However we will be designing the rest of the code around enabling
-this optimization. It should be noted that <code>Unique::new</code> is unsafe to call, because
-putting <code>null</code> inside of it is Undefined Behavior. Our stable Unique doesn't
-need <code>new</code> to be unsafe because it doesn't make any interesting guarantees about
-its contents.</p>
+                        <h1 id="%e5%b8%83%e5%b1%80">布局</h1>
+                        <blockquote>
+                        <p>源：<a href="https://github.com/rust-lang-nursery/nomicon/blob/master/src/vec-layout.md">vec-layout.md</a>   Commit: 94964dee31224cf1a22c72400a12cb966f5a12bc</p>
+                        </blockquote>
+                        <p>我们先来看看结构体的布局。Vec由三部分组成：一个指向分配空间的指针、空间的大小、以及已经初始化的元素的数量。</p>
+                        <p>简单来说，我们的设计只要这样：</p>
+                        <pre><code class="language-Rust"><div><span class="hljs-keyword">pub</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Vec</span></span>&lt;T&gt; {
+                            ptr: *<span class="hljs-keyword">mut</span> T,
+                            cap: <span class="hljs-built_in">usize</span>,
+                            len: <span class="hljs-built_in">usize</span>,
+                        }
+                        </div></code></pre>
+                        <p>这段代码可以通过编译。可不幸的是，它是不正确的。首先，编译器产生的变性过于严格。所以<code>&amp;Vev&lt;&amp;'static str&gt;</code>不能当做<code>&amp;Vev&lt;&amp;'a str&gt;</code>使用。更主要的是，它会给drop检查器传递错误的所有权信息,因为编译器会保守地假设我们不拥有任何的值。关于变性和drop检查的细节，请见<a href="https://rustlang-cn.org/office/rust/advrust/ownership/ownership.html">所有权和生命周期</a>。</p>
+                        <p>.
+                        正如我们在所有权一章见到的，当裸指针指向一块我们拥有所有权的位置，我们应该使用<code>Unique&lt;T&gt;</code>代替<code>*mut T</code>。尽管Unique是不稳定的，我们尽可能不去使用它。</p>
+                        <p>复习一下，Unique封装了一个裸指针，并且声明它自己：</p>
+                        <ul>
+                        <li>对<code>T</code>可变</li>
+                        <li>拥有类型T的值（用于drop检查）</li>
+                        <li>如果<code>T</code>是Send/Sync，那就也是Send/Sync</li>
+                        <li>指针永远不为null（所以`Option&lt;Vec<T>&gt;可以做空指针优化）</li>
+                        </ul>
+                        <p>除了最后一点，其余的我们都可以用稳定的Rust实现：</p>
+                        <pre><code class="language-Rust"><div><span class="hljs-keyword">use</span> std::marker::PhantomData;
+                        <span class="hljs-keyword">use</span> std::ops::Deref;
+                        <span class="hljs-keyword">use</span> std::mem;
+                        
+                        <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Unique</span></span>&lt;T&gt; {
+                            ptr: *<span class="hljs-keyword">const</span> T,            <span class="hljs-comment">// 使用*const保证变性  </span>
+                            _marker: PhantomData&lt;T&gt;,  <span class="hljs-comment">// 用于drop检查</span>
+                        }
+                        
+                        <span class="hljs-comment">// 设置Send和Sync是安全地，因为我们是Unique中的数据的所有者</span>
+                        <span class="hljs-comment">// Unique&lt;t&gt;好像就是T一样</span>
+                        <span class="hljs-keyword">unsafe</span> <span class="hljs-keyword">impl</span>&lt;T: <span class="hljs-built_in">Send</span>&gt; <span class="hljs-built_in">Send</span> <span class="hljs-keyword">for</span> Unique&lt;T&gt; {}
+                        <span class="hljs-keyword">unsafe</span> <span class="hljs-keyword">impl</span>&lt;T: <span class="hljs-built_in">Sync</span>&gt; <span class="hljs-built_in">Sync</span> <span class="hljs-keyword">for</span> Unique&lt;T&gt; {}
+                        
+                        <span class="hljs-keyword">impl</span>&lt;T&gt; Unique&lt;T&gt; {
+                            <span class="hljs-keyword">pub</span> <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">new</span></span>(ptr: *<span class="hljs-keyword">mut</span> T) -&gt; <span class="hljs-keyword">Self</span> {
+                                Unique { ptr: ptr, _marker: PhantomData }
+                            }
+                        
+                            <span class="hljs-keyword">pub</span> <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">as_ptr</span></span>(&amp;<span class="hljs-keyword">self</span>) -&gt; *<span class="hljs-keyword">mut</span> T {
+                                <span class="hljs-keyword">self</span>.ptr <span class="hljs-keyword">as</span> *<span class="hljs-keyword">mut</span> T
+                            }
+                        }
+                        </div></code></pre>
+                        <p>可是，声明数据不为0的方法是不稳定的，而且短期内都不太可能会稳定下来。so我们还是接受现实，使用比标准库的Unique：</p>
+                        <pre><code class="language-Rust"><div><span class="hljs-meta">#![feature(ptr_internals)]</span>
+                        
+                        <span class="hljs-keyword">use</span> std::ptr::{Unique, <span class="hljs-keyword">self</span>};
+                        
+                        <span class="hljs-keyword">pub</span> <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Vec</span></span>&lt;T&gt; {
+                            ptr: Unique&lt;T&gt;,
+                            cap: <span class="hljs-built_in">usize</span>,
+                            len: <span class="hljs-built_in">usize</span>,
+                        }
+                        </div></code></pre>
+                        <p>如果你不太在意空指针优化，那么你可以使用稳定代码。但是我们之后的代码会依赖于这个优化去设计。还要注意，调用<code>Unique::new</code>是非安全的，因为给它传递null属于未定义行为。我们的稳定Unique就不需要让<code>new</code>是非安全的，因为它没有对于它的内容做其他的保证。</p>
+                        
 
                     </main>
 

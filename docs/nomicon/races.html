@@ -145,90 +145,76 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#data-races-and-race-conditions" id="data-races-and-race-conditions">Data Races and Race Conditions</a></h1>
-<p>Safe Rust guarantees an absence of data races, which are defined as:</p>
+                        <h1 id="%e6%95%b0%e6%8d%ae%e7%ab%9e%e4%ba%89%e4%b8%8e%e7%ab%9e%e4%ba%89%e6%9d%a1%e4%bb%b6">数据竞争与竞争条件</h1>
+<blockquote>
+<p>原文跟踪<a href="https://github.com/rust-lang-nursery/nomicon/blob/master/src/races.md">races.md</a>   Commit: bb75621e3a62d14302c8f09239aab42132530446</p>
+</blockquote>
+<p>Safe Rust保证不存在数据争用，其定义为：</p>
 <ul>
-<li>two or more threads concurrently accessing a location of memory</li>
-<li>one of them is a write</li>
-<li>one of them is unsynchronized</li>
+<li>两个或多个线程同时访问内存位置</li>
+<li>其中一个是写</li>
+<li>其中一个是不同步的</li>
 </ul>
-<p>A data race has Undefined Behavior, and is therefore impossible to perform
-in Safe Rust. Data races are <em>mostly</em> prevented through Rust's ownership system:
-it's impossible to alias a mutable reference, so it's impossible to perform a
-data race. Interior mutability makes this more complicated, which is largely why
-we have the Send and Sync traits (see below).</p>
-<p><strong>However Rust does not prevent general race conditions.</strong></p>
-<p>This is pretty fundamentally impossible, and probably honestly undesirable. Your
-hardware is racy, your OS is racy, the other programs on your computer are racy,
-and the world this all runs in is racy. Any system that could genuinely claim to
-prevent <em>all</em> race conditions would be pretty awful to use, if not just
-incorrect.</p>
-<p>So it's perfectly &quot;fine&quot; for a Safe Rust program to get deadlocked or do
-something nonsensical with incorrect synchronization. Obviously such a program
-isn't very good, but Rust can only hold your hand so far. Still, a race
-condition can't violate memory safety in a Rust program on its own. Only in
-conjunction with some other unsafe code can a race condition actually violate
-memory safety. For instance:</p>
-<pre><pre class="playpen"><code class="language-rust no_run">
-# #![allow(unused_variables)]
-#fn main() {
-use std::thread;
-use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::Arc;
+<p>数据争用具有未定义的行为，因此无法在Safe Rust执行。 通过Rust的所有权系统阻止了<em>大部分</em>数据竞争：不可能为可变引用添加别名，因此无法执行
+数据竞争。 内部可变性使这更复杂，这很大程度上是原因我们有<code>Send</code>和<code>Sync</code>特质（见下文）。</p>
+<p><strong>但Rust并不能阻止一般的竞争条件</strong></p>
+<p>这在根本上是不可能的，也可能是不可取的。 您的硬件是活的，你的操作系统是活的，你的电脑上的其他程序是活的，这一切都是充满活力的世界。 任何可以真正声称防止<em>所有</em>竞争条件的系统使用起来非常糟糕。</p>
+<p>因此，对于安全Rust程序来说，使用死锁或使用不正确的同步做一些无意义的事情是完全“好”的。 显然这样的程序不是很好，但Rust到目前为止只能为你做这些。 但是，竞争条件本身不能违反Rust程序中的内存安全性。 只有与其他一些不安全的代码一起使用，竞争条件才会真正违反内存安全。 例如：</p>
+<pre><code class="language-rust"><div><span class="hljs-keyword">use</span> std::thread;
+<span class="hljs-keyword">use</span> std::sync::atomic::{AtomicUsize, Ordering};
+<span class="hljs-keyword">use</span> std::sync::Arc;
 
-let data = vec![1, 2, 3, 4];
-// Arc so that the memory the AtomicUsize is stored in still exists for
-// the other thread to increment, even if we completely finish executing
-// before it. Rust won't compile the program without it, because of the
-// lifetime requirements of thread::spawn!
-let idx = Arc::new(AtomicUsize::new(0));
-let other_idx = idx.clone();
+<span class="hljs-keyword">let</span> data = <span class="hljs-built_in">vec!</span>[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>];
+<span class="hljs-comment">// Arc so that the memory the AtomicUsize is stored in still exists for</span>
+<span class="hljs-comment">// the other thread to increment, even if we completely finish executing</span>
+<span class="hljs-comment">// before it. Rust won't compile the program without it, because of the</span>
+<span class="hljs-comment">// lifetime requirements of thread::spawn!</span>
+<span class="hljs-keyword">let</span> idx = Arc::new(AtomicUsize::new(<span class="hljs-number">0</span>));
+<span class="hljs-keyword">let</span> other_idx = idx.clone();
 
-// `move` captures other_idx by-value, moving it into this thread
-thread::spawn(move || {
-    // It's ok to mutate idx because this value
-    // is an atomic, so it can't cause a Data Race.
-    other_idx.fetch_add(10, Ordering::SeqCst);
+<span class="hljs-comment">// `move` captures other_idx by-value, moving it into this thread</span>
+thread::spawn(<span class="hljs-keyword">move</span> || {
+    <span class="hljs-comment">// It's ok to mutate idx because this value</span>
+    <span class="hljs-comment">// is an atomic, so it can't cause a Data Race.</span>
+    other_idx.fetch_add(<span class="hljs-number">10</span>, Ordering::SeqCst);
 });
 
-// Index with the value loaded from the atomic. This is safe because we
-// read the atomic memory only once, and then pass a copy of that value
-// to the Vec's indexing implementation. This indexing will be correctly
-// bounds checked, and there's no chance of the value getting changed
-// in the middle. However our program may panic if the thread we spawned
-// managed to increment before this ran. A race condition because correct
-// program execution (panicking is rarely correct) depends on order of
-// thread execution.
-println!(&quot;{}&quot;, data[idx.load(Ordering::SeqCst)]);
-#}</code></pre></pre>
-<pre><pre class="playpen"><code class="language-rust no_run">
-# #![allow(unused_variables)]
-#fn main() {
-use std::thread;
-use std::sync::atomic::{AtomicUsize, Ordering};
-use std::sync::Arc;
+<span class="hljs-comment">// Index with the value loaded from the atomic. This is safe because we</span>
+<span class="hljs-comment">// read the atomic memory only once, and then pass a copy of that value</span>
+<span class="hljs-comment">// to the Vec's indexing implementation. This indexing will be correctly</span>
+<span class="hljs-comment">// bounds checked, and there's no chance of the value getting changed</span>
+<span class="hljs-comment">// in the middle. However our program may panic if the thread we spawned</span>
+<span class="hljs-comment">// managed to increment before this ran. A race condition because correct</span>
+<span class="hljs-comment">// program execution (panicking is rarely correct) depends on order of</span>
+<span class="hljs-comment">// thread execution.</span>
+<span class="hljs-built_in">println!</span>(<span class="hljs-string">"{}"</span>, data[idx.load(Ordering::SeqCst)]);
+</div></code></pre>
+<pre><code class="language-rust"><div><span class="hljs-keyword">use</span> std::thread;
+<span class="hljs-keyword">use</span> std::sync::atomic::{AtomicUsize, Ordering};
+<span class="hljs-keyword">use</span> std::sync::Arc;
 
-let data = vec![1, 2, 3, 4];
+<span class="hljs-keyword">let</span> data = <span class="hljs-built_in">vec!</span>[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>];
 
-let idx = Arc::new(AtomicUsize::new(0));
-let other_idx = idx.clone();
+<span class="hljs-keyword">let</span> idx = Arc::new(AtomicUsize::new(<span class="hljs-number">0</span>));
+<span class="hljs-keyword">let</span> other_idx = idx.clone();
 
-// `move` captures other_idx by-value, moving it into this thread
-thread::spawn(move || {
-    // It's ok to mutate idx because this value
-    // is an atomic, so it can't cause a Data Race.
-    other_idx.fetch_add(10, Ordering::SeqCst);
+<span class="hljs-comment">// `move` captures other_idx by-value, moving it into this thread</span>
+thread::spawn(<span class="hljs-keyword">move</span> || {
+    <span class="hljs-comment">// It's ok to mutate idx because this value</span>
+    <span class="hljs-comment">// is an atomic, so it can't cause a Data Race.</span>
+    other_idx.fetch_add(<span class="hljs-number">10</span>, Ordering::SeqCst);
 });
 
-if idx.load(Ordering::SeqCst) &lt; data.len() {
-    unsafe {
-        // Incorrectly loading the idx after we did the bounds check.
-        // It could have changed. This is a race condition, *and dangerous*
-        // because we decided to do `get_unchecked`, which is `unsafe`.
-        println!(&quot;{}&quot;, data.get_unchecked(idx.load(Ordering::SeqCst)));
+<span class="hljs-keyword">if</span> idx.load(Ordering::SeqCst) &lt; data.len() {
+    <span class="hljs-keyword">unsafe</span> {
+        <span class="hljs-comment">// Incorrectly loading the idx after we did the bounds check.</span>
+        <span class="hljs-comment">// It could have changed. This is a race condition, *and dangerous*</span>
+        <span class="hljs-comment">// because we decided to do `get_unchecked`, which is `unsafe`.</span>
+        <span class="hljs-built_in">println!</span>(<span class="hljs-string">"{}"</span>, data.get_unchecked(idx.load(Ordering::SeqCst)));
     }
 }
-#}</code></pre></pre>
+</div></code></pre>
+
 
                     </main>
 

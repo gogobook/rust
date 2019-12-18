@@ -145,212 +145,137 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#leaking" id="leaking">Leaking</a></h1>
-<p>Ownership-based resource management is intended to simplify composition. You
-acquire resources when you create the object, and you release the resources when
-it gets destroyed. Since destruction is handled for you, it means you can't
-forget to release the resources, and it happens as soon as possible! Surely this
-is perfect and all of our problems are solved.</p>
-<p>Everything is terrible and we have new and exotic problems to try to solve.</p>
-<p>Many people like to believe that Rust eliminates resource leaks. In practice,
-this is basically true. You would be surprised to see a Safe Rust program
-leak resources in an uncontrolled way.</p>
-<p>However from a theoretical perspective this is absolutely not the case, no
-matter how you look at it. In the strictest sense, &quot;leaking&quot; is so abstract as
-to be unpreventable. It's quite trivial to initialize a collection at the start
-of a program, fill it with tons of objects with destructors, and then enter an
-infinite event loop that never refers to it. The collection will sit around
-uselessly, holding on to its precious resources until the program terminates (at
-which point all those resources would have been reclaimed by the OS anyway).</p>
-<p>We may consider a more restricted form of leak: failing to drop a value that is
-unreachable. Rust also doesn't prevent this. In fact Rust <em>has a function for
-doing this</em>: <code>mem::forget</code>. This function consumes the value it is passed <em>and
-then doesn't run its destructor</em>.</p>
-<p>In the past <code>mem::forget</code> was marked as unsafe as a sort of lint against using
-it, since failing to call a destructor is generally not a well-behaved thing to
-do (though useful for some special unsafe code). However this was generally
-determined to be an untenable stance to take: there are many ways to fail to
-call a destructor in safe code. The most famous example is creating a cycle of
-reference-counted pointers using interior mutability.</p>
-<p>It is reasonable for safe code to assume that destructor leaks do not happen, as
-any program that leaks destructors is probably wrong. However <em>unsafe</em> code
-cannot rely on destructors to be run in order to be safe. For most types this
-doesn't matter: if you leak the destructor then the type is by definition
-inaccessible, so it doesn't matter, right? For instance, if you leak a <code>Box&lt;u8&gt;</code>
-then you waste some memory but that's hardly going to violate memory-safety.</p>
-<p>However where we must be careful with destructor leaks are <em>proxy</em> types. These
-are types which manage access to a distinct object, but don't actually own it.
-Proxy objects are quite rare. Proxy objects you'll need to care about are even
-rarer. However we'll focus on three interesting examples in the standard
-library:</p>
+                        <h1 id="%e6%b3%84%e9%9c%b2">泄露</h1>
+<blockquote>
+<p>源：<a href="https://github.com/rust-lang-nursery/nomicon/blob/master/src/leaking.md">leaking.md</a>   Commit: 148a9625a3abb80d53ba23bd111a3a949638a92e</p>
+</blockquote>
+<p>基于所有权的资源管理是为了简化复合类型而存在的。你在创建对象的时候获取资源，在销毁对象的时候释放资源。由于析构过程做了处理，你不可能忘记释放资源，而且是尽可能早地释放资源！这简直是一个完美的方案，解决了我们所有的问题。</p>
+<p>可实际上可怕的事情遍地都是，我们还有新的奇怪的问题需要解决。</p>
+<p>许多人觉得Rust已经消除了资源泄露的可能性。实际应用中也差不多是这样。你不太可能看到安全Rust出现不可控制的资源泄露。</p>
+<p>但是，从理论的角度来说，情况却完全不同。在科学家看来，“泄露”太过于抽象，根本无法避免。很可能就会有人在程序的开头初始化一个集合，塞进去一大堆带析构函数的对象，接下来就进入一个死循环，再也不理开始的那个集合。那个集合就只能坐在那里无所事事，死死地抱着宝贵的资源等着程序结束（这时操作系统会强制回收资源）。</p>
+<p>我们可能要给泄露一个更严格的定义：无法销毁不可达(unreachable)的值。Rust也不能避免这种泄露。事实上Rust还有一个制造泄露的函数：<code>mem::forget</code>。这个函数获取传给它的值，但是不调用它的析构函数。</p>
+<p><code>mem::forget</code>曾经被标为unsafe，作为不要滥用它的一种警告。毕竟不调用析构函数一般来说不是一个好习惯（尽管在某些特殊情况下很有用）。但其实这个判断比较不靠谱，因为在安全代码中不调用析构函数的情况很多。最经典的例子是一个循环引用的计数引用。</p>
+<p>安全代码可以合理假设析构函数泄露是不存在的，因为任何有这一问题的程序都可能是错误的。但是，非安全代码不能依赖于运行析构函数来保证程序安全。对于大多数类型而言，这一点不成问题：如果不能调用析构函数，那其实类型本身也是不可访问的，所以这就不是个问题了，对吧？比如，你没有释放<code>Box&lt;u8&gt;</code>，那么你会浪费一点内存，但是这并不会违反内存安全性。</p>
+<p>但是对于代理类型，我们就要十分小心它的析构函数了。有几个类型可以访问一个对象，却不拥有对象的所有权。代理类型很少见，而需要你特别小心的类型就更稀少了。但是，我们要仔细研究一下标准库中的三个有意思的例子</p>
 <ul>
-<li><code>vec::Drain</code></li>
+<li><code>Vec::Drain</code></li>
 <li><code>Rc</code></li>
 <li><code>thread::scoped::JoinGuard</code></li>
 </ul>
-<h2><a class="header" href="#drain" id="drain">Drain</a></h2>
-<p><code>drain</code> is a collections API that moves data out of the container without
-consuming the container. This enables us to reuse the allocation of a <code>Vec</code>
-after claiming ownership over all of its contents. It produces an iterator
-(Drain) that returns the contents of the Vec by-value.</p>
-<p>Now, consider Drain in the middle of iteration: some values have been moved out,
-and others haven't. This means that part of the Vec is now full of logically
-uninitialized data! We could backshift all the elements in the Vec every time we
-remove a value, but this would have pretty catastrophic performance
-consequences.</p>
-<p>Instead, we would like Drain to fix the Vec's backing storage when it is
-dropped. It should run itself to completion, backshift any elements that weren't
-removed (drain supports subranges), and then fix Vec's <code>len</code>. It's even
-unwinding-safe! Easy!</p>
-<p>Now consider the following:</p>
-<pre><code class="language-rust ignore">let mut vec = vec![Box::new(0); 4];
+<h2 id="drain">Drain</h2>
+<p><code>drain</code>是一个集合API，它将容器内的数据所有权移出，却不占有容器本身。我们可以声明一个<code>Vec</code>所有内容的所有权，然后复用分配给它的空间。它产生一个迭代器（Drain），以返回Vec的所有值。</p>
+<p>现在，假设Drain正迭代到一半：有一些值被移出，还有一些没移出。这表明Vec里有一堆逻辑上未初始化的数据！我们可以在删除值的时候在Vec里再备份一份，但这种方法的性能是不可忍受的。</p>
+<p>实际上，我们希望Drain在销毁的时候能够修复Vec的后台存储。他要备份那些没有被移除的元素（drain支持子范围），然后修改Vec的<code>len</code>。这种方法甚至还是unwinding安全的！完美！</p>
+<p>看看下面这段代码</p>
+<pre><code class="language-Rust"><div><span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> vec = <span class="hljs-built_in">vec!</span>[<span class="hljs-built_in">Box</span>::new(<span class="hljs-number">0</span>); e];
 
 {
-    // start draining, vec can no longer be accessed
-    let mut drainer = vec.drain(..);
+    <span class="hljs-comment">// 开始drain，vec无法再被访问</span>
+    <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> drainer = vec.drain(..);
 
-    // pull out two elements and immediately drop them
+    <span class="hljs-comment">// 移除两个元素，然后立刻销毁他们</span>
     drainer.next();
     drainer.next();
 
-    // get rid of drainer, but don't call its destructor
+    <span class="hljs-comment">// 销毁drainer，但是不调用它的析构函数</span>
     mem::forget(drainer);
 }
 
-// Oops, vec[0] was dropped, we're reading a pointer into free'd memory!
-println!(&quot;{}&quot;, vec[0]);
-</code></pre>
-<p>This is pretty clearly Not Good. Unfortunately, we're kind of stuck between a
-rock and a hard place: maintaining consistent state at every step has an
-enormous cost (and would negate any benefits of the API). Failing to maintain
-consistent state gives us Undefined Behavior in safe code (making the API
-unsound).</p>
-<p>So what can we do? Well, we can pick a trivially consistent state: set the Vec's
-len to be 0 when we start the iteration, and fix it up if necessary in the
-destructor. That way, if everything executes like normal we get the desired
-behavior with minimal overhead. But if someone has the <em>audacity</em> to
-mem::forget us in the middle of the iteration, all that does is <em>leak even more</em>
-(and possibly leave the Vec in an unexpected but otherwise consistent state).
-Since we've accepted that mem::forget is safe, this is definitely safe. We call
-leaks causing more leaks a <em>leak amplification</em>.</p>
-<h2><a class="header" href="#rc" id="rc">Rc</a></h2>
-<p>Rc is an interesting case because at first glance it doesn't appear to be a
-proxy value at all. After all, it manages the data it points to, and dropping
-all the Rcs for a value will drop that value. Leaking an Rc doesn't seem like it
-would be particularly dangerous. It will leave the refcount permanently
-incremented and prevent the data from being freed or dropped, but that seems
-just like Box, right?</p>
-<p>Nope.</p>
-<p>Let's consider a simplified implementation of Rc:</p>
-<pre><code class="language-rust ignore">struct Rc&lt;T&gt; {
-    ptr: *mut RcBox&lt;T&gt;,
+<span class="hljs-comment">// 不好，vec[0]已经被销毁了，我们在读一块释放后的内存</span>
+<span class="hljs-built_in">println!</span>(<span class="hljs-string">"{}"</span>, vec[<span class="hljs-number">0</span>]);
+</div></code></pre>
+<p>这个显然很不好。我们现在陷入了两难的境地：保证每一步产生一致的状态，需要付出巨大的性能代价（抵消掉了API带来的所有好处）；而不保证一致状态则会在安全代码中产生未定义行为（使API失去稳定性）。</p>
+<p>那我们能做什么呢？我们采用一种简单粗暴的方式保证状态一致性：开始迭代的时候就设置Vec的长度为0，然后在析构函数里根据需要再恢复。这样做，在一切正常的情况下，我们可以用最小的代价获得正确的行为。但是，如果有人就是不管不顾地在迭代中间<code>mem::forget</code>，那么结果就是泄露或者更坏（还可能让Vec处于一种虽然一致但实际上不正确的状态）。由于我们认为<code>mem::forget</code>是安全地，那么这种行为也是安全地。我们把造成更多泄露的泄露叫做泄露扩大化(leak amplification)。</p>
+<h1 id="rc">Rc</h1>
+<p><code>Rc 的情况很有意思，第一眼看上去它根本不像是一个代理类型。毕竟，它自己管理着它指向的数据，并且在销毁</code>Rc<code>的时候也会同时销毁数据的值。泄露</code>Rc<code>的数据好像并不怎么危险。那会让引用计数持续增长，而数据不会被释放或销毁。这和</code>Box`的行为是一项的，对吧？</p>
+<p>并不是。</p>
+<p>我们看一下这个<code>Rc</code>的简单实现：</p>
+<pre><code class="language-Rust"><div><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Rc</span></span>&lt;T&gt; {
+    ptr: *<span class="hljs-keyword">mut</span> RcBox&lt;T&gt;,
 }
 
-struct RcBox&lt;T&gt; {
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">RcBox</span></span>&lt;T&gt; {
     data: T,
-    ref_count: usize,
+    ref_count: <span class="hljs-built_in">usize</span>,
 }
 
-impl&lt;T&gt; Rc&lt;T&gt; {
-    fn new(data: T) -&gt; Self {
-        unsafe {
-            // Wouldn't it be nice if heap::allocate worked like this?
-            let ptr = heap::allocate::&lt;RcBox&lt;T&gt;&gt;();
+<span class="hljs-keyword">impl</span>&lt;T&gt; Rc&lt;T&gt; {
+    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">new</span></span>(data: T) -&gt; <span class="hljs-keyword">Self</span> {
+        <span class="hljs-keyword">unsafe</span> {
+            <span class="hljs-comment">// 如果heap::allocate是这样的不是很好嘛？</span>
+            <span class="hljs-keyword">let</span> ptr = heap::allocate::&lt;RcBox&lt;T&gt;&gt;();
             ptr::write(ptr, RcBox {
                 data: data,
-                ref_count: 1,
+                ref_count: <span class="hljs-number">1</span>,
             });
             Rc { ptr: ptr }
         }
     }
 
-    fn clone(&amp;self) -&gt; Self {
-        unsafe {
-            (*self.ptr).ref_count += 1;
+    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">clone</span></span>(&amp;<span class="hljs-keyword">self</span>) -&gt; <span class="hljs-keyword">Self</span> {
+        <span class="hljs-keyword">unsafe</span> {
+            (*<span class="hljs-keyword">self</span>.ptr).ref_count += <span class="hljs-number">1</span>;
+            Rc { ptr: <span class="hljs-keyword">self</span>.ptr }
         }
-        Rc { ptr: self.ptr }
     }
 }
 
-impl&lt;T&gt; Drop for Rc&lt;T&gt; {
-    fn drop(&amp;mut self) {
-        unsafe {
-            (*self.ptr).ref_count -= 1;
-            if (*self.ptr).ref_count == 0 {
-                // drop the data and then free it
-                ptr::read(self.ptr);
-                heap::deallocate(self.ptr);
+<span class="hljs-keyword">impl</span>&lt;T&gt; <span class="hljs-built_in">Drop</span> <span class="hljs-keyword">for</span> Rc&lt;T&gt; {
+    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">drop</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) {
+        <span class="hljs-keyword">unsafe</span> {
+            (*<span class="hljs-keyword">self</span>.ptr).ref_count -= <span class="hljs-number">1</span>;
+            <span class="hljs-keyword">if</span> (*<span class="hljs-keyword">self</span>.ptr).ref_count == <span class="hljs-number">0</span> {
+                <span class="hljs-comment">// 销毁数据然后释放空间</span>
+                ptr::read(<span class="hljs-keyword">self</span>.ptr);
+                heap::deallocate(<span class="hljs-keyword">self</span>.ptr);
             }
         }
     }
 }
-</code></pre>
-<p>This code contains an implicit and subtle assumption: <code>ref_count</code> can fit in a
-<code>usize</code>, because there can't be more than <code>usize::MAX</code> Rcs in memory. However
-this itself assumes that the <code>ref_count</code> accurately reflects the number of Rcs
-in memory, which we know is false with <code>mem::forget</code>. Using <code>mem::forget</code> we can
-overflow the <code>ref_count</code>, and then get it down to 0 with outstanding Rcs. Then
-we can happily use-after-free the inner data. Bad Bad Not Good.</p>
-<p>This can be solved by just checking the <code>ref_count</code> and doing <em>something</em>. The
-standard library's stance is to just abort, because your program has become
-horribly degenerate. Also <em>oh my gosh</em> it's such a ridiculous corner case.</p>
-<h2><a class="header" href="#threadscopedjoinguard" id="threadscopedjoinguard">thread::scoped::JoinGuard</a></h2>
-<p>The thread::scoped API intended to allow threads to be spawned that reference
-data on their parent's stack without any synchronization over that data by
-ensuring the parent joins the thread before any of the shared data goes out
-of scope.</p>
-<pre><code class="language-rust ignore">pub fn scoped&lt;'a, F&gt;(f: F) -&gt; JoinGuard&lt;'a&gt;
-    where F: FnOnce() + Send + 'a
-</code></pre>
-<p>Here <code>f</code> is some closure for the other thread to execute. Saying that
-<code>F: Send +'a</code> is saying that it closes over data that lives for <code>'a</code>, and it
-either owns that data or the data was Sync (implying <code>&amp;data</code> is Send).</p>
-<p>Because JoinGuard has a lifetime, it keeps all the data it closes over
-borrowed in the parent thread. This means the JoinGuard can't outlive
-the data that the other thread is working on. When the JoinGuard <em>does</em> get
-dropped it blocks the parent thread, ensuring the child terminates before any
-of the closed-over data goes out of scope in the parent.</p>
-<p>Usage looked like:</p>
-<pre><code class="language-rust ignore">let mut data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+</div></code></pre>
+<p>要解决这个问题，我们可以检查<code>ref_count</code>并根据情况做一些处理。标准库的做法是直接废弃对象，因为这种情况下你的程序进入了一种非常危险的状态。当然，这是一个十分诡异的边界场景。</p>
+<h1 id="threadscopedjoinguard">thread::scoped::JoinGuard</h1>
+<p><code>thread::scoped</code>可以保证父线程在共享数据离开作用域之前join子线程，通过这种方式子线程可以引用父线程栈中的数据而不需要做什么同步操作。</p>
+<pre><code class="language-Rust"><div><span class="hljs-keyword">pub</span> <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">scoped</span></span>&lt;<span class="hljs-symbol">'a</span>, F&gt;(f: F) -&gt; JoinGuard&lt;<span class="hljs-symbol">'a</span>&gt;
+    <span class="hljs-keyword">where</span> F: <span class="hljs-built_in">FnOnce</span>() + <span class="hljs-built_in">Send</span> + <span class="hljs-symbol">'a</span>
+</div></code></pre>
+<p>这里<code>f</code>是供其他线程执行的闭包。<code>F: Send + 'a</code>表示闭包引用数据的生命周期是<code>'a</code>，而且它可能拥有这个数据或者数据是一个<code>Sync</code>(说明<code>&amp;data</code>是<code>Send</code>)。</p>
+<p>因为<code>JoinGuard</code>有生命周期，它所用到的数据都是从父线程里借用的。这意味着<code>JoinGuard</code>不能比线程使用的数据存活更长。当<code>JoinGuard</code>被销毁的时候它会阻塞父线程，保在父线程中被引用的数据离开作用域之前子线程都已经终止了。</p>
+<p>用法是这样的：</p>
+<pre><code class="language-Rust"><div><span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> data = [<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>, <span class="hljs-number">4</span>, <span class="hljs-number">5</span>, <span class="hljs-number">6</span>, <span class="hljs-number">7</span>, <span class="hljs-number">8</span>, <span class="hljs-number">9</span>, <span class="hljs-number">10</span>];
 {
-    let guards = vec![];
-    for x in &amp;mut data {
-        // Move the mutable reference into the closure, and execute
-        // it on a different thread. The closure has a lifetime bound
-        // by the lifetime of the mutable reference `x` we store in it.
-        // The guard that is returned is in turn assigned the lifetime
-        // of the closure, so it also mutably borrows `data` as `x` did.
-        // This means we cannot access `data` until the guard goes away.
-        let guard = thread::scoped(move || {
-            *x *= 2;
+    <span class="hljs-keyword">let</span> guards = <span class="hljs-built_in">vec!</span>[];
+    <span class="hljs-keyword">for</span> x <span class="hljs-keyword">in</span> &amp;<span class="hljs-keyword">mut</span> data {
+        <span class="hljs-comment">// 将可变引用移入闭包，然后再另外一个线程里执行它</span>
+        <span class="hljs-comment">// 闭包有生命周期，其界限由可变引用x的生命周期决定</span>
+        <span class="hljs-comment">// 返回的guard也和闭包有相同的生命周期，所以它也和x一样可变借用了data</span>
+        <span class="hljs-comment">// 这意味着在guard销毁前我们不能访问data</span>
+        <span class="hljs-keyword">let</span> guard = thread::scoped(<span class="hljs-keyword">move</span> || {
+            *x *= <span class="hljs-number">2</span>;
         });
-        // store the thread's guard for later
+        <span class="hljs-comment">// 储存线程的guard供后面使用</span>
         guards.push(guard);
     }
-    // All guards are dropped here, forcing the threads to join
-    // (this thread blocks here until the others terminate).
-    // Once the threads join, the borrow expires and the data becomes
-    // accessible again in this thread.
+    <span class="hljs-comment">// 所有的guard在这里被销毁，强制线程join（主线程阻塞在这里等待其他线程终止）。</span>
+    <span class="hljs-comment">// 等到线程join后，数据的借用就过期了，数据又可以在主线程中被访问了</span>
 }
-// data is definitely mutated here.
-</code></pre>
-<p>In principle, this totally works! Rust's ownership system perfectly ensures it!
-...except it relies on a destructor being called to be safe.</p>
-<pre><code class="language-rust ignore">let mut data = Box::new(0);
+<span class="hljs-comment">// 数据在这里已经完全改变了。</span>
+</div></code></pre>
+<p>这个似乎完全能够正常工作！Rust的所有权系统完美地保证了这一点！……不过这一切的前提是析构函数必须被调用。</p>
+<pre><code class="language-Rust"><div><span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> data = <span class="hljs-built_in">Box</span>::new(<span class="hljs-number">0</span>);
 {
-    let guard = thread::scoped(|| {
-        // This is at best a data race. At worst, it's also a use-after-free.
-        *data += 1;
+    <span class="hljs-keyword">let</span> guard = thread::scoped(|| {
+        <span class="hljs-comment">// 好一点的情况是这里会有数据竞争</span>
+        <span class="hljs-comment">// 最坏的情况是这里会有释放后应用(use-after-free)</span>
+        *data += <span class="hljs-number">1</span>;
     });
-    // Because the guard is forgotten, expiring the loan without blocking this
-    // thread.
+    <span class="hljs-comment">// 因为guard被forget了，线程不会阻塞</span>
     mem::forget(guard);
 }
-// So the Box is dropped here while the scoped thread may or may not be trying
-// to access it.
-</code></pre>
-<p>Dang. Here the destructor running was pretty fundamental to the API, and it had
-to be scrapped in favor of a completely different design.</p>
+<span class="hljs-comment">// Box在这里被销毁，而子线程可能会也可能不会在这里访问数据。</span>
+</div></code></pre>
+<p>Duang！保证析构函数能运行是这个api的基础，上面这段代码需要一个全新的设计才行。</p>
+
 
                     </main>
 
