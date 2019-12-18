@@ -145,268 +145,122 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#lifetimes" id="lifetimes">Lifetimes</a></h1>
-<p>Rust enforces these rules through <em>lifetimes</em>. Lifetimes are named
-regions of code that a reference must be valid for. Those regions
-may be fairly complex, as they correspond to paths of execution
-in the program. There may even be holes in these paths of execution,
-as it's possible to invalidate a reference as long as it's reinitialized
-before it's used again. Types which contain references (or pretend to)
-may also be tagged with lifetimes so that Rust can prevent them from
-being invalidated as well.</p>
-<p>In most of our examples, the lifetimes will coincide with scopes. This is
-because our examples are simple. The more complex cases where they don't
-coincide are described below.</p>
-<p>Within a function body, Rust generally doesn't let you explicitly name the
-lifetimes involved. This is because it's generally not really necessary
-to talk about lifetimes in a local context; Rust has all the information and
-can work out everything as optimally as possible. Many anonymous scopes and
-temporaries that you would otherwise have to write are often introduced to
-make your code Just Work.</p>
-<p>However once you cross the function boundary, you need to start talking about
-lifetimes. Lifetimes are denoted with an apostrophe: <code>'a</code>, <code>'static</code>. To dip
-our toes with lifetimes, we're going to pretend that we're actually allowed
-to label scopes with lifetimes, and desugar the examples from the start of
-this chapter.</p>
-<p>Originally, our examples made use of <em>aggressive</em> sugar -- high fructose corn
-syrup even -- around scopes and lifetimes, because writing everything out
-explicitly is <em>extremely noisy</em>. All Rust code relies on aggressive inference
-and elision of &quot;obvious&quot; things.</p>
-<p>One particularly interesting piece of sugar is that each <code>let</code> statement
-implicitly introduces a scope. For the most part, this doesn't really matter.
-However it does matter for variables that refer to each other. As a simple
-example, let's completely desugar this simple piece of Rust code:</p>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-let x = 0;
-let y = &amp;x;
-let z = &amp;y;
-#}</code></pre></pre>
-<p>The borrow checker always tries to minimize the extent of a lifetime, so it will
-likely desugar to the following:</p>
-<pre><code class="language-rust ignore">// NOTE: `'a: {` and `&amp;'b x` is not valid syntax!
-'a: {
-    let x: i32 = 0;
-    'b: {
-        // lifetime used is 'b because that's good enough.
-        let y: &amp;'b i32 = &amp;'b x;
-        'c: {
-            // ditto on 'c
-            let z: &amp;'c &amp;'b i32 = &amp;'c y;
-        }
-    }
-}
-</code></pre>
-<p>Wow. That's... awful. Let's all take a moment to thank Rust for making this easier.</p>
-<p>Actually passing references to outer scopes will cause Rust to infer
-a larger lifetime:</p>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-let x = 0;
-let z;
-let y = &amp;x;
-z = y;
-#}</code></pre></pre>
-<pre><code class="language-rust ignore">'a: {
-    let x: i32 = 0;
-    'b: {
-        let z: &amp;'b i32;
-        'c: {
-            // Must use 'b here because this reference is
-            // being passed to that scope.
-            let y: &amp;'b i32 = &amp;'b x;
-            z = y;
-        }
-    }
-}
-</code></pre>
-<h1><a class="header" href="#example-references-that-outlive-referents" id="example-references-that-outlive-referents">Example: references that outlive referents</a></h1>
-<p>Alright, let's look at some of those examples from before:</p>
-<pre><pre class="playpen"><code class="language-rust compile_fail">
-# #![allow(unused_variables)]
-#fn main() {
-fn as_str(data: &amp;u32) -&gt; &amp;str {
-    let s = format!(&quot;{}&quot;, data);
-    &amp;s
-}
-#}</code></pre></pre>
-<p>desugars to:</p>
-<pre><code class="language-rust ignore">fn as_str&lt;'a&gt;(data: &amp;'a u32) -&gt; &amp;'a str {
-    'b: {
-        let s = format!(&quot;{}&quot;, data);
-        return &amp;'a s;
-    }
-}
-</code></pre>
-<p>This signature of <code>as_str</code> takes a reference to a u32 with <em>some</em> lifetime, and
-promises that it can produce a reference to a str that can live <em>just as long</em>.
-Already we can see why this signature might be trouble. That basically implies
-that we're going to find a str somewhere in the scope the reference
-to the u32 originated in, or somewhere <em>even earlier</em>. That's a bit of a tall
-order.</p>
-<p>We then proceed to compute the string <code>s</code>, and return a reference to it. Since
-the contract of our function says the reference must outlive <code>'a</code>, that's the
-lifetime we infer for the reference. Unfortunately, <code>s</code> was defined in the
-scope <code>'b</code>, so the only way this is sound is if <code>'b</code> contains <code>'a</code> -- which is
-clearly false since <code>'a</code> must contain the function call itself. We have therefore
-created a reference whose lifetime outlives its referent, which is <em>literally</em>
-the first thing we said that references can't do. The compiler rightfully blows
-up in our face.</p>
-<p>To make this more clear, we can expand the example:</p>
-<pre><code class="language-rust ignore">fn as_str&lt;'a&gt;(data: &amp;'a u32) -&gt; &amp;'a str {
-    'b: {
-        let s = format!(&quot;{}&quot;, data);
-        return &amp;'a s
-    }
-}
-
-fn main() {
-    'c: {
-        let x: u32 = 0;
-        'd: {
-            // An anonymous scope is introduced because the borrow does not
-            // need to last for the whole scope x is valid for. The return
-            // of as_str must find a str somewhere before this function
-            // call. Obviously not happening.
-            println!(&quot;{}&quot;, as_str::&lt;'d&gt;(&amp;'d x));
-        }
-    }
-}
-</code></pre>
-<p>Shoot!</p>
-<p>Of course, the right way to write this function is as follows:</p>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-fn to_string(data: &amp;u32) -&gt; String {
-    format!(&quot;{}&quot;, data)
-}
-#}</code></pre></pre>
-<p>We must produce an owned value inside the function to return it! The only way
-we could have returned an <code>&amp;'a str</code> would have been if it was in a field of the
-<code>&amp;'a u32</code>, which is obviously not the case.</p>
-<p>(Actually we could have also just returned a string literal, which as a global
-can be considered to reside at the bottom of the stack; though this limits
-our implementation <em>just a bit</em>.)</p>
-<h1><a class="header" href="#example-aliasing-a-mutable-reference" id="example-aliasing-a-mutable-reference">Example: aliasing a mutable reference</a></h1>
-<p>How about the other example:</p>
-<pre><pre class="playpen"><code class="language-rust compile_fail">
-# #![allow(unused_variables)]
-#fn main() {
-let mut data = vec![1, 2, 3];
-let x = &amp;data[0];
-data.push(4);
-println!(&quot;{}&quot;, x);
-#}</code></pre></pre>
-<pre><code class="language-rust ignore">'a: {
-    let mut data: Vec&lt;i32&gt; = vec![1, 2, 3];
-    'b: {
-        // 'b is as big as we need this borrow to be
-        // (just need to get to `println!`)
-        let x: &amp;'b i32 = Index::index::&lt;'b&gt;(&amp;'b data, 0);
-        'c: {
-            // Temporary scope because we don't need the
-            // &amp;mut to last any longer.
-            Vec::push(&amp;'c mut data, 4);
-        }
-        println!(&quot;{}&quot;, x);
-    }
-}
-</code></pre>
-<p>The problem here is a bit more subtle and interesting. We want Rust to
-reject this program for the following reason: We have a live shared reference <code>x</code>
-to a descendant of <code>data</code> when we try to take a mutable reference to <code>data</code>
-to <code>push</code>. This would create an aliased mutable reference, which would
-violate the <em>second</em> rule of references.</p>
-<p>However this is <em>not at all</em> how Rust reasons that this program is bad. Rust
-doesn't understand that <code>x</code> is a reference to a subpath of <code>data</code>. It doesn't
-understand <code>Vec</code> at all. What it <em>does</em> see is that <code>x</code> has to live for <code>'b</code> to
-be printed. The signature of <code>Index::index</code> subsequently demands that the
-reference we take to <code>data</code> has to survive for <code>'b</code>. When we try to call <code>push</code>,
-it then sees us try to make an <code>&amp;'c mut data</code>. Rust knows that <code>'c</code> is contained
-within <code>'b</code>, and rejects our program because the <code>&amp;'b data</code> must still be live!</p>
-<p>Here we see that the lifetime system is much more coarse than the reference
-semantics we're actually interested in preserving. For the most part, <em>that's
-totally ok</em>, because it keeps us from spending all day explaining our program
-to the compiler. However it does mean that several programs that are totally
-correct with respect to Rust's <em>true</em> semantics are rejected because lifetimes
-are too dumb.</p>
-<h1><a class="header" href="#the-area-covered-by-a-lifetime" id="the-area-covered-by-a-lifetime">The area covered by a lifetime</a></h1>
-<p>The lifetime (sometimes called a <em>borrow</em>) is <em>alive</em> from the place it is
-created to its last use. The borrowed thing needs to outlive only borrows that
-are alive. This looks simple, but there are few subtleties.</p>
-<p>The following snippet compiles, because after printing <code>x</code>, it is no longer
-needed, so it doesn't matter if it is dangling or aliased (even though the
-variable <code>x</code> <em>technically</em> exists to the very end of the scope).</p>
-<pre><pre class="playpen"><code class="language-rust edition2018">
-# #![allow(unused_variables)]
-#fn main() {
-let mut data = vec![1, 2, 3];
-let x = &amp;data[0];
-println!(&quot;{}&quot;, x);
-// This is OK, x is no longer needed
-data.push(4);
-#}</code></pre></pre>
-<p>However, if the value has a destructor, the destructor is run at the end of the
-scope. And running the destructor is considered a use ‒ obviously the last one.
-So, this will <em>not</em> compile.</p>
-<pre><pre class="playpen"><code class="language-rust edition2018 compile_fail">
-# #![allow(unused_variables)]
-#fn main() {
-#[derive(Debug)]
-struct X&lt;'a&gt;(&amp;'a i32);
-
-impl Drop for X&lt;'_&gt; {
-    fn drop(&amp;mut self) {}
-}
-
-let mut data = vec![1, 2, 3];
-let x = X(&amp;data[0]);
-println!(&quot;{:?}&quot;, x);
-data.push(4);
-// Here, the destructor is run and therefore this'll fail to compile.
-#}</code></pre></pre>
-<p>Furthermore, there might be multiple possible last uses of the borrow, for
-example in each branch of a condition.</p>
-<pre><pre class="playpen"><code class="language-rust edition2018">
-# #![allow(unused_variables)]
-#fn main() {
-# fn some_condition() -&gt; bool { true }
-let mut data = vec![1, 2, 3];
-let x = &amp;data[0];
-
-if some_condition() {
-    println!(&quot;{}&quot;, x); // This is the last use of `x` in this branch
-    data.push(4);      // So we can push here
-} else {
-    // There's no use of `x` in here, so effectively the last use is the
-    // creation of x at the top of the example.
-    data.push(5);
-}
-#}</code></pre></pre>
-<p>And a lifetime can have a pause in it. Or you might look at it as two distinct
-borrows just being tied to the same local variable. This often happens around
-loops (writing a new value of a variable at the end of the loop and using it for
-the last time at the top of the next iteration).</p>
-<pre><pre class="playpen"><code class="language-rust edition2018">
-# #![allow(unused_variables)]
-#fn main() {
-let mut data = vec![1, 2, 3];
-// This mut allows us to change where the reference points to
-let mut x = &amp;data[0];
-
-println!(&quot;{}&quot;, x); // Last use of this borrow
-data.push(4);
-x = &amp;data[3]; // We start a new borrow here
-println!(&quot;{}&quot;, x);
-#}</code></pre></pre>
-<p>Historically, Rust kept the borrow alive until the end of scope, so these
-examples might fail to compile with older compilers. Also, there are still some
-corner cases where Rust fails to properly shorten the live part of the borrow
-and fails to compile even when it looks like it should. These'll be solved over
-time.</p>
+                        <h1 id="%e7%94%9f%e5%91%bd%e5%91%a8%e6%9c%9f">生命周期</h1>
+                        <blockquote>
+                        <p>源：<a href="https://github.com/rust-lang-nursery/nomicon/blob/master/src/lifetimes.md">lifetimes.md</a>   Commit: 0e6c680ebd72f1860e46b2bd40e2a387ad8084ad</p>
+                        </blockquote>
+                        <p>Rust在整个生命周期里强制执行生命周期的规则。生命周期说白了就是作用域的名字。每一个引用以及包含引用的数据结构，都要有一个生命周期来指定它保持有效的作用域。</p>
+                        <p>在函数体内，Rust通常不需要你显式地给生命周期起名字。这是因为在本地上下文里，一般没有必要关注生命周期。Rust知道程序的全部信息，从而可以完美地执行各种操作。它可能会引入许多匿名或者临时的作用域让程序顺利执行。</p>
+                        <p>但是如果你要跨出函数的边界，就需要关心生命周期了。生命周期用这样的符号表示：<code>'a</code>,<code>'static</code>。为了更清晰地了解生命周期，我们假设我们可以为生命周期打标签，去掉本章所有例子的语法糖。</p>
+                        <p>最开始，我们的示例代码对作用域和生命周期使用了很激进的语法糖特性——甜得像玉米糖浆一样，因为把所有的东西都显式地写出来实在很讨厌。所有的Rust代码都采用比较激进的理论以省略“显而易见”的东西。</p>
+                        <p>一个特别有意思的语法糖是，每一个<code>let</code>表达式都隐式引入了一个作用域。大多数情况下，这一点并不重要。但是当变量之间互相引用的时候，这就很重要了。举个简单的例子，我们彻底去掉下面这段代码的语法糖：</p>
+                        <pre><code class="language-Rust"><div><span class="hljs-keyword">let</span> x = <span class="hljs-number">0</span>;
+                        <span class="hljs-keyword">let</span> y = &amp;x;
+                        <span class="hljs-keyword">let</span> z= &amp;y;
+                        </div></code></pre>
+                        <p>借用检查器通常会尽可能减少生命周期的范围，所以去掉语法糖后的代码大概像这样：</p>
+                        <pre><code class="language-Rust"><div><span class="hljs-comment">// 注意：'a: { 和 &amp;'b x 不是合法的语法</span>
+                        <span class="hljs-symbol">'a</span>: {
+                            <span class="hljs-keyword">let</span> x: <span class="hljs-built_in">i32</span> = <span class="hljs-number">0</span>;
+                            <span class="hljs-symbol">'b</span>: {
+                                <span class="hljs-comment">// 生命周期是'b，因为这就足够了</span>
+                                <span class="hljs-keyword">let</span> y: &amp;<span class="hljs-symbol">'b</span> <span class="hljs-built_in">i32</span> = &amp;<span class="hljs-symbol">'b</span> x;
+                                <span class="hljs-symbol">'c</span>: {
+                                    <span class="hljs-comment">// 'c也一样</span>
+                                    <span class="hljs-keyword">let</span> z: &amp;<span class="hljs-symbol">'c</span> &amp;<span class="hljs-symbol">'b</span> <span class="hljs-built_in">i32</span> = &amp;<span class="hljs-symbol">'c</span> y;
+                                }
+                            }
+                        }
+                        </div></code></pre>
+                        <p>哇！这样的写法……太可怕了。我们先停下来感谢Rust把这一切都简化掉了。</p>
+                        <p>将引用传递到作用域以外会导致生命周期扩大：</p>
+                        <pre><code class="language-Rust"><div><span class="hljs-keyword">let</span> x = <span class="hljs-number">0</span>;
+                        <span class="hljs-keyword">let</span> z;
+                        <span class="hljs-keyword">let</span> y = &amp;x;
+                        z = y;
+                        </div></code></pre>
+                        <pre><code class="language-Rust"><div><span class="hljs-symbol">'a</span>: {
+                            <span class="hljs-keyword">let</span> x: <span class="hljs-built_in">i32</span> = <span class="hljs-number">0</span>;
+                            <span class="hljs-symbol">'b</span>: {
+                                <span class="hljs-keyword">let</span> z: &amp;<span class="hljs-symbol">'b</span> <span class="hljs-built_in">i32</span>;
+                                <span class="hljs-symbol">'c</span>: {
+                                    <span class="hljs-comment">// 必须使用'b，因为引用被传递到了'b的作用域</span>
+                                    <span class="hljs-keyword">let</span> y: &amp;<span class="hljs-symbol">'b</span> <span class="hljs-built_in">i32</span> = &amp;<span class="hljs-symbol">'b</span> x;
+                                    z = y;
+                                }
+                            }
+                        }
+                        </div></code></pre>
+                        <h2 id="%e7%a4%ba%e4%be%8b%e5%bc%95%e7%94%a8%e8%b6%85%e5%87%ba%e8%a2%ab%e5%bc%95%e7%94%a8%e5%86%85%e5%ae%b9%e7%94%9f%e5%91%bd%e5%91%a8%e6%9c%9f">示例：引用超出被引用内容生命周期</h2>
+                        <p>好了，让我们再看一遍曾经举过的一个例子：</p>
+                        <pre><code class="language-Rust"><div><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">as_str</span></span>(data: &amp;<span class="hljs-built_in">u32</span>) -&gt; &amp;<span class="hljs-built_in">str</span> {
+                            <span class="hljs-keyword">let</span> s = <span class="hljs-built_in">format!</span>(<span class="hljs-string">"{}"</span>, data);
+                            &amp;s
+                        }
+                        </div></code></pre>
+                        <p>去掉语法糖：</p>
+                        <pre><code class="language-Rust"><div><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">as_str</span></span>&lt;<span class="hljs-symbol">'a</span>&gt;(data: &amp;<span class="hljs-symbol">'a</span> <span class="hljs-built_in">u32</span>) -&gt; &amp;<span class="hljs-symbol">'a</span> <span class="hljs-built_in">str</span> {
+                            <span class="hljs-symbol">'b</span>: {
+                                <span class="hljs-keyword">let</span> s = <span class="hljs-built_in">format!</span>(<span class="hljs-string">"{}"</span>, data);
+                                <span class="hljs-keyword">return</span> &amp;<span class="hljs-symbol">'a</span> s;
+                            }
+                        }
+                        </div></code></pre>
+                        <p>函数<code>as_str</code>的签名里接受了一个带有生命周期的u32类型的引用，并且保证会返回一个生命周期一样长的str类型的引用。从这个签名我们就已经可以看出问题了。它表示我们必须到那个u32引用的作用域，或者比它还要早的作用域里去找一个str。这就有点不合理了。</p>
+                        <p>接下来我们生成一个字符串<code>s</code>，然后返回它的引用。我们的函数要求这个引用的有效期不能小于<code>'a</code>，那是我们给引用指定的生命周期。不幸的是，<code>s</code>是在作用域'b里面定义的。除非'b包含'a这个函数才可能是正确的——而这显然不可能，因为'a必须包含它所调用的函数。这样我们创建了一个生命周期超出被引用内容的引用，这明显违背了之前提到的引用的第一条规则。编译器十分感动然后拒绝了我们。</p>
+                        <p>我们扩展一下这个例子，一边看得更清楚：</p>
+                        <pre><code class="language-Rust"><div><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">as_str</span></span>&lt;<span class="hljs-symbol">'a</span>&gt;(data: &amp;<span class="hljs-symbol">'a</span> <span class="hljs-built_in">u32</span>) -&gt; &amp;<span class="hljs-symbol">'a</span> <span class="hljs-built_in">str</span> {
+                            <span class="hljs-symbol">'b</span>: {
+                                <span class="hljs-keyword">let</span> s = <span class="hljs-built_in">format!</span>(<span class="hljs-string">"{}"</span>, data);
+                                <span class="hljs-keyword">return</span> &amp;<span class="hljs-symbol">'a</span> s;
+                            }
+                        }
+                        
+                        <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">main</span></span>() {
+                            <span class="hljs-symbol">'c</span>: {
+                                <span class="hljs-keyword">let</span> x: <span class="hljs-built_in">u32</span> = <span class="hljs-number">0</span>;
+                                <span class="hljs-symbol">'d</span>: {
+                                    <span class="hljs-comment">// 这里引入了一个匿名作用域，因为借用不需要在整个x的作用域内生效</span>
+                                    <span class="hljs-comment">// as_str的返回值必须引用一个在函数调用前就存在的str</span>
+                                    <span class="hljs-comment">// 显然事实不是这样的。</span>
+                                    <span class="hljs-built_in">println!</span>(<span class="hljs-string">"{}"</span>, as_str::&lt;<span class="hljs-symbol">'d</span>&gt;(&amp;<span class="hljs-symbol">'d</span> x));
+                                }
+                            }
+                        }
+                        </div></code></pre>
+                        <p>完蛋了！</p>
+                        <p>当然，这个函数的正确写法应该是这样的。</p>
+                        <pre><code class="language-Rust"><div><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">to_string</span></span>(data: &amp;<span class="hljs-built_in">u32</span>) -&gt; <span class="hljs-built_in">String</span> {
+                            <span class="hljs-built_in">format!</span>(<span class="hljs-string">"{}"</span>, data)
+                        }
+                        </div></code></pre>
+                        <p>我们必须创建一个值然后连同它的所有权一起返回。除非一个字符串是<code>&amp;'a u32</code>的成员，我们才能返回<code>&amp;'a str</code>，显然事情并不是这样的。</p>
+                        <p>（其实我们也可以返回一个字符串的字面量，它是一个全局的变量，可以认为是处于栈的底部。尽管这样极大限制了函数的使用场合。）</p>
+                        <h2 id="%e7%a4%ba%e4%be%8b%e5%ad%98%e5%9c%a8%e5%8f%af%e5%8f%98%e5%bc%95%e7%94%a8%e7%9a%84%e5%88%ab%e5%90%8d">示例：存在可变引用的别名</h2>
+                        <p>在看另一个老的例子：</p>
+                        <pre><code class="language-Rust"><div><span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> data = <span class="hljs-built_in">vec!</span>[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>,<span class="hljs-number">3</span>];
+                        <span class="hljs-keyword">let</span> x = &amp;data[<span class="hljs-number">0</span>];
+                        data.push(<span class="hljs-number">4</span>);
+                        <span class="hljs-built_in">println!</span>(<span class="hljs-string">"{}"</span>, x);
+                        </div></code></pre>
+                        <pre><code class="language-Rust"><div><span class="hljs-symbol">'a</span>: {
+                            <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> data: <span class="hljs-built_in">Vec</span>&lt;<span class="hljs-built_in">i32</span>&gt; = <span class="hljs-built_in">vec!</span>[<span class="hljs-number">1</span>, <span class="hljs-number">2</span>, <span class="hljs-number">3</span>];
+                            <span class="hljs-symbol">'b</span>: {
+                                <span class="hljs-comment">// 对于这个借用来说，'b已经足够大了</span>
+                                <span class="hljs-comment">// （借用只需要在println!中生效即可）</span>
+                                <span class="hljs-keyword">let</span> x: &amp;<span class="hljs-symbol">'b</span> <span class="hljs-built_in">i32</span> = Index::index::&lt;<span class="hljs-symbol">'b</span>&gt;(&amp;<span class="hljs-symbol">'b</span> data, <span class="hljs-number">0</span>);
+                                <span class="hljs-symbol">'c</span>: {
+                                    <span class="hljs-comment">// 引入一个临时作用域，因为&amp;mut不需要存在更长时间</span>
+                                    <span class="hljs-built_in">Vec</span>::push(&amp;<span class="hljs-symbol">'c</span> <span class="hljs-keyword">mut</span> data, e);
+                                }
+                                <span class="hljs-built_in">println!</span>(<span class="hljs-string">"{}"</span>, x);
+                            }
+                        }
+                        </div></code></pre>
+                        <p>这里的问题更加微妙也更有趣。我们希望Rust出于如下的原因拒绝编译这段代码：我们有一个有效的指向<code>data</code>的内部数据的引用<code>x</code>，而同时又创建了一个<code>data</code>的可变引用用于执行<code>push</code>。也就是说出现了可变引用的别名，这违背了引用的第二条规则。</p>
+                        <p>但是Rust其实并非因为这个原因判断这段代码有问题。Rust不知道<code>x</code>是<code>data</code>的子内容的引用，它其实完全不知道Vec的内部是什么样子的。它只知道<code>x</code>必须在<code>'b</code>范围内有效，这样才能打印其中的内容。函数<code>Index::index</code>的签名因此要求传递的<code>data</code>的引用也必须在<code>'b</code>的范围内有效。当我们调用<code>push</code>的时候，Rust发现我们要创建一个<code>&amp;'c mut data</code>。它知道<code>'c</code>是包含在<code>'b</code>以内的，因为<code>&amp;'b data</code>还存活着，所以它拒绝了这段程序。</p>
+                        <p>我们看到了生命周期系统要比引用的保护措施更加简单粗暴。大多数情况下这也没什么，它让我们不用没完没了地向编译器解释我们的程序。但是这也意味着许多语义上正确的程序会被编译器拒绝，因为生命周期的规则太死板了。</p>
+                        
 
                     </main>
 

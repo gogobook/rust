@@ -145,71 +145,64 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#lifetime-elision" id="lifetime-elision">Lifetime Elision</a></h1>
-<p>In order to make common patterns more ergonomic, Rust allows lifetimes to be
-<em>elided</em> in function signatures.</p>
-<p>A <em>lifetime position</em> is anywhere you can write a lifetime in a type:</p>
-<pre><code class="language-rust ignore">&amp;'a T
-&amp;'a mut T
-T&lt;'a&gt;
-</code></pre>
-<p>Lifetime positions can appear as either &quot;input&quot; or &quot;output&quot;:</p>
-<ul>
-<li>
-<p>For <code>fn</code> definitions, input refers to the types of the formal arguments
-in the <code>fn</code> definition, while output refers to
-result types. So <code>fn foo(s: &amp;str) -&gt; (&amp;str, &amp;str)</code> has elided one lifetime in
-input position and two lifetimes in output position.
-Note that the input positions of a <code>fn</code> method definition do not
-include the lifetimes that occur in the method's <code>impl</code> header
-(nor lifetimes that occur in the trait header, for a default method).</p>
-</li>
-<li>
-<p>In the future, it should be possible to elide <code>impl</code> headers in the same manner.</p>
-</li>
-</ul>
-<p>Elision rules are as follows:</p>
-<ul>
-<li>
-<p>Each elided lifetime in input position becomes a distinct lifetime
-parameter.</p>
-</li>
-<li>
-<p>If there is exactly one input lifetime position (elided or not), that lifetime
-is assigned to <em>all</em> elided output lifetimes.</p>
-</li>
-<li>
-<p>If there are multiple input lifetime positions, but one of them is <code>&amp;self</code> or
-<code>&amp;mut self</code>, the lifetime of <code>self</code> is assigned to <em>all</em> elided output lifetimes.</p>
-</li>
-<li>
-<p>Otherwise, it is an error to elide an output lifetime.</p>
-</li>
-</ul>
-<p>Examples:</p>
-<pre><code class="language-rust ignore">fn print(s: &amp;str);                                      // elided
-fn print&lt;'a&gt;(s: &amp;'a str);                               // expanded
-
-fn debug(lvl: usize, s: &amp;str);                          // elided
-fn debug&lt;'a&gt;(lvl: usize, s: &amp;'a str);                   // expanded
-
-fn substr(s: &amp;str, until: usize) -&gt; &amp;str;               // elided
-fn substr&lt;'a&gt;(s: &amp;'a str, until: usize) -&gt; &amp;'a str;     // expanded
-
-fn get_str() -&gt; &amp;str;                                   // ILLEGAL
-
-fn frob(s: &amp;str, t: &amp;str) -&gt; &amp;str;                      // ILLEGAL
-
-fn get_mut(&amp;mut self) -&gt; &amp;mut T;                        // elided
-fn get_mut&lt;'a&gt;(&amp;'a mut self) -&gt; &amp;'a mut T;              // expanded
-
-fn args&lt;T: ToCStr&gt;(&amp;mut self, args: &amp;[T]) -&gt; &amp;mut Command                  // elided
-fn args&lt;'a, 'b, T: ToCStr&gt;(&amp;'a mut self, args: &amp;'b [T]) -&gt; &amp;'a mut Command // expanded
-
-fn new(buf: &amp;mut [u8]) -&gt; BufWriter;                    // elided
-fn new&lt;'a&gt;(buf: &amp;'a mut [u8]) -&gt; BufWriter&lt;'a&gt;          // expanded
-
-</code></pre>
+                        <h1 id="%e7%94%9f%e5%91%bd%e5%91%a8%e6%9c%9f%e7%9c%81%e7%95%a5">生命周期省略</h1>
+                        <blockquote>
+                        <p>原文跟踪<a href="https://github.com/rust-lang-nursery/nomicon/blob/master/src/lifetime-elision.md">lifetime-elision.md</a>   Commit: 9cc14cd6a46b2e4385f94b86fb9f1281327e8adc</p>
+                        </blockquote>
+                        <p>为了使常见的模式更符合人体工程学，Rust允许在函数签名中省略生命周期 。</p>
+                        <p>你可以一个类型写生命周期的任何地方都有一个生命周期的位置：</p>
+                        <pre><code class="language-rust"><div>&amp;<span class="hljs-symbol">'a</span> T
+                        &amp;<span class="hljs-symbol">'a</span> <span class="hljs-keyword">mut</span> T
+                        T&lt;<span class="hljs-symbol">'a</span>&gt;
+                        </div></code></pre>
+                        <p>生命周期位置可以显示为“输入”或“输出”：</p>
+                        <ul>
+                        <li>
+                        <p>对于<code>fn</code>定义，<code>input</code>是指<code>fn</code>定义中形式参数的类型，而<code>output</code>是指返回结果类型。因此<code>fn foo(s: &amp;str) -&gt; (&amp;str, &amp;str)</code>在输入位置省略了一个生命周期，在输出位置省略了两个生命周期。请注意，<code>fn</code>方法定义的输入位置不包括方法<code>impl</code>声明中出现的生命周期（对于默认方法，也不包括特质声明中出现的生命周期）。</p>
+                        </li>
+                        <li>
+                        <p>将来，应该可以以相同的方式在<code>impl</code>声明中实现隐式。</p>
+                        </li>
+                        </ul>
+                        <p>省略规则如下：</p>
+                        <ul>
+                        <li>
+                        <p>输入位置中的每个隐式生命周期都有不同的生命周期参数。</p>
+                        </li>
+                        <li>
+                        <p>如果只有一个输入生命周期位置（省略或未省略），则将该生命周期分配给所有省略的输出生命周期。</p>
+                        </li>
+                        <li>
+                        <p>如果存在多个输入生命周期位置，但其中一个是<code>&amp;self</code>或 <code>&amp;mut self</code>，则将生命周期<code>self</code>分配给所有省略的输出生命周期。</p>
+                        </li>
+                        <li>
+                        <p>否则，忽略输出生命周期是错误的。</p>
+                        </li>
+                        </ul>
+                        <p>例子：</p>
+                        <pre><code class="language-rust"><div><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">print</span></span>(s: &amp;<span class="hljs-built_in">str</span>);                                      <span class="hljs-comment">// elided</span>
+                        <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">print</span></span>&lt;<span class="hljs-symbol">'a</span>&gt;(s: &amp;<span class="hljs-symbol">'a</span> <span class="hljs-built_in">str</span>);                               <span class="hljs-comment">// expanded</span>
+                        
+                        <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">debug</span></span>(lvl: <span class="hljs-built_in">usize</span>, s: &amp;<span class="hljs-built_in">str</span>);                          <span class="hljs-comment">// elided</span>
+                        <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">debug</span></span>&lt;<span class="hljs-symbol">'a</span>&gt;(lvl: <span class="hljs-built_in">usize</span>, s: &amp;<span class="hljs-symbol">'a</span> <span class="hljs-built_in">str</span>);                   <span class="hljs-comment">// expanded</span>
+                        
+                        <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">substr</span></span>(s: &amp;<span class="hljs-built_in">str</span>, until: <span class="hljs-built_in">usize</span>) -&gt; &amp;<span class="hljs-built_in">str</span>;               <span class="hljs-comment">// elided</span>
+                        <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">substr</span></span>&lt;<span class="hljs-symbol">'a</span>&gt;(s: &amp;<span class="hljs-symbol">'a</span> <span class="hljs-built_in">str</span>, until: <span class="hljs-built_in">usize</span>) -&gt; &amp;<span class="hljs-symbol">'a</span> <span class="hljs-built_in">str</span>;     <span class="hljs-comment">// expanded</span>
+                        
+                        <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">get_str</span></span>() -&gt; &amp;<span class="hljs-built_in">str</span>;                                   <span class="hljs-comment">// ILLEGAL</span>
+                        
+                        <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">frob</span></span>(s: &amp;<span class="hljs-built_in">str</span>, t: &amp;<span class="hljs-built_in">str</span>) -&gt; &amp;<span class="hljs-built_in">str</span>;                      <span class="hljs-comment">// ILLEGAL</span>
+                        
+                        <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">get_mut</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) -&gt; &amp;<span class="hljs-keyword">mut</span> T;                        <span class="hljs-comment">// elided</span>
+                        <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">get_mut</span></span>&lt;<span class="hljs-symbol">'a</span>&gt;(&amp;<span class="hljs-symbol">'a</span> <span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) -&gt; &amp;<span class="hljs-symbol">'a</span> <span class="hljs-keyword">mut</span> T;              <span class="hljs-comment">// expanded</span>
+                        
+                        <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">args</span></span>&lt;T: ToCStr&gt;(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>, args: &amp;[T]) -&gt; &amp;<span class="hljs-keyword">mut</span> Command                  <span class="hljs-comment">// elided</span>
+                        <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">args</span></span>&lt;<span class="hljs-symbol">'a</span>, <span class="hljs-symbol">'b</span>, T: ToCStr&gt;(&amp;<span class="hljs-symbol">'a</span> <span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>, args: &amp;<span class="hljs-symbol">'b</span> [T]) -&gt; &amp;<span class="hljs-symbol">'a</span> <span class="hljs-keyword">mut</span> Command <span class="hljs-comment">// expanded</span>
+                        
+                        <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">new</span></span>(buf: &amp;<span class="hljs-keyword">mut</span> [<span class="hljs-built_in">u8</span>]) -&gt; BufWriter;                    <span class="hljs-comment">// elided</span>
+                        <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">new</span></span>&lt;<span class="hljs-symbol">'a</span>&gt;(buf: &amp;<span class="hljs-symbol">'a</span> <span class="hljs-keyword">mut</span> [<span class="hljs-built_in">u8</span>]) -&gt; BufWriter&lt;<span class="hljs-symbol">'a</span>&gt;          <span class="hljs-comment">// expanded</span>
+                        
+                        </div></code></pre>
 
                     </main>
 

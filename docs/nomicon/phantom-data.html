@@ -145,100 +145,115 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#phantomdata" id="phantomdata">PhantomData</a></h1>
-<p>When working with unsafe code, we can often end up in a situation where
-types or lifetimes are logically associated with a struct, but not actually
-part of a field. This most commonly occurs with lifetimes. For instance, the
-<code>Iter</code> for <code>&amp;'a [T]</code> is (approximately) defined as follows:</p>
-<pre><pre class="playpen"><code class="language-rust compile_fail">
-# #![allow(unused_variables)]
-#fn main() {
-struct Iter&lt;'a, T: 'a&gt; {
-    ptr: *const T,
-    end: *const T,
+                        <h1 id="phantomdata">PhantomData</h1>
+<blockquote>
+<p>源：<a href="https://github.com/rust-lang-nursery/nomicon/blob/master/src/phantom-data.md">phantom-data.md</a>   Commit: a73391dd35c32061bec678257d4c3ddac268c51b</p>
+</blockquote>
+<p>在编写非安全代码时，我们常常遇见这种情况：类型或生命周期逻辑上与一个结构体关联起来了，但是却不属于结构体的任何一个成员。这种情况对于生命周期尤为常见。比如，<code>&amp;'a [T]</code>的<code>Iter</code>大概是这么定义的：</p>
+<pre><code class="language-Rust"><div><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Iter</span></span>&lt;<span class="hljs-symbol">'a</span>, T: <span class="hljs-symbol">'a</span>&gt; {
+    ptr: *<span class="hljs-keyword">const</span> T,
+    end: *<span class="hljs-keyword">const</span> T,
 }
-#}</code></pre></pre>
-<p>However because <code>'a</code> is unused within the struct's body, it's <em>unbounded</em>.
-Because of the troubles this has historically caused, unbounded lifetimes and
-types are <em>forbidden</em> in struct definitions. Therefore we must somehow refer
-to these types in the body. Correctly doing this is necessary to have
-correct variance and drop checking.</p>
-<p>We do this using <code>PhantomData</code>, which is a special marker type. <code>PhantomData</code>
-consumes no space, but simulates a field of the given type for the purpose of
-static analysis. This was deemed to be less error-prone than explicitly telling
-the type-system the kind of variance that you want, while also providing other
-useful things such as the information needed by drop check.</p>
-<p>Iter logically contains a bunch of <code>&amp;'a T</code>s, so this is exactly what we tell
-the PhantomData to simulate:</p>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-use std::marker;
+</div></code></pre>
+<p>但是，因为<code>'a</code>没有在结构体内被使用，它是无界的。由于一些历史原因，无界生命周期和类型禁止出现在结构体定义中。所以我们必须想办法在结构体内用到这些类型，这也是正确的变性检查和drop检查的必要条件。</p>
+<p>我们使用一个特殊的标志类型<code>PhantomData</code>做到这一点。<code>PhantomData</code>不消耗存储空间，它只是模拟了某种类型的数据，以方便静态分析。这么做比显式地告诉类型系统你需要的变性更不容易出错，而且还能提供drop检查需要的信息。</p>
+<p><code>Iter</code>逻辑上包含一系列<code>&amp;'a T</code>，所以我们用<code>PhantomData</code>这样去模拟它：</p>
+<pre><code class="language-Rust"><div><span class="hljs-keyword">use</span> std::marker;
 
-struct Iter&lt;'a, T: 'a&gt; {
-    ptr: *const T,
-    end: *const T,
-    _marker: marker::PhantomData&lt;&amp;'a T&gt;,
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Iter</span></span>&lt;<span class="hljs-symbol">'a</span>, T: <span class="hljs-symbol">'a</span>&gt; {
+    ptr: *<span class="hljs-keyword">const</span> T,
+    end: *<span class="hljs-keyword">const</span> T,
+    _marker: marker::PhantomData&lt;&amp;<span class="hljs-symbol">'a</span> T&gt;,
 }
-#}</code></pre></pre>
-<p>and that's it. The lifetime will be bounded, and your iterator will be variant
-over <code>'a</code> and <code>T</code>. Everything Just Works.</p>
-<p>Another important example is Vec, which is (approximately) defined as follows:</p>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-struct Vec&lt;T&gt; {
-    data: *const T, // *const for variance!
-    len: usize,
-    cap: usize,
+</div></code></pre>
+<p>就是这样，生命周期变得有界了，你的迭代器对于<code>'a</code>和<code>T</code>也可变了。一切尽如人意。</p>
+<p>另一个重要的例子是<code>Vec</code>，它差不多是这么定义的：</p>
+<pre><code class="language-Rust"><div><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Vec</span></span>&lt;T&gt; {
+    data: *<span class="hljs-keyword">const</span> T, <span class="hljs-comment">// *const是可变的！</span>
+    len: <span class="hljs-built_in">usize</span>,
+    cap: <span class="hljs-built_in">usize</span>,
 }
-#}</code></pre></pre>
-<p>Unlike the previous example, it <em>appears</em> that everything is exactly as we
-want. Every generic argument to Vec shows up in at least one field.
-Good to go!</p>
-<p>Nope.</p>
-<p>The drop checker will generously determine that <code>Vec&lt;T&gt;</code> does not own any values
-of type T. This will in turn make it conclude that it doesn't need to worry
-about Vec dropping any T's in its destructor for determining drop check
-soundness. This will in turn allow people to create unsoundness using
-Vec's destructor.</p>
-<p>In order to tell dropck that we <em>do</em> own values of type T, and therefore may
-drop some T's when <em>we</em> drop, we must add an extra PhantomData saying exactly
-that:</p>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-use std::marker;
+</div></code></pre>
+<p>和之前的例子不同，这个定义已经满足我们的各种要求了。<code>Vec</code>的每一个泛型参数都被至少一个成员使用过了。非常完美！</p>
+<p>你高兴的太早了。</p>
+<p>Drop检查器会判断<code>Vec&lt;T&gt;</code>并不拥有T类型的值，然后它认为无需担心Vec在析构函数里能不能安全地销毁T，再然后它会允许人们创建不安全的Vec析构函数。</p>
+<p>为了让drop检查器知道我们确实拥有T类型的值，也就是需要在销毁Vec的时候同时销毁T，我们需要添加一个额外的PhantomData：</p>
+<pre><code class="language-Rust"><div><span class="hljs-keyword">use</span> std::marker:
 
-struct Vec&lt;T&gt; {
-    data: *const T, // *const for variance!
-    len: usize,
-    cap: usize,
+<span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Vec</span></span>&lt;T&gt; {
+    data: *<span class="hljs-keyword">const</span> T, <span class="hljs-comment">// *const是可变的！</span>
+    len: <span class="hljs-built_in">usize</span>,
+    cap: <span class="hljs-built_in">usize</span>,
     _marker: marker::PhantomData&lt;T&gt;,
 }
-#}</code></pre></pre>
-<p>Raw pointers that own an allocation is such a pervasive pattern that the
-standard library made a utility for itself called <code>Unique&lt;T&gt;</code> which:</p>
+</div></code></pre>
+<p>让裸指针拥有数据是一个很普遍的设计，以至于标准库为它自己创造了一个叫<code>Unique&lt;T&gt;</code>的组件，它可以：</p>
 <ul>
-<li>wraps a <code>*const T</code> for variance</li>
-<li>includes a <code>PhantomData&lt;T&gt;</code></li>
-<li>auto-derives <code>Send</code>/<code>Sync</code> as if T was contained</li>
-<li>marks the pointer as <code>NonZero</code> for the null-pointer optimization</li>
+<li>封装一个<code>*const T</code>处理变性</li>
+<li>包含一个PhantomData<T></li>
+<li>自动实现<code>Send</code>/<code>Sync</code>，模拟和包含T时一样的行为</li>
+<li>将指针标记为<code>NonZero</code>以便空指针优化</li>
 </ul>
-<h2><a class="header" href="#table-of-phantomdata-patterns" id="table-of-phantomdata-patterns">Table of <code>PhantomData</code> patterns</a></h2>
-<p>Here’s a table of all the wonderful ways <code>PhantomData</code> could be used:</p>
-<table><thead><tr><th>Phantom type</th><th><code>'a</code></th><th><code>T</code></th></tr></thead><tbody>
-<tr><td><code>PhantomData&lt;T&gt;</code></td><td>-</td><td>variant (with drop check)</td></tr>
-<tr><td><code>PhantomData&lt;&amp;'a T&gt;</code></td><td>variant</td><td>variant</td></tr>
-<tr><td><code>PhantomData&lt;&amp;'a mut T&gt;</code></td><td>variant</td><td>invariant</td></tr>
-<tr><td><code>PhantomData&lt;*const T&gt;</code></td><td>-</td><td>variant</td></tr>
-<tr><td><code>PhantomData&lt;*mut T&gt;</code></td><td>-</td><td>invariant</td></tr>
-<tr><td><code>PhantomData&lt;fn(T)&gt;</code></td><td>-</td><td>contravariant (*)</td></tr>
-<tr><td><code>PhantomData&lt;fn() -&gt; T&gt;</code></td><td>-</td><td>variant</td></tr>
-<tr><td><code>PhantomData&lt;fn(T) -&gt; T&gt;</code></td><td>-</td><td>invariant</td></tr>
-<tr><td><code>PhantomData&lt;Cell&lt;&amp;'a ()&gt;&gt;</code></td><td>invariant</td><td>-</td></tr>
-</tbody></table>
-<p>(*) If contravariance gets scrapped, this would be invariant.</p>
+<h2 id="phantomdata%e6%a8%a1%e5%bc%8f%e8%a1%a8"><code>PhantomData</code>模式表</h2>
+<p>下表展示了各种牛X闪闪的<code>PhantomData</code>用法：</p>
+<table>
+<thead>
+<tr>
+<th>Phantom 类型</th>
+<th><code>'a</code></th>
+<th><code>T</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PhantomData&lt;T&gt;</code></td>
+<td>-</td>
+<td>协变（可触发drop检查）</td>
+</tr>
+<tr>
+<td><code>PhantomData&lt;&amp;'a T&gt;</code></td>
+<td>协变</td>
+<td>协变</td>
+</tr>
+<tr>
+<td><code>PhantomData&lt;&amp;'a mut T&gt;</code></td>
+<td>协变</td>
+<td>不变</td>
+</tr>
+<tr>
+<td><code>PhantomData&lt;*const T&gt;</code></td>
+<td>-</td>
+<td>协变</td>
+</tr>
+<tr>
+<td><code>PhantomData&lt;*mut T&gt;</code></td>
+<td>-</td>
+<td>不变</td>
+</tr>
+<tr>
+<td><code>PhantomData&lt;fn(T)&gt;</code></td>
+<td>-</td>
+<td>逆变(*)</td>
+</tr>
+<tr>
+<td><code>PhantomData&lt;fn() -&gt; T&gt;</code></td>
+<td>-</td>
+<td>协变</td>
+</tr>
+<tr>
+<td><code>PhantomData&lt;fn(T) -&gt; T&gt;</code></td>
+<td>-</td>
+<td>不变</td>
+</tr>
+<tr>
+<td><code>PhantomData&lt;Cell&lt;&amp;'a ()&gt;&gt;</code></td>
+<td>不变</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<p>(*)如果发生变性的冲突，这个是不变的</p>
+
 
                     </main>
 

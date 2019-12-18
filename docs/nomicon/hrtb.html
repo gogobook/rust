@@ -145,67 +145,61 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#higher-rank-trait-bounds-hrtbs" id="higher-rank-trait-bounds-hrtbs">Higher-Rank Trait Bounds (HRTBs)</a></h1>
-<p>Rust's <code>Fn</code> traits are a little bit magic. For instance, we can write the
-following code:</p>
-<pre><pre class="playpen"><code class="language-rust">struct Closure&lt;F&gt; {
-    data: (u8, u16),
+                        <h1 id="%e9%ab%98%e9%98%b6%e7%89%b9%e8%b4%a8%e7%95%8c%e9%99%90hrtbs">高阶特质界限(HRTBs)</h1>
+<blockquote>
+<p>原文跟踪<a href="https://github.com/rust-lang-nursery/nomicon/blob/master/src/hrtb.md">hrtb.md</a>   Commit: 0e6c680ebd72f1860e46b2bd40e2a387ad8084ad</p>
+</blockquote>
+<p>Rust的<code>Fn</code>特征有点神奇。 例如，我们可以写以下代码：</p>
+<pre><code class="language-rust"><div><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Closure</span></span>&lt;F&gt; {
+    data: (<span class="hljs-built_in">u8</span>, <span class="hljs-built_in">u16</span>),
     func: F,
 }
 
-impl&lt;F&gt; Closure&lt;F&gt;
-    where F: Fn(&amp;(u8, u16)) -&gt; &amp;u8,
+<span class="hljs-keyword">impl</span>&lt;F&gt; Closure&lt;F&gt;
+    <span class="hljs-keyword">where</span> F: <span class="hljs-built_in">Fn</span>(&amp;(<span class="hljs-built_in">u8</span>, <span class="hljs-built_in">u16</span>)) -&gt; &amp;<span class="hljs-built_in">u8</span>,
 {
-    fn call(&amp;self) -&gt; &amp;u8 {
-        (self.func)(&amp;self.data)
+    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">call</span></span>(&amp;<span class="hljs-keyword">self</span>) -&gt; &amp;<span class="hljs-built_in">u8</span> {
+        (<span class="hljs-keyword">self</span>.func)(&amp;<span class="hljs-keyword">self</span>.data)
     }
 }
 
-fn do_it(data: &amp;(u8, u16)) -&gt; &amp;u8 { &amp;data.0 }
+<span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">do_it</span></span>(data: &amp;(<span class="hljs-built_in">u8</span>, <span class="hljs-built_in">u16</span>)) -&gt; &amp;<span class="hljs-built_in">u8</span> { &amp;data.<span class="hljs-number">0</span> }
 
-fn main() {
-    let clo = Closure { data: (0, 1), func: do_it };
-    println!(&quot;{}&quot;, clo.call());
+<span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">main</span></span>() {
+    <span class="hljs-keyword">let</span> clo = Closure { data: (<span class="hljs-number">0</span>, <span class="hljs-number">1</span>), func: do_it };
+    <span class="hljs-built_in">println!</span>(<span class="hljs-string">"{}"</span>, clo.call());
 }
-</code></pre></pre>
-<p>If we try to naively desugar this code in the same way that we did in the
-lifetimes section, we run into some trouble:</p>
-<pre><code class="language-rust ignore">struct Closure&lt;F&gt; {
-    data: (u8, u16),
+</div></code></pre>
+<p>如果我们尝试以与生命周期部分相同的方式天真地去除这些代码，我们会遇到一些麻烦：</p>
+<pre><code class="language-rust"><div><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Closure</span></span>&lt;F&gt; {
+    data: (<span class="hljs-built_in">u8</span>, <span class="hljs-built_in">u16</span>),
     func: F,
 }
 
-impl&lt;F&gt; Closure&lt;F&gt;
-    // where F: Fn(&amp;'??? (u8, u16)) -&gt; &amp;'??? u8,
+<span class="hljs-keyword">impl</span>&lt;F&gt; Closure&lt;F&gt;
+    <span class="hljs-comment">// where F: Fn(&amp;'??? (u8, u16)) -&gt; &amp;'??? u8,</span>
 {
-    fn call&lt;'a&gt;(&amp;'a self) -&gt; &amp;'a u8 {
-        (self.func)(&amp;self.data)
+    <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">call</span></span>&lt;<span class="hljs-symbol">'a</span>&gt;(&amp;<span class="hljs-symbol">'a</span> <span class="hljs-keyword">self</span>) -&gt; &amp;<span class="hljs-symbol">'a</span> <span class="hljs-built_in">u8</span> {
+        (<span class="hljs-keyword">self</span>.func)(&amp;<span class="hljs-keyword">self</span>.data)
     }
 }
 
-fn do_it&lt;'b&gt;(data: &amp;'b (u8, u16)) -&gt; &amp;'b u8 { &amp;'b data.0 }
+<span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">do_it</span></span>&lt;<span class="hljs-symbol">'b</span>&gt;(data: &amp;<span class="hljs-symbol">'b</span> (<span class="hljs-built_in">u8</span>, <span class="hljs-built_in">u16</span>)) -&gt; &amp;<span class="hljs-symbol">'b</span> <span class="hljs-built_in">u8</span> { &amp;<span class="hljs-symbol">'b</span> data.<span class="hljs-number">0</span> }
 
-fn main() {
-    'x: {
-        let clo = Closure { data: (0, 1), func: do_it };
-        println!(&quot;{}&quot;, clo.call());
+<span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">main</span></span>() {
+    <span class="hljs-symbol">'x</span>: {
+        <span class="hljs-keyword">let</span> clo = Closure { data: (<span class="hljs-number">0</span>, <span class="hljs-number">1</span>), func: do_it };
+        <span class="hljs-built_in">println!</span>(<span class="hljs-string">"{}"</span>, clo.call());
     }
 }
-</code></pre>
-<p>How on earth are we supposed to express the lifetimes on <code>F</code>'s trait bound? We
-need to provide some lifetime there, but the lifetime we care about can't be
-named until we enter the body of <code>call</code>! Also, that isn't some fixed lifetime;
-<code>call</code> works with <em>any</em> lifetime <code>&amp;self</code> happens to have at that point.</p>
-<p>This job requires The Magic of Higher-Rank Trait Bounds (HRTBs). The way we
-desugar this is as follows:</p>
-<pre><code class="language-rust ignore">where for&lt;'a&gt; F: Fn(&amp;'a (u8, u16)) -&gt; &amp;'a u8,
-</code></pre>
-<p>(Where <code>Fn(a, b, c) -&gt; d</code> is itself just sugar for the unstable <em>real</em> <code>Fn</code>
-trait)</p>
-<p><code>for&lt;'a&gt;</code> can be read as &quot;for all choices of <code>'a</code>&quot;, and basically produces an
-<em>infinite list</em> of trait bounds that F must satisfy. Intense. There aren't many
-places outside of the <code>Fn</code> traits where we encounter HRTBs, and even for
-those we have a nice magic sugar for the common cases.</p>
+</div></code></pre>
+<p>我们究竟应该用F的特征界限来表达生命周期？ 我们需要在那里提供一些生命周期，但是在我们进入调用体之前，我们关心的生命周期无法命名！ 而且，这不是一些固定的生命周期; 调用适用于任何生命周期和<code>&amp;self</code>恰好在那一点上。</p>
+<p>这项工作需要高等级特质界限（HRTBs）。 我们这种方式如下：</p>
+<pre><code class="language-rust"><div><span class="hljs-keyword">where</span> <span class="hljs-keyword">for</span>&lt;<span class="hljs-symbol">'a</span>&gt; F: <span class="hljs-built_in">Fn</span>(&amp;<span class="hljs-symbol">'a</span> (<span class="hljs-built_in">u8</span>, <span class="hljs-built_in">u16</span>)) -&gt; &amp;<span class="hljs-symbol">'a</span> <span class="hljs-built_in">u8</span>,
+</div></code></pre>
+<p>(其中<code>Fn（a，b，c） - &gt; d</code>本身就是不稳定的真实<code>Fn</code>特征的糖）</p>
+<p><code>for &lt;'a&gt;</code>可以读作<code>对于'a</code>的所有选择，并且基本上产生的<code>F</code>必须满足无限特征边界列表。在<code>Fn</code>特征之外的地方我们遇到<code>HRTB</code>并不多，甚至对于那些普通案例我们都有一个很好的魔法糖。</p>
+
 
                     </main>
 

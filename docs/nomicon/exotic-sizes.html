@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Exotically Sized Types - </title>
+        <title>特殊尺寸类型</title>
         
 
         <meta content="text/html; charset=utf-8" http-equiv="Content-Type">
@@ -145,152 +145,81 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#exotically-sized-types" id="exotically-sized-types">Exotically Sized Types</a></h1>
-<p>Most of the time, we expect types to have a statically known and positive size.
-This isn't always the case in Rust.</p>
-<h1><a class="header" href="#dynamically-sized-types-dsts" id="dynamically-sized-types-dsts">Dynamically Sized Types (DSTs)</a></h1>
-<p>Rust supports Dynamically Sized Types (DSTs): types without a statically
-known size or alignment. On the surface, this is a bit nonsensical: Rust <em>must</em>
-know the size and alignment of something in order to correctly work with it! In
-this regard, DSTs are not normal types. Because they lack a statically known
-size, these types can only exist behind a pointer. Any pointer to a
-DST consequently becomes a <em>wide</em> pointer consisting of the pointer and the
-information that &quot;completes&quot; them (more on this below).</p>
-<p>There are two major DSTs exposed by the language:</p>
-<ul>
-<li>trait objects: <code>dyn MyTrait</code></li>
-<li>slices: <code>[T]</code>, <code>str</code>, and others</li>
-</ul>
-<p>A trait object represents some type that implements the traits it specifies.
-The exact original type is <em>erased</em> in favor of runtime reflection
-with a vtable containing all the information necessary to use the type.
-The information that completes a trait object pointer is the vtable pointer.
-The runtime size of the pointee can be dynamically requested from the vtable.</p>
-<p>A slice is simply a view into some contiguous storage -- typically an array or
-<code>Vec</code>. The information that completes a slice pointer is just the number of elements
-it points to. The runtime size of the pointee is just the statically known size
-of an element multiplied by the number of elements.</p>
-<p>Structs can actually store a single DST directly as their last field, but this
-makes them a DST as well:</p>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-// Can't be stored on the stack directly
-struct MySuperSlice {
-    info: u32,
-    data: [u8],
-}
-#}</code></pre></pre>
-<p>Although such a type is largely useless without a way to construct it. Currently the
-only properly supported way to create a custom DST is by making your type generic
-and performing an <em>unsizing coercion</em>:</p>
-<pre><pre class="playpen"><code class="language-rust">struct MySuperSliceable&lt;T: ?Sized&gt; {
-    info: u32,
-    data: T,
-}
-
-fn main() {
-    let sized: MySuperSliceable&lt;[u8; 8]&gt; = MySuperSliceable {
-        info: 17,
-        data: [0; 8],
-    };
-
-    let dynamic: &amp;MySuperSliceable&lt;[u8]&gt; = &amp;sized;
-
-    // prints: &quot;17 [0, 0, 0, 0, 0, 0, 0, 0]&quot;
-    println!(&quot;{} {:?}&quot;, dynamic.info, &amp;dynamic.data);
-}
-</code></pre></pre>
-<p>(Yes, custom DSTs are a largely half-baked feature for now.)</p>
-<h1><a class="header" href="#zero-sized-types-zsts" id="zero-sized-types-zsts">Zero Sized Types (ZSTs)</a></h1>
-<p>Rust also allows types to be specified that occupy no space:</p>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-struct Nothing; // No fields = no size
-
-// All fields have no size = no size
-struct LotsOfNothing {
-    foo: Nothing,
-    qux: (),      // empty tuple has no size
-    baz: [u8; 0], // empty array has no size
-}
-#}</code></pre></pre>
-<p>On their own, Zero Sized Types (ZSTs) are, for obvious reasons, pretty useless.
-However as with many curious layout choices in Rust, their potential is realized
-in a generic context: Rust largely understands that any operation that produces
-or stores a ZST can be reduced to a no-op. First off, storing it doesn't even
-make sense -- it doesn't occupy any space. Also there's only one value of that
-type, so anything that loads it can just produce it from the aether -- which is
-also a no-op since it doesn't occupy any space.</p>
-<p>One of the most extreme examples of this is Sets and Maps. Given a
-<code>Map&lt;Key, Value&gt;</code>, it is common to implement a <code>Set&lt;Key&gt;</code> as just a thin wrapper
-around <code>Map&lt;Key, UselessJunk&gt;</code>. In many languages, this would necessitate
-allocating space for UselessJunk and doing work to store and load UselessJunk
-only to discard it. Proving this unnecessary would be a difficult analysis for
-the compiler.</p>
-<p>However in Rust, we can just say that  <code>Set&lt;Key&gt; = Map&lt;Key, ()&gt;</code>. Now Rust
-statically knows that every load and store is useless, and no allocation has any
-size. The result is that the monomorphized code is basically a custom
-implementation of a HashSet with none of the overhead that HashMap would have to
-support values.</p>
-<p>Safe code need not worry about ZSTs, but <em>unsafe</em> code must be careful about the
-consequence of types with no size. In particular, pointer offsets are no-ops,
-and allocators typically <a href="https://doc.rust-lang.org/std/alloc/trait.GlobalAlloc.html#tymethod.alloc">require a non-zero size</a>.</p>
-<p>Note that references to ZSTs (including empty slices), just like all other
-references, must be non-null and suitably aligned. Dereferencing a null or
-unaligned pointer to a ZST is <a href="what-unsafe-does.html">undefined behavior</a>, just like for any other
-type.</p>
-<h1><a class="header" href="#empty-types" id="empty-types">Empty Types</a></h1>
-<p>Rust also enables types to be declared that <em>cannot even be instantiated</em>. These
-types can only be talked about at the type level, and never at the value level.
-Empty types can be declared by specifying an enum with no variants:</p>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-enum Void {} // No variants = EMPTY
-#}</code></pre></pre>
-<p>Empty types are even more marginal than ZSTs. The primary motivating example for
-an empty type is type-level unreachability. For instance, suppose an API needs to
-return a Result in general, but a specific case actually is infallible. It's
-actually possible to communicate this at the type level by returning a
-<code>Result&lt;T, Void&gt;</code>. Consumers of the API can confidently unwrap such a Result
-knowing that it's <em>statically impossible</em> for this value to be an <code>Err</code>, as
-this would require providing a value of type <code>Void</code>.</p>
-<p>In principle, Rust can do some interesting analyses and optimizations based
-on this fact. For instance, <code>Result&lt;T, Void&gt;</code> is represented as just <code>T</code>,
-because the <code>Err</code> case doesn't actually exist (strictly speaking, this is only
-an optimization that is not guaranteed, so for example transmuting one into the
-other is still UB).</p>
-<p>The following <em>could</em> also compile:</p>
-<pre><code class="language-rust ignore">enum Void {}
-
-let res: Result&lt;u32, Void&gt; = Ok(0);
-
-// Err doesn't exist anymore, so Ok is actually irrefutable.
-let Ok(num) = res;
-</code></pre>
-<p>But this trick doesn't work yet.</p>
-<p>One final subtle detail about empty types is that raw pointers to them are
-actually valid to construct, but dereferencing them is Undefined Behavior
-because that wouldn't make sense.</p>
-<p>We recommend against modelling C's <code>void*</code> type with <code>*const Void</code>.
-A lot of people started doing that but quickly ran into trouble because
-Rust doesn't really have any safety guards against trying to instantiate
-empty types with unsafe code, and if you do it, it's Undefined Behaviour.
-This was especially problematic because developers had a habit of converting
-raw pointers to references and <code>&amp;Void</code> is <em>also</em> Undefined Behaviour to
-construct.</p>
-<p><code>*const ()</code> (or equivalent) works reasonably well for <code>void*</code>, and can be made
-into a reference without any safety problems. It still doesn't prevent you from
-trying to read or write values, but at least it compiles to a no-op instead
-of UB.</p>
-<h1><a class="header" href="#extern-types" id="extern-types">Extern Types</a></h1>
-<p>There is <a href="https://github.com/rust-lang/rfcs/blob/master/text/1861-extern-types.md">an accepted RFC</a> to add proper types with an unknown size,
-called <em>extern types</em>, which would let Rust developers model things like C's <code>void*</code>
-and other &quot;declared but never defined&quot; types more accurately. However as of
-Rust 2018, the feature is stuck in limbo over how <code>size_of::&lt;MyExternType&gt;()</code>
-should behave.</p>
+                        <h1 id="%e7%89%b9%e6%ae%8a%e5%b0%ba%e5%af%b8%e7%b1%bb%e5%9e%8b">特殊尺寸类型</h1>
+                        <blockquote>
+                        <p>原文跟踪<a href="https://github.com/rust-lang-nursery/nomicon/blob/master/src/exotic-sizes.md">exotic-sizes.md</a>   Commit: 7f019ec5c87da39fe0b9b5149e413d914528e945</p>
+                        </blockquote>
+                        <p>大多数情况下，我们希望类型具有可静态确定的、非负的大小。 但在Rust中，并非总是如此。</p>
+                        <h2 id="%e5%8a%a8%e6%80%81%e5%a4%a7%e5%b0%8f%e7%b1%bb%e5%9e%8bdst">动态大小类型（DST）</h2>
+                        <p>Rust支持动态大小类型（DST）：无法静态地确定大小或对齐的类型。 从表面上看，这有点荒谬：Rust必须知道某些东西的大小和对齐单位才能正确使用它！ 在这方面，DST不是正常的类型。 因为它们缺少静态可知的大小，所以这些类型只能存在于指针背后。 因此，任何指向DST的指针都会变成一个宽指针：由指针和&quot;使其成为完整类型&quot;的信息组成（下面将详细介绍）。</p>
+                        <p>Rust语言暴露了两个主要的DST：</p>
+                        <ul>
+                        <li>trait objects: <code>dyn MyTrait</code></li>
+                        <li>slices: <code>[T]</code>, <code>str</code>, and others</li>
+                        </ul>
+                        <p>trait对象表示实现了其指定的特质的某种类型。 原始类型通过一个包含了该类型所有信息的vtable被擦除，以支持运行时反射。 vtable指针让trait对象指针成为了一个完整类型：在运行时，可以从vtable中动态地获悉指针所指向的对象的大小。</p>
+                        <p>切片只是一些连续内存的一个视图——通常是数组或Vec。 切片指针包含的额外信息只不过是它指向的元素的数量。 指针所指向对象的运行时大小只是单个元素的大小乘以元素的数量。</p>
+                        <p><code>Struct</code>实际上可以直接存储单个DST作为它们的最后一个字段，但这同时也让它们成为了DST：</p>
+                        <pre><code class="language-rust"><div><span class="hljs-comment">// Can't be stored on the stack directly</span>
+                        <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">MySuperSlice</span></span> {
+                            info: <span class="hljs-built_in">u32</span>,
+                            data: [<span class="hljs-built_in">u8</span>],
+                        }
+                        </div></code></pre>
+                        <p>尽管因为缺少构造手段，这种类型在很大程度上是没用的。 目前，唯一能够构造出自定义DST的方法是，在类型上增加泛型参数，并加以<code>?Sized</code>修饰：</p>
+                        <pre><code class="language-rust"><div><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">MySuperSliceable</span></span>&lt;T: ?<span class="hljs-built_in">Sized</span>&gt; {
+                            info: <span class="hljs-built_in">u32</span>,
+                            data: T
+                        }
+                        
+                        <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">main</span></span>() {
+                            <span class="hljs-keyword">let</span> sized: MySuperSliceable&lt;[<span class="hljs-built_in">u8</span>; <span class="hljs-number">8</span>]&gt; = MySuperSliceable {
+                                info: <span class="hljs-number">17</span>,
+                                data: [<span class="hljs-number">0</span>; <span class="hljs-number">8</span>],
+                            };
+                        
+                            <span class="hljs-keyword">let</span> dynamic: &amp;MySuperSliceable&lt;[<span class="hljs-built_in">u8</span>]&gt; = &amp;sized;
+                        
+                            <span class="hljs-comment">// prints: "17 [0, 0, 0, 0, 0, 0, 0, 0]"</span>
+                            <span class="hljs-built_in">println!</span>(<span class="hljs-string">"{} {:?}"</span>, dynamic.info, &amp;dynamic.data);
+                        }
+                        </div></code></pre>
+                        <p>(是的，现在，自定义DST是一个很大程度上不够成熟的特性.)</p>
+                        <h2 id="%e9%9b%b6%e5%a4%a7%e5%b0%8f%e7%b1%bb%e5%9e%8bzst">零大小类型（ZST）</h2>
+                        <p>Rust还允许声明不占用空间的类型：</p>
+                        <pre><code class="language-rust"><div><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Nothing</span></span>; <span class="hljs-comment">// No fields = no size</span>
+                        
+                        <span class="hljs-comment">// All fields have no size = no size</span>
+                        <span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">LotsOfNothing</span></span> {
+                            foo: Nothing,
+                            qux: (),      <span class="hljs-comment">// empty tuple has no size</span>
+                            baz: [<span class="hljs-built_in">u8</span>; <span class="hljs-number">0</span>], <span class="hljs-comment">// empty array has no size</span>
+                        }
+                        </div></code></pre>
+                        <p>就其自身而言，零大小类型（ZST）由于显而易见的原因非常没用。然而，正如Rust中许多奇特的内存布局决策一样，它们的潜力是发挥在泛型上下文中的：Rust大多数情况下能够理解到，构造或存储ZST的任何操作都可以简化为no-op。首先，存储ZST甚至是没有意义的——它不占用任何空间。此外，ZST类型的值只有一个，所以任何需要用到它的时候，都可以凭空构造一个——这也是一种no-op，毕竟它不占用任何空间。</p>
+                        <p>其中一个最极端的例子是<code>Set</code>和<code>Map</code>。给定<code>Map &lt;Key，Value&gt;</code>，通常<code>Set &lt;Key&gt;</code>会被实现为<code>Map &lt;Key，UselessJunk&gt;</code>的一层薄薄的封装。在许多语言中，这需要为<code>UselessJunk</code>分配空间，并且需要储存和读取<code>UselessJunk</code>后再丢弃它。对编译器来说，证明这种不必要是很困难的。</p>
+                        <p>但是在Rust中，我们可以说<code>Set &lt;Key&gt; = Map &lt;Key，（）&gt;</code>。现在Rust编译器能够静态地得知每个读取和存储都是无用的，并且没有分配任何空间。结果就是，通过简单地单态化<code>HashMap</code>实现的<code>HashSet</code>，在<code>HashMap</code>的值上不需要花费任何额外开销。</p>
+                        <p>safe的代码不必担心ZST，但在unsafe的代码中，必须小心ZST类型带来的后果。特别是，对指针偏移是no-op，并且当申请零大小的内存分配时，标准分配器可以返回<code>null</code>，因而无法区分这是否意味着出现了“内存不足”错误。</p>
+                        <h2 id="%e7%a9%ba%e7%b1%bb%e5%9e%8b">空类型</h2>
+                        <p>Rust甚至还允许声明无法实例化的类型。 这些类型只能在类型层面进行讨论，而不能在值的层面进行讨论。 可以通过指定不带变量的枚举来声明一个空类型：</p>
+                        <pre><code class="language-rust"><div><span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-title">Void</span></span> {} <span class="hljs-comment">// No variants = EMPTY</span>
+                        </div></code></pre>
+                        <p>空类型比ZST更加边缘化。 空类型的主要积极示例是类型层面的不可达性。 例如，假设一个API通常需要返回一个结果，但实际上，这个API在特定情况是绝对可靠的。 这一点，通过返回一个<code>Result &lt;T，Void&gt;</code>，就可以在类型层面表达出来。 API的使用者可以自信地对这样的结果进行拆箱，因为已经知道这个值在静态上不可能是<code>Err</code>——否则就意味着需要提供一个<code>Void</code>类型的值，这是不可能的。</p>
+                        <p>原则上，Rust可以基于这个事实做一些有趣的分析和优化。 例如，<code>Result &lt;T，Void&gt;</code>仅表示为<code>T</code>，因为<code>Err</code>情况实际上并不存在（严格来说，这只是一个无法保证的优化，因此，例如将一个<code>Result &lt;T，Void&gt;</code>转换为另一个<code>Result &lt;T，Void&gt;</code>仍然是未定义行为）。</p>
+                        <p>以下代码也可以通过编译：</p>
+                        <pre><code class="language-rust"><div><span class="hljs-class"><span class="hljs-keyword">enum</span> <span class="hljs-title">Void</span></span> {}
+                        
+                        <span class="hljs-keyword">let</span> res: <span class="hljs-built_in">Result</span>&lt;<span class="hljs-built_in">u32</span>, Void&gt; = <span class="hljs-literal">Ok</span>(<span class="hljs-number">0</span>);
+                        
+                        <span class="hljs-comment">// Err doesn't exist anymore, so Ok is actually irrefutable.</span>
+                        <span class="hljs-keyword">let</span> <span class="hljs-literal">Ok</span>(num) = res;
+                        </div></code></pre>
+                        <p>但是这个trick现在还不能用。</p>
+                        <p>关于空类型的最后一个细微的细节是，构造一个空类型的裸指针是合法的，但是解引用它们是未定义的行为，因为这没有意义。</p>
+                        <p>我们建议不要使用<code>* const Void</code>对C的<code>void *</code>类型进行模拟。 很多人一开始会这样做，但很快就遇到了麻烦，因为Rust没有任何的安全措施来防止尝试用不安全的代码去实例化空类型，如果你这样做，那就是未定义行为。 这尤其成问题，因为开发人员习惯将原始指针转换为引用，而<code>&amp;Void</code>也是未定义行为。</p>
+                        <p><code>* const（）</code>（或等效的）适用于<code>void *</code>，并且可以在没有任何安全问题的情况下成为引用。 它仍然不会阻止您尝试读取或写入值，但至少它会编译为<code>no-op</code>而不是UB。</p>
+                        <h2 id="%e5%a4%96%e9%83%a8%e7%b1%bb%e5%9e%8b">外部类型</h2>
+                        <p>有一个已经被接受的<a href="https://github.com/rust-lang/rfcs/blob/master/text/1861-extern-types.md">RFC</a>为未知大小的类型增加了一种合适的类型，称为<code>extern</code>类型，这将使Rust开发人员更准确地模拟C的<code>void *</code>和其他&quot;声明了但未定义&quot;类型的内容。 但是，从Rust 2018开始，这个特性在<code>size_of :: &lt;MyExternType&gt;（）</code>应该如何表现上陷入了困境。</p>
 
                     </main>
 

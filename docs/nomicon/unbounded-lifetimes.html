@@ -145,34 +145,18 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#unbounded-lifetimes" id="unbounded-lifetimes">Unbounded Lifetimes</a></h1>
-<p>Unsafe code can often end up producing references or lifetimes out of thin air.
-Such lifetimes come into the world as <em>unbounded</em>. The most common source of this
-is dereferencing a raw pointer, which produces a reference with an unbounded lifetime.
-Such a lifetime becomes as big as context demands. This is in fact more powerful
-than simply becoming <code>'static</code>, because for instance <code>&amp;'static &amp;'a T</code>
-will fail to typecheck, but the unbound lifetime will perfectly mold into
-<code>&amp;'a &amp;'a T</code> as needed. However for most intents and purposes, such an unbounded
-lifetime can be regarded as <code>'static</code>.</p>
-<p>Almost no reference is <code>'static</code>, so this is probably wrong. <code>transmute</code> and
-<code>transmute_copy</code> are the two other primary offenders. One should endeavor to
-bound an unbounded lifetime as quickly as possible, especially across function
-boundaries.</p>
-<p>Given a function, any output lifetimes that don't derive from inputs are
-unbounded. For instance:</p>
-<pre><code class="language-rust ignore">fn get_str&lt;'a&gt;() -&gt; &amp;'a str;
-</code></pre>
-<p>will produce an <code>&amp;str</code> with an unbounded lifetime. The easiest way to avoid
-unbounded lifetimes is to use lifetime elision at the function boundary.
-If an output lifetime is elided, then it <em>must</em> be bounded by an input lifetime.
-Of course it might be bounded by the <em>wrong</em> lifetime, but this will usually
-just cause a compiler error, rather than allow memory safety to be trivially
-violated.</p>
-<p>Within a function, bounding lifetimes is more error-prone. The safest and easiest
-way to bound a lifetime is to return it from a function with a bound lifetime.
-However if this is unacceptable, the reference can be placed in a location with
-a specific lifetime. Unfortunately it's impossible to name all lifetimes involved
-in a function.</p>
+                        <h1 id="%e6%97%a0%e7%95%8c%e9%99%90%e7%94%9f%e5%91%bd%e5%91%a8%e6%9c%9f">无界限生命周期</h1>
+                        <blockquote>
+                        <p>原文跟踪<a href="https://github.com/rust-lang-nursery/nomicon/blob/master/src/unbounded-lifetimes.md">unbounded-lifetimes.md</a>   Commit: 0e6c680ebd72f1860e46b2bd40e2a387ad8084ad</p>
+                        </blockquote>
+                        <p>不安全的代码通常最终会凭空产生引用或生命周期。 这样的生命周期进入世界是无限的。 最常见的来源是解引用原始指针，该指针生成具有无限生命周期的引用。 这样的生命周期变得与上下文需求一样大。 这实际上比简单地变成<code>'static</code> 更强大，因为例如<code>'static＆'T</code>将无法进行类型检查，但是未绑定的生命周期将完全塑造成所需的<code>&amp;'a &amp;'a T</code>。 然而，对于大多数意图和目的，这种无限的生命周期可以被视为<code>'static</code>。</p>
+                        <p>几乎没有引用是<code>'static</code>，所以这可能是错误的。 <code>transmuteand</code>, <code>transmute_copy</code>是另外两个风险。 人们应尽可能快地限制无限生命，尤其是跨越函数边界。</p>
+                        <p>给定一个函数，任何不是从输入派生的输出生命周期都是无限的。 例如：</p>
+                        <pre><code class="language-rust"><div><span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">get_str</span></span>&lt;<span class="hljs-symbol">'a</span>&gt;() -&gt; &amp;<span class="hljs-symbol">'a</span> <span class="hljs-built_in">str</span>;
+                        </div></code></pre>
+                        <p>会产生无限的生命周期。 避免无限生命期的最简单方法是在函数边界使用生命周期省略。 如果省略输出生命周期，则必须受输入生命周期的限制。 当然它可能受到错误生命周期的限制，但这通常只会导致编译器错误，而不是简单地违反内存安全性。</p>
+                        <p>在函数内，边界生命周期更容易出错。 绑定生命周期的最安全和最简单的方法是从具有绑定生存期的函数返回它。 但是，如果这是不可接受的，您可以将引用放在具有特定生命周期的位置。 遗憾的是，无法命名函数中涉及的所有生命周期。</p>
+                        
 
                     </main>
 

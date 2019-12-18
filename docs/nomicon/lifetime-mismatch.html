@@ -145,88 +145,59 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#limits-of-lifetimes" id="limits-of-lifetimes">Limits of Lifetimes</a></h1>
-<p>Given the following code:</p>
-<pre><pre class="playpen"><code class="language-rust edition2018 compile_fail">#[derive(Debug)]
-struct Foo;
-
-impl Foo {
-    fn mutate_and_share(&amp;mut self) -&gt; &amp;Self { &amp;*self }
-    fn share(&amp;self) {}
-}
-
-fn main() {
-    let mut foo = Foo;
-    let loan = foo.mutate_and_share();
-    foo.share();
-    println!(&quot;{:?}&quot;, loan);
-}
-</code></pre></pre>
-<p>One might expect it to compile. We call <code>mutate_and_share</code>, which mutably
-borrows <code>foo</code> temporarily, but then returns only a shared reference. Therefore
-we would expect <code>foo.share()</code> to succeed as <code>foo</code> shouldn't be mutably borrowed.</p>
-<p>However when we try to compile it:</p>
-<pre><code class="language-text">error[E0502]: cannot borrow `foo` as immutable because it is also borrowed as mutable
-  --&gt; src/main.rs:12:5
-   |
-11 |     let loan = foo.mutate_and_share();
-   |                --- mutable borrow occurs here
-12 |     foo.share();
-   |     ^^^ immutable borrow occurs here
-13 |     println!(&quot;{:?}&quot;, loan);
-</code></pre>
-<p>What happened? Well, we got the exact same reasoning as we did for
-<a href="lifetimes.html#example-aliasing-a-mutable-reference">Example 2 in the previous section</a>. We desugar the program and we get
-the following:</p>
-<pre><code class="language-rust ignore">struct Foo;
-
-impl Foo {
-    fn mutate_and_share&lt;'a&gt;(&amp;'a mut self) -&gt; &amp;'a Self { &amp;'a *self }
-    fn share&lt;'a&gt;(&amp;'a self) {}
-}
-
-fn main() {
-    'b: {
-        let mut foo: Foo = Foo;
-        'c: {
-            let loan: &amp;'c Foo = Foo::mutate_and_share::&lt;'c&gt;(&amp;'c mut foo);
-            'd: {
-                Foo::share::&lt;'d&gt;(&amp;'d foo);
-            }
-            println!(&quot;{:?}&quot;, loan);
-        }
-    }
-}
-</code></pre>
-<p>The lifetime system is forced to extend the <code>&amp;mut foo</code> to have lifetime <code>'c</code>,
-due to the lifetime of <code>loan</code> and <code>mutate_and_share</code>'s signature. Then when we
-try to call <code>share</code>, and it sees we're trying to alias that <code>&amp;'c mut foo</code> and
-blows up in our face!</p>
-<p>This program is clearly correct according to the reference semantics we actually
-care about, but the lifetime system is too coarse-grained to handle that.</p>
-<h1><a class="header" href="#improperly-reduced-borrows" id="improperly-reduced-borrows">Improperly reduced borrows</a></h1>
-<p>This currently fails to compile, because Rust doesn't understand that the borrow
-is no longer needed and conservatively falls back to using a whole scope for it.
-This will eventually get fixed.</p>
-<pre><pre class="playpen"><code class="language-rust edition2018 compile_fail">
-# #![allow(unused_variables)]
-#fn main() {
-# use std::collections::HashMap;
-# use std::hash::Hash;
-fn get_default&lt;'m, K, V&gt;(map: &amp;'m mut HashMap&lt;K, V&gt;, key: K) -&gt; &amp;'m mut V
-where
-    K: Clone + Eq + Hash,
-    V: Default,
-{
-    match map.get_mut(&amp;key) {
-        Some(value) =&gt; value,
-        None =&gt; {
-            map.insert(key.clone(), V::default());
-            map.get_mut(&amp;key).unwrap()
-        }
-    }
-}
-#}</code></pre></pre>
+                        <h1 id="%e7%94%9f%e5%91%bd%e5%91%a8%e6%9c%9f%e9%99%90%e5%88%b6">生命周期限制</h1>
+                        <blockquote>
+                        <p>原文跟踪<a href="https://github.com/rust-lang-nursery/nomicon/blob/master/src/lifetime-mismatch.md">lifetime-mismatch.md</a>   Commit: d870b6788ba078ba398f020305ef9210f7cbd740</p>
+                        </blockquote>
+                        <p>给出以下代码：</p>
+                        <pre><code class="language-rust"><div><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Foo</span></span>;
+                        
+                        <span class="hljs-keyword">impl</span> Foo {
+                            <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">mutate_and_share</span></span>(&amp;<span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) -&gt; &amp;<span class="hljs-keyword">Self</span> { &amp;*<span class="hljs-keyword">self</span> }
+                            <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">share</span></span>(&amp;<span class="hljs-keyword">self</span>) {}
+                        }
+                        
+                        <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">main</span></span>() {
+                            <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> foo = Foo;
+                            <span class="hljs-keyword">let</span> loan = foo.mutate_and_share();
+                            foo.share();
+                        }
+                        </div></code></pre>
+                        <p>人们可能期望它能够编译。我们称之为mutate_and_share临时借用 foo，但后来只返回共享引用。因此，我们期望foo.share()成功，因为foo不应该可变地借用。</p>
+                        <p>但是当我们尝试编译它时：</p>
+                        <pre><code class="language-rust"><div>error[E0502]: cannot borrow `foo` <span class="hljs-keyword">as</span> immutable because it is also borrowed <span class="hljs-keyword">as</span> mutable
+                          --&gt; src/lib.rs:<span class="hljs-number">11</span>:<span class="hljs-number">5</span>
+                           |
+                        <span class="hljs-number">10</span> |     <span class="hljs-keyword">let</span> loan = foo.mutate_and_share();
+                           |                --- mutable borrow occurs here
+                        <span class="hljs-number">11</span> |     foo.share();
+                           |     ^^^ immutable borrow occurs here
+                        <span class="hljs-number">12</span> | }
+                           | - mutable borrow ends here
+                        </div></code></pre>
+                        <p>发生了什么？好吧，我们得到以下内容：</p>
+                        <pre><code class="language-rust"><div><span class="hljs-class"><span class="hljs-keyword">struct</span> <span class="hljs-title">Foo</span></span>;
+                        
+                        <span class="hljs-keyword">impl</span> Foo {
+                            <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">mutate_and_share</span></span>&lt;<span class="hljs-symbol">'a</span>&gt;(&amp;<span class="hljs-symbol">'a</span> <span class="hljs-keyword">mut</span> <span class="hljs-keyword">self</span>) -&gt; &amp;<span class="hljs-symbol">'a</span> <span class="hljs-keyword">Self</span> { &amp;<span class="hljs-symbol">'a</span> *<span class="hljs-keyword">self</span> }
+                            <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">share</span></span>&lt;<span class="hljs-symbol">'a</span>&gt;(&amp;<span class="hljs-symbol">'a</span> <span class="hljs-keyword">self</span>) {}
+                        }
+                        
+                        <span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">main</span></span>() {
+                            <span class="hljs-symbol">'b</span>: {
+                                <span class="hljs-keyword">let</span> <span class="hljs-keyword">mut</span> foo: Foo = Foo;
+                                <span class="hljs-symbol">'c</span>: {
+                                    <span class="hljs-keyword">let</span> loan: &amp;<span class="hljs-symbol">'c</span> Foo = Foo::mutate_and_share::&lt;<span class="hljs-symbol">'c</span>&gt;(&amp;<span class="hljs-symbol">'c</span> <span class="hljs-keyword">mut</span> foo);
+                                    <span class="hljs-symbol">'d</span>: {
+                                        Foo::share::&lt;<span class="hljs-symbol">'d</span>&gt;(&amp;<span class="hljs-symbol">'d</span> foo);
+                                    }
+                                }
+                            }
+                        }
+                        </div></code></pre>
+                        <p>由于<code>loan</code>的生命周期和<code>mutate_and_share</code>的签名, 生命周期系统强制扩展<code>&amp;mut foo</code>的生命周期为<code>'c</code>，然后当我们试着调用<code>share</code>的时候，它说我们正试图别名<code>&amp;'c mut foo</code>！</p>
+                        <p>根据我们实际关注的引用语义，这个程序显然是正确的，但是生命周期系统太粗糙而无法处理。</p>
+                        
 
                     </main>
 
