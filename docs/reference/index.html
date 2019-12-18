@@ -158,121 +158,80 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#introduction" id="introduction">Introduction</a></h1>
-<p>This book is the primary reference for the Rust programming language. It
-provides three kinds of material:</p>
+                        <h1 id="rust-%e8%af%ad%e8%a8%80%e5%8f%82%e8%80%83">Rust 语言参考</h1>
+<blockquote>
+<p><strong>本书同步于官方 <a href="https://doc.rust-lang.org/reference/index.html">The Rust Reference</a> 仓库<a href="https://github.com/rust-lang-nursery/reference/">地址</a>,欢迎参与！</strong></p>
+</blockquote>
+<blockquote>
+<p>源 <a href="https://github.com/rust-lang-nursery/reference/blob/master/src/introduction.md">introduction</a>   Commit: a2405b970b7c8222a483b82213adcb17d646c75d</p>
+</blockquote>
+<h1 id="%e4%bb%8b%e7%bb%8d">介绍</h1>
+<p>本书是Rust编程语言的主要参考。它提供三种材料：</p>
 <ul>
-<li>Chapters that informally describe each language construct and their use.</li>
-<li>Chapters that informally describe the memory model, concurrency model,
-runtime services, linkage model, and debugging facilities.</li>
-<li>Appendix chapters providing rationale and references to languages that
-influenced the design.</li>
+<li>非正式描述每种语言结构及其用法的章节。</li>
+<li>非正式描述内存模型，并发模型，运行时服务，链接模型和调试工具的章节。</li>
+<li>附录章节提供了影响设计的语言的基本原理和参考。</li>
 </ul>
-<div class="warning">
-<p>Warning: This book is incomplete. Documenting everything takes a while. See
-the <a href="https://github.com/rust-lang-nursery/reference/issues">GitHub issues</a> for what is not documented in this book.</p>
-</div>
-<h2><a class="header" href="#what-the-reference-is-not" id="what-the-reference-is-not">What <em>The Reference</em> is Not</a></h2>
-<p>This book does not serve as an introduction to the language. Background
-familiarity with the language is assumed. A separate <a href="../book/index.html">book</a> is available to
-help acquire such background familiarity.</p>
-<p>This book also does not serve as a reference to the <a href="../std/index.html">standard library</a>
-included in the language distribution. Those libraries are documented
-separately by extracting documentation attributes from their source code. Many
-of the features that one might expect to be language features are library
-features in Rust, so what you're looking for may be there, not here.</p>
-<p>Similarly, this book does not usually document the specifics of <code>rustc</code> as a
-tool or of Cargo. <code>rustc</code> has its own <a href="../rustc/index.html">book</a>. Cargo has a
-<a href="../cargo/index.html">book</a> that contains a <a href="../cargo/reference/index.html">reference</a>. There are a few
-pages such as <a href="linkage.html">linkage</a> that still describe how <code>rustc</code> works.</p>
-<p>This book also only serves as a reference to what is available in stable
-Rust. For unstable features being worked on, see the <a href="https://doc.rust-lang.org/nightly/unstable-book/">Unstable Book</a>.</p>
-<p>Finally, this book is not normative. It may include details that are
-specific to <code>rustc</code> itself, and should not be taken as a specification for
-the Rust language. We intend to produce such a book someday, and until then,
-the reference is the closest thing we have to one.</p>
-<h2><a class="header" href="#how-to-use-this-book" id="how-to-use-this-book">How to Use This Book</a></h2>
-<p>This book does not assume you are reading this book sequentially. Each
-chapter generally can be read standalone, but will cross-link to other chapters
-for facets of the language they refer to, but do not discuss.</p>
-<p>There are two main ways to read this document.</p>
-<p>The first is to answer a specific question. If you know which chapter answers
-that question, you can jump to that chapter in the table of contents. Otherwise,
-you can press <code>s</code> or the click the magnifying glass on the top bar to search for
-keywords related to your question. For example, say you wanted to know when a
-temporary value created in a let statement is dropped. If you didn't already
-know that the <a href="expressions.html#temporary-lifetimes">lifetime of temporaries</a> is defined in the <a href="expressions.html">expressions chapter</a>,
-you could search &quot;temporary let&quot; and the first search result will take you to
-that section.</p>
-<p>The second is to generally improve your knowledge of a facet of the language.
-In that case, just browse the table of contents until you see something you
-want to know more about, and just start reading. If a link looks interesting,
-click it, and read about that section.</p>
-<p>That said, there is no wrong way to read this book. Read it however you feel
-helps you best.</p>
-<h3><a class="header" href="#conventions" id="conventions">Conventions</a></h3>
-<p>Like all technical books, this book has certain conventions in how it displays
-information. These conventions are documented here.</p>
+<p>警告：本书不完整。记录所有内容需要一段时间。有关本书中未记录的内容，请参阅<a href="https://github.com/rust-lang-nursery/reference/issues">GitHub问题</a>。</p>
+<h2 id="%e6%9c%ac%e4%b9%a6%e4%b8%8d%e6%98%af%e4%bb%80%e4%b9%88">本书不是什么</h2>
+<p>本书不作为该语言的介绍。假设背景熟悉该语言。有一本单独的<a href="https://dev.kriry.com/langs/rust/rust/book/">书</a>可以帮助获得这种背景知识。</p>
+<p>本书也不作为 语言分发中包含的标准库的参考。通过从源代码中提取文档属性，可以单独记录这些库。人们可能期望语言功能的许多功能都是Rust中的库功能，所以你在寻找的可能就在那里，而不是在这里。</p>
+<p>同样，本书通常不会记录<code>rustc</code>作为工具或Cargo的具体情况。<code>rustc</code>有自己的书。Cargo有一本包含参考的<a href="https://dev.kriry.com/langs/rust/rust/cargo/">书</a>。有一些页面，如<a href="https://dev.kriry.com/langs/rust/rust/reference/linkage.html">链接</a>仍然描述<code>rustc</code>如何工作。</p>
+<p>本书也仅作为稳定Rust中可用内容的参考。有关正在处理的不稳定功能，请参阅<a href="https://doc.rust-lang.org/nightly/unstable-book/">不稳定的书籍</a>。</p>
+<p>最后，这本书不是规范性的。它可能包含特定于<code>rustc</code>自身的详细信息，不应将其视为<code>Rust</code>语言的规范。我们打算有一天会制作这样一本书，在那之前，本书是我们最接近的一本书。</p>
+<h2 id="%e5%a6%82%e4%bd%95%e4%bd%bf%e7%94%a8%e6%9c%ac%e4%b9%a6">如何使用本书</h2>
+<p>本书不假设您按顺序阅读本书。每章通常可以单独阅读，但会链接到其他章节，以了解他们所参考的语言的各个方面，但不进行讨论。</p>
+<p>阅读本文档有两种主要方式。</p>
+<p>首先是回答一个具体问题。如果您知道哪个章节回答了该问题，则可以跳转到目录中的该章节。否则，您可以按顺序或点击顶部栏上的搜索与您的问题相关的关键字。例如，假设您想知道何时删除在<code>let</code>语句中创建的临时值。如果您还不知道临时表的生命周期在表达式章节中定义，您可以搜索&quot;temporary let&quot;，第一个搜索结果将带您到该部分。</p>
+<p>第二是通常提高你对语言方面的了解。在这种情况下，只需浏览目录，直到您看到想要了解更多信息的内容，然后开始阅读。如果链接看起来很有趣，请单击它，然后阅读该部分。</p>
+<p>也就是说，读这本书没有错误的方法。阅读它，你得到最好的帮助。</p>
+<h3 id="%e7%ba%a6%e5%ae%9a">约定</h3>
+<p>像所有技术书籍一样，本书在如何显示信息方面有一些约定。这些约定在此处记录。</p>
+<ul>
+<li>定义术语的语句包含斜体字。只要在该章之外使用该术语，它通常是具有此定义的部分的链接。</li>
+</ul>
+<p>一个示例性术语是所定义的术语的例子。</p>
+<ul>
+<li>在引用中包在语言不同版本的差异，以粗体中的&quot;版本差异&quot;开头。</li>
+</ul>
+<blockquote>
+<p>版本差异：在2015版中，此语法有效，自2018年版起不允许使用。</p>
+</blockquote>
+<ul>
+<li>包含有关本书状态的有用信息或指出有用但大多数超出范围的信息的注释在块引号中，以粗体中的 &quot;注意&quot;：开头。</li>
+</ul>
+<blockquote>
+<p>注意：这是一个示例说明。</p>
+</blockquote>
+<ul>
+<li>在语言中显示不正确行为的警告或可能混淆语言功能的交互都在一个特殊的警告框中。</li>
+</ul>
+<blockquote>
+<p>警告：这是一个示例警告。</p>
+</blockquote>
+<p>文本内嵌的代码片段是<code>&lt;code&gt;</code>内部标记。</p>
+<p>较长的代码示例位于突出显示语法的框中，该框具有用于复制，执行和显示右上角隐藏线的控件。</p>
+<pre><code class="language-rust"><div># <span class="hljs-comment">// This is a hidden line.</span>
+<span class="hljs-function"><span class="hljs-keyword">fn</span> <span class="hljs-title">main</span></span>() {
+    <span class="hljs-built_in">println!</span>(<span class="hljs-string">"This is a code example"</span>);
+}
+</div></code></pre>
 <ul>
 <li>
-<p>Statements that define a term contain that term in <em>italics</em>. Whenever that
-term is used outside of that chapter, it is usually a link to the section that
-has this definition.</p>
-<p>An <em>example term</em> is an example of a term being defined.</p>
-</li>
-<li>
-<p>Differences in the language by which edition the crate is compiled under are
-in a blockquote that start with the words &quot;Edition Differences:&quot; in <strong>bold</strong>.</p>
+<p>语法和词汇结构在块引用中，以“ 粗体上标 ”中的“Lexer”或“Syntax” 作为第一行。</p>
 <blockquote>
-<p><strong>Edition Differences</strong>: In the 2015 edition, this syntax is valid that is
-disallowed as of the 2018 edition.</p>
-</blockquote>
-</li>
-<li>
-<p>Notes that contain useful information about the state of the book or point out
-useful, but mostly out of scope, information are in blockquotes that start
-with the word &quot;Note:&quot; in <strong>bold</strong>.</p>
-<blockquote>
-<p><strong>Note</strong>: This is an example note.</p>
-</blockquote>
-</li>
-<li>
-<p>Warnings that show unsound behavior in the language or possibly confusing
-interactions of language features are in a special warning box.</p>
-<div class="warning">
-<p>Warning: This is an example warning.</p>
-</div>
-</li>
-<li>
-<p>Code snippets inline in the text are inside <code>&lt;code&gt;</code> tags.</p>
-<p>Longer code examples are in a syntax highlighted box that has controls for
-copying, executing, and showing hidden lines in the top right corner.</p>
-<pre><pre class="playpen"><code class="language-rust"># // This is a hidden line.
-fn main() {
-    println!(&quot;This is a code example&quot;);
-}
-</code></pre></pre>
-</li>
-<li>
-<p>The grammar and lexical structure is in blockquotes with either &quot;Lexer&quot; or
-&quot;Syntax&quot; in <sup><strong>bold superscript</strong></sup> as the first line.</p>
-<blockquote>
-<p><strong><sup>Syntax</sup></strong><br />
-<em>ExampleGrammar</em>:<br />
-      <code>~</code> <a href="expressions.html"><em>Expression</em></a><br />
+<p><strong>Syntax</strong><br>
+<em>ExampleGrammar</em>:<br>
+      <code>~</code> <a href="expressions.html"><em>Expression</em></a><br>
    | <code>box</code> <a href="expressions.html"><em>Expression</em></a></p>
 </blockquote>
-<p>See <a href="notation.html">Notation</a> for more detail.</p>
+<p>有关<a href="notation.html">详细信息</a>，请参阅表示法。</p>
 </li>
 </ul>
-<h2><a class="header" href="#contributing" id="contributing">Contributing</a></h2>
-<p>We welcome contributions of all kinds.</p>
-<p>You can contribute to this book by opening an issue or sending a pull
-request to <a href="https://github.com/rust-lang-nursery/reference/">the Rust Reference repository</a>. If this book does not answer
-your question, and you think its answer is in scope of it, please do not
-hesitate to file an issue or ask about it in the <code>#docs</code> channels on
-<a href="https://discord.gg/rust-lang">Discord</a>. Knowing what people use this book for the most helps direct our
-attention to making those sections the best that they can be.</p>
+<h2 id="%e7%89%b9%e7%ba%a6">特约</h2>
+<p>我们欢迎各种贡献。</p>
+<p>您可以通过打开问题或向<a href="https://github.com/rust-lang-nursery/reference/">The Rust Reference repository</a>存储库发送拉取请求来为本书做出贡献。如果本书没有回答您的问题，并且您认为其答案在其范围内，请不要犹豫，在Discord的<code>#docs</code>频道中 提出问题或询问。了解人们最常使用本书有助于引导我们注意使这些部分成为最佳部分。</p>
+
 
                     </main>
 

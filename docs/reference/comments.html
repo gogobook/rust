@@ -158,116 +158,106 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1><a class="header" href="#comments" id="comments">Comments</a></h1>
-<blockquote>
-<p><strong><sup>Lexer</sup></strong><br />
-LINE_COMMENT :<br />
-      <code>//</code> (~[<code>/</code> <code>!</code>] | <code>//</code>) ~<code>\n</code><sup>\*</sup><br />
-   | <code>//</code></p>
-<p>BLOCK_COMMENT :<br />
-      <code>/*</code> (~[<code>*</code> <code>!</code>] | <code>**</code> | <em>BlockCommentOrDoc</em>)
-(<em>BlockCommentOrDoc</em> | ~<code>*/</code>)<sup>\*</sup> <code>*/</code><br />
-   | <code>/**/</code><br />
-   | <code>/***/</code></p>
-<p>INNER_LINE_DOC :<br />
-   <code>//!</code> ~[<code>\n</code> <em>IsolatedCR</em>]<sup>\*</sup></p>
-<p>INNER_BLOCK_DOC :<br />
-   <code>/*!</code> ( <em>BlockCommentOrDoc</em> | ~[<code>*/</code> <em>IsolatedCR</em>] )<sup>\*</sup> <code>*/</code></p>
-<p>OUTER_LINE_DOC :<br />
-   <code>///</code> (~<code>/</code> ~[<code>\n</code> <em>IsolatedCR</em>]<sup>\*</sup>)<sup>?</sup></p>
-<p>OUTER_BLOCK_DOC :<br />
-   <code>/**</code> (~<code>*</code> | <em>BlockCommentOrDoc</em> )
-(<em>BlockCommentOrDoc</em> | ~[<code>*/</code> <em>IsolatedCR</em>])<sup>\*</sup> <code>*/</code></p>
-<p><em>BlockCommentOrDoc</em> :<br />
-      BLOCK_COMMENT<br />
-   | OUTER_BLOCK_DOC<br />
-   | INNER_BLOCK_DOC</p>
-<p><em>IsolatedCR</em> :<br />
-   <em>A <code>\r</code> not followed by a <code>\n</code></em></p>
-</blockquote>
-<h2><a class="header" href="#non-doc-comments" id="non-doc-comments">Non-doc comments</a></h2>
-<p>Comments in Rust code follow the general C++ style of line (<code>//</code>) and
-block (<code>/* ... */</code>) comment forms. Nested block comments are supported.</p>
-<p>Non-doc comments are interpreted as a form of whitespace.</p>
-<h2><a class="header" href="#doc-comments" id="doc-comments">Doc comments</a></h2>
-<p>Line doc comments beginning with exactly <em>three</em> slashes (<code>///</code>), and block
-doc comments (<code>/** ... */</code>), both inner doc comments, are interpreted as a
-special syntax for <a href="../rustdoc/the-doc-attribute.html"><code>doc</code> attributes</a>. That is, they are equivalent to writing
-<code>#[doc=&quot;...&quot;]</code> around the body of the comment, i.e., <code>/// Foo</code> turns into
-<code>#[doc=&quot;Foo&quot;]</code> and <code>/** Bar */</code> turns into <code>#[doc=&quot;Bar&quot;]</code>.</p>
-<p>Line comments beginning with <code>//!</code> and block comments <code>/*! ... */</code> are
-doc comments that apply to the parent of the comment, rather than the item
-that follows.  That is, they are equivalent to writing <code>#![doc=&quot;...&quot;]</code> around
-the body of the comment. <code>//!</code> comments are usually used to document
-modules that occupy a source file.</p>
-<p>Isolated CRs (<code>\r</code>), i.e. not followed by LF (<code>\n</code>), are not allowed in doc
-comments.</p>
-<h2><a class="header" href="#examples" id="examples">Examples</a></h2>
-<pre><pre class="playpen"><code class="language-rust">
-# #![allow(unused_variables)]
-#fn main() {
-//! A doc comment that applies to the implicit anonymous module of this crate
-
-pub mod outer_module {
-
-    //!  - Inner line doc
-    //!! - Still an inner line doc (but with a bang at the beginning)
-
-    /*!  - Inner block doc */
-    /*!! - Still an inner block doc (but with a bang at the beginning) */
-
-    //   - Only a comment
-    ///  - Outer line doc (exactly 3 slashes)
-    //// - Only a comment
-
-    /*   - Only a comment */
-    /**  - Outer block doc (exactly) 2 asterisks */
-    /*** - Only a comment */
-
-    pub mod inner_module {}
-
-    pub mod nested_comments {
-        /* In Rust /* we can /* nest comments */ */ */
-
-        // All three types of block comments can contain or be nested inside
-        // any other type:
-
-        /*   /* */  /** */  /*! */  */
-        /*!  /* */  /** */  /*! */  */
-        /**  /* */  /** */  /*! */  */
-        pub mod dummy_item {}
-    }
-
-    pub mod degenerate_cases {
-        // empty inner line doc
-        //!
-
-        // empty inner block doc
-        /*!*/
-
-        // empty line comment
-        //
-
-        // empty outer line doc
-        ///
-
-        // empty block comment
-        /**/
-
-        pub mod dummy_item {}
-
-        // empty 2-asterisk block isn't a doc block, it is a block comment
-        /***/
-
-    }
-
-    /* The next one isn't allowed because outer doc comments
-       require an item that will receive the doc */
-
-    /// Where is my item?
-#   mod boo {}
-}
-#}</code></pre></pre>
+                        <h1 id="%e6%b3%a8%e9%87%8a">注释</h1>
+                        <blockquote>
+                        <p>源 <a href="https://github.com/rust-lang-nursery/reference/blob/master/src/comments.md">comments</a> Commit: 993393d362cae51584d580f86c4f38d43ae76efc</p>
+                        </blockquote>
+                        <blockquote>
+                        <p><strong>Lexer</strong><br>
+                        LINE_COMMENT :<br>
+                              <code>//</code> (~[<code>/</code> <code>!</code>] | <code>//</code>) ~<code>\n</code>*<br>
+                           | <code>//</code></p>
+                        <p>BLOCK_COMMENT :<br>
+                              <code>/*</code> (~[<code>*</code> <code>!</code>] | <code>**</code> | <em>BlockCommentOrDoc</em>)
+                        (<em>BlockCommentOrDoc</em> | ~<code>*/</code>)* <code>*/</code><br>
+                           | <code>/**/</code><br>
+                           | <code>/***/</code></p>
+                        <p>INNER_LINE_DOC :<br>
+                           <code>//!</code> ~[<code>\n</code> <em>IsolatedCR</em>]*</p>
+                        <p>INNER_BLOCK_DOC :<br>
+                           <code>/*!</code> ( <em>BlockCommentOrDoc</em> | ~[<code>*/</code> <em>IsolatedCR</em>] )* <code>*/</code></p>
+                        <p>OUTER_LINE_DOC :<br>
+                           <code>///</code> (~<code>/</code> ~[<code>\n</code> <em>IsolatedCR</em>]*)?</p>
+                        <p>OUTER_BLOCK_DOC :<br>
+                           <code>/**</code> (~<code>*</code> | <em>BlockCommentOrDoc</em> )
+                        (<em>BlockCommentOrDoc</em> | ~[<code>*/</code> <em>IsolatedCR</em>])* <code>*/</code></p>
+                        <p><em>BlockCommentOrDoc</em> :<br>
+                              BLOCK_COMMENT<br>
+                           | OUTER_BLOCK_DOC<br>
+                           | INNER_BLOCK_DOC</p>
+                        <p><em>IsolatedCR</em> :<br>
+                           <em>A <code>\r</code> not followed by a <code>\n</code></em></p>
+                        </blockquote>
+                        <h2 id="%e9%9d%9e%e6%96%87%e6%a1%a3%e8%af%84%e8%ae%ba">非文档评论</h2>
+                        <p>Rust代码中的注释遵循C ++的line（//）和block（/ * ... * /）注释表现样式。 支持块嵌套注释。</p>
+                        <p>非文档注释被解释为空格的一种形式。</p>
+                        <h2 id="%e6%96%87%e6%a1%a3%e6%b3%a8%e9%87%8a">文档注释</h2>
+                        <p>完全以三个斜杠（///）开头的行文档注释和块文档注释（/ ** ... * /）两个内部文档注释都被解释为 doc属性的特殊语法。 也就是说，它们相当于围绕注释的主体编写＃[doc =“...”]，即/// Foo变成＃[doc =&quot;Foo&quot;]和/ ** Bar * /变成＃[DOC= &quot;Bar&quot;]。</p>
+                        <p>以//!开头的行注释 和块注释/ *！ ... * /都是适用于注释的父级的文档注释，而不是紧接着的项。 也就是说，它们相当于在注释正文周围写＃！[doc =&quot;...&quot;]。 //！ 注释通常用于记录占用源文件的模块。</p>
+                        <p>在文档注释中不允许使用隔离的CR（\ r），即不跟随LF（\ n）。</p>
+                        <h2 id="%e7%a4%ba%e4%be%8b">示例</h2>
+                        <pre><code class="language-rust"><div><span class="hljs-comment">//! A doc comment that applies to the implicit anonymous module of this crate</span>
+                        
+                        <span class="hljs-keyword">pub</span> <span class="hljs-keyword">mod</span> outer_module {
+                        
+                            <span class="hljs-comment">//!  - Inner line doc</span>
+                            <span class="hljs-comment">//!! - Still an inner line doc (but with a bang at the beginning)</span>
+                        
+                            <span class="hljs-comment">/*!  - Inner block doc */</span>
+                            <span class="hljs-comment">/*!! - Still an inner block doc (but with a bang at the beginning) */</span>
+                        
+                            <span class="hljs-comment">//   - Only a comment</span>
+                            <span class="hljs-comment">///  - Outer line doc (exactly 3 slashes)</span>
+                            <span class="hljs-comment">//// - Only a comment</span>
+                        
+                            <span class="hljs-comment">/*   - Only a comment */</span>
+                            <span class="hljs-comment">/**  - Outer block doc (exactly) 2 asterisks */</span>
+                            <span class="hljs-comment">/*** - Only a comment */</span>
+                        
+                            <span class="hljs-keyword">pub</span> <span class="hljs-keyword">mod</span> inner_module {}
+                        
+                            <span class="hljs-keyword">pub</span> <span class="hljs-keyword">mod</span> nested_comments {
+                                <span class="hljs-comment">/* In Rust <span class="hljs-comment">/* we can <span class="hljs-comment">/* nest comments */</span> */</span> */</span>
+                        
+                                <span class="hljs-comment">// All three types of block comments can contain or be nested inside</span>
+                                <span class="hljs-comment">// any other type:</span>
+                        
+                                <span class="hljs-comment">/*   <span class="hljs-comment">/* */</span>  <span class="hljs-comment">/** */</span>  <span class="hljs-comment">/*! */</span>  */</span>
+                                <span class="hljs-comment">/*!  <span class="hljs-comment">/* */</span>  <span class="hljs-comment">/** */</span>  <span class="hljs-comment">/*! */</span>  */</span>
+                                <span class="hljs-comment">/**  <span class="hljs-comment">/* */</span>  <span class="hljs-comment">/** */</span>  <span class="hljs-comment">/*! */</span>  */</span>
+                                <span class="hljs-keyword">pub</span> <span class="hljs-keyword">mod</span> dummy_item {}
+                            }
+                        
+                            <span class="hljs-keyword">pub</span> <span class="hljs-keyword">mod</span> degenerate_cases {
+                                <span class="hljs-comment">// empty inner line doc</span>
+                                <span class="hljs-comment">//!</span>
+                        
+                                <span class="hljs-comment">// empty inner block doc</span>
+                                <span class="hljs-comment">/*!*/</span>
+                        
+                                <span class="hljs-comment">// empty line comment</span>
+                                <span class="hljs-comment">//</span>
+                        
+                                <span class="hljs-comment">// empty outer line doc</span>
+                                <span class="hljs-comment">///</span>
+                        
+                                <span class="hljs-comment">// empty block comment</span>
+                                <span class="hljs-comment">/**/</span>
+                        
+                                <span class="hljs-keyword">pub</span> <span class="hljs-keyword">mod</span> dummy_item {}
+                        
+                                <span class="hljs-comment">// empty 2-asterisk block isn't a doc block, it is a block comment</span>
+                                <span class="hljs-comment">/***/</span>
+                        
+                            }
+                        
+                            <span class="hljs-comment">/* The next one isn't allowed because outer doc comments
+                               require an item that will receive the doc */</span>
+                        
+                            <span class="hljs-comment">/// Where is my item?</span>
+                        #   <span class="hljs-keyword">mod</span> boo {}
+                        }
+                        </div></code></pre>
 
                     </main>
 
