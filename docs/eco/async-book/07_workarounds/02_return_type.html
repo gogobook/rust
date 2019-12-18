@@ -153,59 +153,47 @@
                 <div id="content" class="content">
                     <main>
                         <h1><a class="header" href="#return-type-errors" id="return-type-errors">Return Type Errors</a></h1>
-<p>In a typical Rust function, returning a value of the wrong type will result
-in an error that looks something like this:</p>
-<pre><code>error[E0308]: mismatched types
- --&gt; src/main.rs:2:12
-  |
-1 | fn foo() {
-  |           - expected `()` because of default return type
-2 |     return &quot;foo&quot;
-  |            ^^^^^ expected (), found reference
-  |
-  = note: expected type `()`
-             found type `&amp;'static str`
-</code></pre>
-<p>However, the current <code>async fn</code> support doesn't know to &quot;trust&quot; the return
-type written in the function signature, causing mismatched or even
-reversed-sounding errors. For example, the function
-<code>async fn foo() { &quot;foo&quot; }</code> results in this error:</p>
-<pre><code>error[E0271]: type mismatch resolving `&lt;impl std::future::Future as std::future::Future&gt;::Output == ()`
- --&gt; src/lib.rs:1:16
-  |
-1 | async fn foo() {
-  |                ^ expected &amp;str, found ()
-  |
-  = note: expected type `&amp;str`
-             found type `()`
-  = note: the return type of a function must have a statically known size
-</code></pre>
-<p>The error says that it <em>expected</em> <code>&amp;str</code> and found <code>()</code>,
-which is actually the exact opposite of what you'd want. This is because the
-compiler is incorrectly trusting the function body to return the correct type.</p>
-<p>The workaround for this issue is to recognize that errors pointing to the
-function signature with the message &quot;expected <code>SomeType</code>, found <code>OtherType</code>&quot;
-usually indicate that one or more return sites are incorrect.</p>
-<p>A fix to this issue is being tracked in <a href="https://github.com/rust-lang/rust/issues/54326">this bug</a>.</p>
-<h2><a class="header" href="#boxdyn-trait" id="boxdyn-trait"><code>Box&lt;dyn Trait&gt;</code></a></h2>
-<p>Similarly, because the return type from the function signature is not
-propagated down correctly, values returned from <code>async fn</code> aren't correctly
-coerced to their expected type.</p>
-<p>In practice, this means that returning <code>Box&lt;dyn Trait&gt;</code> objects from an
-<code>async fn</code> requires manually <code>as</code>-casting from <code>Box&lt;MyType&gt;</code> to
-<code>Box&lt;dyn Trait&gt;</code>.</p>
-<p>This code will result in an error:</p>
-<pre><code>async fn x() -&gt; Box&lt;dyn std::fmt::Display&gt; {
-    Box::new(&quot;foo&quot;)
-}
-</code></pre>
-<p>This issue can be worked around by manually casting using <code>as</code>:</p>
-<pre><code>async fn x() -&gt; Box&lt;dyn std::fmt::Display&gt; {
-    Box::new(&quot;foo&quot;) as Box&lt;dyn std::fmt::Display&gt;
-}
-</code></pre>
-<p>A fix to this issue is being tracked in <a href="https://github.com/rust-lang/rust/issues/60424">this bug</a>.</p>
-
+    <p>在典型的 Rust 函数中，返回的值若是有个错误的类型，将导致出现如下所示的错误：</p>
+    <pre><code>error[E0308]: mismatched types
+     --&gt; src/main.rs:2:12
+      |
+    1 | fn foo() {
+      |           - expected `()` because of default return type
+    2 |     return &quot;foo&quot;
+      |            ^^^^^ expected (), found reference
+      |
+      = note: expected type `()`
+                 found type `&amp;'static str`
+    </code></pre>
+    <p>但是，目前<code>async fn</code>的支持，还不知道“信任”函数签名中编写的返回类型，从而导致不匹配甚至反标准错误。例如，函数<code>async fn foo() { &quot;foo&quot; }</code>导致此错误：</p>
+    <pre><code>error[E0271]: type mismatch resolving `&lt;impl std::future::Future as std::future::Future&gt;::Output == ()`
+     --&gt; src/lib.rs:1:16
+      |
+    1 | async fn foo() {
+      |                ^ expected &amp;str, found ()
+      |
+      = note: expected type `&amp;str`
+                 found type `()`
+      = note: the return type of a function must have a statically known size
+    </code></pre>
+    <p>这个错误说得是：它 <em>expected</em> <code>&amp;str</code>，但发现了<code>()</code>，实际上，这就与您想要的完全相反。这是因为编译器错误地信任，函数主体会返回正确的类型。</p>
+    <p>此问题的变通办法是识别，指向带有”expected <code>SomeType</code>, found <code>OtherType</code>“信息的函数签名的错误，通常表示一个或多个返回站点不正确。</p>
+    <p>Fix in <a href="https://github.com/rust-lang/rust/issues/54326">this bug</a>，可以跟踪浏览下。</p>
+    <h2><a class="header" href="#boxdyn-trait" id="boxdyn-trait"><code>Box&lt;dyn Trait&gt;</code></a></h2>
+    <p>同样，由于函数签名的返回类型，没有正确传播，因此来自<code>async fn</code>的值，没有正确地强制使用其预期的类型。</p>
+    <p>实践中，这意味着，<code>async fn</code>返回的<code>Box&lt;dyn Trait&gt;</code>对象需要手动<code>as</code>，将<code>Box&lt;MyType&gt;</code>转为<code>Box&lt;dyn Trait&gt;</code>。</p>
+    <p>此代码将导致错误：</p>
+    <pre><code>async fn x() -&gt; Box&lt;dyn std::fmt::Display&gt; {
+        Box::new(&quot;foo&quot;)
+    }
+    </code></pre>
+    <p>可以通过使用<code>as</code>，这个错误就消除了：</p>
+    <pre><code>async fn x() -&gt; Box&lt;dyn std::fmt::Display&gt; {
+        Box::new(&quot;foo&quot;) as Box&lt;dyn std::fmt::Display&gt;
+    }
+    </code></pre>
+    <p>Fix in <a href="https://github.com/rust-lang/rust/issues/60424">this bug</a>，可以跟踪浏览。</p>
+    
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

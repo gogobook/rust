@@ -153,65 +153,59 @@
                 <div id="content" class="content">
                     <main>
                         <h1><a class="header" href="#recursion" id="recursion">Recursion</a></h1>
-<p>Internally, <code>async fn</code> creates a state machine type containing each
-sub-<code>Future</code> being <code>.await</code>ed. This makes recursive <code>async fn</code>s a little
-tricky, since the resulting state machine type has to contain itself:</p>
-<pre><pre class="playpen"><code class="language-rust">
-<span class="boring">#![allow(unused_variables)]
-</span><span class="boring">fn main() {
-</span>// This function:
-async fn foo() {
-    step_one().await;
-    step_two().await;
-}
-// generates a type like this:
-enum Foo {
-    First(StepOne),
-    Second(StepTwo),
-}
-
-// So this function:
-async fn recursive() {
-    recursive().await;
-    recursive().await;
-}
-
-// generates a type like this:
-enum Recursive {
-    First(Recursive),
-    Second(Recursive),
-}
-<span class="boring">}
-</span></code></pre></pre>
-<p>This won't work-- we've created an infinitely-sized type!
-The compiler will complain:</p>
-<pre><code>error[E0733]: recursion in an `async fn` requires boxing
- --&gt; src/lib.rs:1:22
-  |
-1 | async fn recursive() {
-  |                      ^ an `async fn` cannot invoke itself directly
-  |
-  = note: a recursive `async fn` must be rewritten to return a boxed future.
-</code></pre>
-<p>In order to allow this, we have to introduce an indirection using <code>Box</code>.
-Unfortunately, compiler limitations mean that just wrapping the calls to
-<code>recursive()</code> in <code>Box::pin</code> isn't enough. To make this work, we have
-to make <code>recursive</code> into a non-<code>async</code> function which returns a <code>.boxed()</code>
-<code>async</code> block:</p>
-<pre><pre class="playpen"><code class="language-rust">
-<span class="boring">#![allow(unused_variables)]
-</span><span class="boring">fn main() {
-</span>use futures::future::{BoxFuture, FutureExt};
-
-fn recursive() -&gt; BoxFuture&lt;'static, ()&gt; {
-    async move {
+    <p>在内部，<code>async fn</code>创建一个状态机类型，它包含每个子-<code>Future</code>，且都正处于<code>.await</code>ed。这使得递归<code>async fn</code>有点棘手，因状态机类型的结果必须包含自身：</p>
+    <pre><pre class="playpen"><code class="language-rust">
+    <span class="boring">#![allow(unused_variables)]
+    </span><span class="boring">fn main() {
+    </span>// 这个函数:
+    async fn foo() {
+        step_one().await;
+        step_two().await;
+    }
+    // 生成了一个类型，如下:
+    enum Foo {
+        First(StepOne),
+        Second(StepTwo),
+    }
+    
+    // 所以，这个函数:
+    async fn recursive() {
         recursive().await;
         recursive().await;
-    }.boxed()
-}
-<span class="boring">}
-</span></code></pre></pre>
-
+    }
+    
+    // 就生成了一个类型，如下:
+    enum Recursive {
+        First(Recursive),
+        Second(Recursive),
+    }
+    <span class="boring">}
+    </span></code></pre></pre>
+    <p>这行不通——我们创建了一个无限大的类型！编译器会抱怨：</p>
+    <pre><code>error[E0733]: recursion in an `async fn` requires boxing
+     --&gt; src/lib.rs:1:22
+      |
+    1 | async fn recursive() {
+      |                      ^ an `async fn` cannot invoke itself directly
+      |
+      = note: a recursive `async fn` must be rewritten to return a boxed future.
+    </code></pre>
+    <p>为了搞定这一点，我们必须用<code>Box</code>剑走偏锋。但不幸的是，编译器的局限性意味着，仅将对<code>recursive()</code>的 call 包裹进<code>Box::pin</code>，是还不够的，我们必须将<code>recursive</code>变成非<code>async</code>函数，且它返回一个<code>.boxed()</code>
+    <code>async</code>代码块：</p>
+    <pre><pre class="playpen"><code class="language-rust">
+    <span class="boring">#![allow(unused_variables)]
+    </span><span class="boring">fn main() {
+    </span>use futures::future::{BoxFuture, FutureExt};
+    
+    fn recursive() -&gt; BoxFuture&lt;'static, ()&gt; {
+        async move {
+            recursive().await;
+            recursive().await;
+        }.boxed()
+    }
+    <span class="boring">}
+    </span></code></pre></pre>
+    
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

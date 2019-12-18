@@ -153,100 +153,86 @@
                 <div id="content" class="content">
                     <main>
                         <h1><a class="header" href="#send-approximation" id="send-approximation"><code>Send</code> Approximation</a></h1>
-<p>Some <code>async fn</code> state machines are safe to be sent across threads, while
-others are not. Whether or not an <code>async fn</code> <code>Future</code> is <code>Send</code> is determined
-by whether a non-<code>Send</code> type is held across an <code>.await</code> point. The compiler
-does its best to approximate when values may be held across an <code>.await</code>
-point, but this analysis is too conservative in a number of places today.</p>
-<p>For example, consider a simple non-<code>Send</code> type, perhaps a type
-which contains an <code>Rc</code>:</p>
-<pre><pre class="playpen"><code class="language-rust">
-<span class="boring">#![allow(unused_variables)]
-</span><span class="boring">fn main() {
-</span>use std::rc::Rc;
-
-#[derive(Default)]
-struct NotSend(Rc&lt;()&gt;);
-<span class="boring">}
-</span></code></pre></pre>
-<p>Variables of type <code>NotSend</code> can briefly appear as temporaries in <code>async fn</code>s
-even when the resulting <code>Future</code> type returned by the <code>async fn</code> must be <code>Send</code>:</p>
-<pre><pre class="playpen"><code class="language-rust"><span class="boring">use std::rc::Rc;
-</span><span class="boring">#[derive(Default)]
-</span><span class="boring">struct NotSend(Rc&lt;()&gt;);
-</span>async fn bar() {}
-async fn foo() {
-    NotSend::default();
-    bar().await;
-}
-
-fn require_send(_: impl Send) {}
-
-fn main() {
-    require_send(foo());
-}
-</code></pre></pre>
-<p>However, if we change <code>foo</code> to store <code>NotSend</code> in a variable, this example no
-longer compiles:</p>
-<pre><pre class="playpen"><code class="language-rust">
-<span class="boring">#![allow(unused_variables)]
-</span><span class="boring">fn main() {
-</span><span class="boring">use std::rc::Rc;
-</span><span class="boring">#[derive(Default)]
-</span><span class="boring">struct NotSend(Rc&lt;()&gt;);
-</span>async fn foo() {
-    let x = NotSend::default();
-    bar().await;
-}
-<span class="boring">}
-</span></code></pre></pre>
-<pre><code>error[E0277]: `std::rc::Rc&lt;()&gt;` cannot be sent between threads safely
-  --&gt; src/main.rs:15:5
-   |
-15 |     require_send(foo());
-   |     ^^^^^^^^^^^^ `std::rc::Rc&lt;()&gt;` cannot be sent between threads safely
-   |
-   = help: within `impl std::future::Future`, the trait `std::marker::Send` is not implemented for `std::rc::Rc&lt;()&gt;`
-   = note: required because it appears within the type `NotSend`
-   = note: required because it appears within the type `{NotSend, impl std::future::Future, ()}`
-   = note: required because it appears within the type `[static generator@src/main.rs:7:16: 10:2 {NotSend, impl std::future::Future, ()}]`
-   = note: required because it appears within the type `std::future::GenFuture&lt;[static generator@src/main.rs:7:16: 10:2 {NotSend, impl std::future::Future, ()}]&gt;`
-   = note: required because it appears within the type `impl std::future::Future`
-   = note: required because it appears within the type `impl std::future::Future`
-note: required by `require_send`
-  --&gt; src/main.rs:12:1
-   |
-12 | fn require_send(_: impl Send) {}
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-error: aborting due to previous error
-
-For more information about this error, try `rustc --explain E0277`.
-</code></pre>
-<p>This error is correct. If we store <code>x</code> into a variable, it won't be dropped
-until after the <code>.await</code>, at which point the <code>async fn</code> may be running on
-a different thread. Since <code>Rc</code> is not <code>Send</code>, allowing it to travel across
-threads would be unsound. One simple solution to this would be to <code>drop</code>
-the <code>Rc</code> before the <code>.await</code>, but unfortunately that does not work today.</p>
-<p>In order to successfully work around this issue, you may have to introduce
-a block scope encapsulating any non-<code>Send</code> variables. This makes it easier
-for the compiler to tell that these variables do not live across an
-<code>.await</code> point.</p>
-<pre><pre class="playpen"><code class="language-rust">
-<span class="boring">#![allow(unused_variables)]
-</span><span class="boring">fn main() {
-</span><span class="boring">use std::rc::Rc;
-</span><span class="boring">#[derive(Default)]
-</span><span class="boring">struct NotSend(Rc&lt;()&gt;);
-</span>async fn foo() {
-    {
-        let x = NotSend::default();
+    <p>一些<code>async fn</code>状态机可以安全地越过线程发送，而其他则不能。判断一个<code>async fn</code> <code>Future</code>是不是<code>Send</code>，由非<code>Send</code>类型是否越过一个<code>.await</code>据点决定的。当可以越过了<code>.await</code>据点，编译器会尽力去估计这个是/否。但是今天的许多地方，这种分析都太保守了。</p>
+    <p>例如，考虑一个简单的非<code>Send</code>类型，也许包含一个<code>Rc</code>：</p>
+    <pre><pre class="playpen"><code class="language-rust">
+    <span class="boring">#![allow(unused_variables)]
+    </span><span class="boring">fn main() {
+    </span>use std::rc::Rc;
+    
+    #[derive(Default)]
+    struct NotSend(Rc&lt;()&gt;);
+    <span class="boring">}
+    </span></code></pre></pre>
+    <p>类型<code>NotSend</code>的变量可以短暂的，像暂时变量一样出现在<code>async fn</code>s，即使说<code>async fn</code>返回的<code>Future</code>类型结果，一定要是<code>Send</code>：</p>
+    <pre><pre class="playpen"><code class="language-rust"><span class="boring">use std::rc::Rc;
+    </span><span class="boring">#[derive(Default)]
+    </span><span class="boring">struct NotSend(Rc&lt;()&gt;);
+    </span>async fn bar() {}
+    async fn foo() {
+        NotSend::default();
+        bar().await;
     }
-    bar().await;
-}
-<span class="boring">}
-</span></code></pre></pre>
-
+    
+    fn require_send(_: impl Send) {}
+    
+    fn main() {
+        require_send(foo());
+    }
+    </code></pre></pre>
+    <p>但是，如果我们对<code>foo</code>修改一下，将<code>NotSend</code>存储在一个变量中，那么此示例不再编译：</p>
+    <pre><pre class="playpen"><code class="language-rust">
+    <span class="boring">#![allow(unused_variables)]
+    </span><span class="boring">fn main() {
+    </span><span class="boring">use std::rc::Rc;
+    </span><span class="boring">#[derive(Default)]
+    </span><span class="boring">struct NotSend(Rc&lt;()&gt;);
+    </span>async fn foo() {
+        let x = NotSend::default();
+        bar().await;
+    }
+    <span class="boring">}
+    </span></code></pre></pre>
+    <pre><code>error[E0277]: `std::rc::Rc&lt;()&gt;` cannot be sent between threads safely
+      --&gt; src/main.rs:15:5
+       |
+    15 |     require_send(foo());
+       |     ^^^^^^^^^^^^ `std::rc::Rc&lt;()&gt;` cannot be sent between threads safely
+       |
+       = help: within `impl std::future::Future`, the trait `std::marker::Send` is not implemented for `std::rc::Rc&lt;()&gt;`
+       = note: required because it appears within the type `NotSend`
+       = note: required because it appears within the type `{NotSend, impl std::future::Future, ()}`
+       = note: required because it appears within the type `[static generator@src/main.rs:7:16: 10:2 {NotSend, impl std::future::Future, ()}]`
+       = note: required because it appears within the type `std::future::GenFuture&lt;[static generator@src/main.rs:7:16: 10:2 {NotSend, impl std::future::Future, ()}]&gt;`
+       = note: required because it appears within the type `impl std::future::Future`
+       = note: required because it appears within the type `impl std::future::Future`
+    note: required by `require_send`
+      --&gt; src/main.rs:12:1
+       |
+    12 | fn require_send(_: impl Send) {}
+       | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    
+    error: aborting due to previous error
+    
+    For more information about this error, try `rustc --explain E0277`.
+    </code></pre>
+    <p>此错误是正确的。如果我们将<code>x</code>存储到一个变量中，在<code>.await</code>搞完之前，这个变量都不会 drop，而此时，这个<code>async fn</code>有可能在其他线程上运行。因<code>Rc</code>不是<code>Send</code>，让它越过线程传播是不合理的。一个简单的解决方案是在<code>.await</code>之前，就对<code>Rc</code>进行<code>drop</code>，但是很遗憾，今天这个还不能用。</p>
+    <p>为了成功解决此问题，您可能必须引入一个封装了所有非<code>Send</code>的变量。这使编译器更容易知道这些变量，不越过<code>.await</code>据点。</p>
+    <pre><pre class="playpen"><code class="language-rust">
+    <span class="boring">#![allow(unused_variables)]
+    </span><span class="boring">fn main() {
+    </span><span class="boring">use std::rc::Rc;
+    </span><span class="boring">#[derive(Default)]
+    </span><span class="boring">struct NotSend(Rc&lt;()&gt;);
+    </span>async fn foo() {
+        {
+            let x = NotSend::default();
+        }
+        bar().await;
+    }
+    <span class="boring">}
+    </span></code></pre></pre>
+    
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">

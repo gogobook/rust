@@ -153,13 +153,8 @@
                 <div id="content" class="content">
                     <main>
                         <h1><a class="header" href="#iteration-and-concurrency" id="iteration-and-concurrency">Iteration and Concurrency</a></h1>
-<p>Similar to synchronous <code>Iterator</code>s, there are many different ways to iterate
-over and process the values in a <code>Stream</code>. There are combinator-style methods
-such as <code>map</code>, <code>filter</code>, and <code>fold</code>, and their early-exit-on-error cousins
-<code>try_map</code>, <code>try_filter</code>, and <code>try_fold</code>.</p>
-<p>Unfortunately, <code>for</code> loops are not usable with <code>Stream</code>s, but for
-imperative-style code, <code>while let</code> and the <code>next</code>/<code>try_next</code> functions can
-be used:</p>
+<p>类似于同步  方式的<code>Iterator</code>，这里有很多不同的方法可以迭代和处理一个<code>Stream</code>中的值。有组合器样式的方法，例如<code>map</code>，<code>filter</code>和<code>fold</code>和他们的有错误就早退的表弟<code>try_map</code>，<code>try_filter</code>和<code>try_fold</code>。</p>
+<p>不幸，<code>for</code>循环不适用于<code>Stream</code>s，但对于命令式代码，<code>while let</code>和<code>next</code>/<code>try_next</code>函数可以这样用：</p>
 <pre><pre class="playpen"><code class="language-rust">
 <span class="boring">#![allow(unused_variables)]
 </span><span class="boring">fn main() {
@@ -184,11 +179,7 @@ async fn sum_with_try_next(
 }
 <span class="boring">}
 </span></code></pre></pre>
-<p>However, if we're just processing one element at a time, we're potentially
-leaving behind opportunity for concurrency, which is, after all, why we're
-writing async code in the first place. To process multiple items from a stream
-concurrently, use the <code>for_each_concurrent</code> and <code>try_for_each_concurrent</code>
-methods:</p>
+<p>但是，如果我们一次只处理一个元素，则可能会失去了并发的机会，这毕竟这是我们要编写异步代码的首要原因。要同时处理一个 stream 中的多个 items，请使用<code>for_each_concurrent</code>和<code>try_for_each_concurrent</code>方法：</p>
 <pre><pre class="playpen"><code class="language-rust">
 <span class="boring">#![allow(unused_variables)]
 </span><span class="boring">fn main() {

@@ -153,8 +153,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1><a class="header" href="#the-stream-trait" id="the-stream-trait">The <code>Stream</code> Trait</a></h1>
-<p>The <code>Stream</code> trait is similar to <code>Future</code> but can yield multiple values before
-completing, similar to the <code>Iterator</code> trait from the standard library:</p>
+<p><code>Stream</code> trait 类似于<code>Future</code>，但可以在完成之前，yield 多个值，类似于标准库的 <code>Iterator</code> trait：</p>
 <pre><pre class="playpen"><code class="language-rust">
 <span class="boring">#![allow(unused_variables)]
 </span><span class="boring">fn main() {
@@ -170,10 +169,7 @@ completing, similar to the <code>Iterator</code> trait from the standard library
 }
 <span class="boring">}
 </span></code></pre></pre>
-<p>One common example of a <code>Stream</code> is the <code>Receiver</code> for the channel type from
-the <code>futures</code> crate. It will yield <code>Some(val)</code> every time a value is sent
-from the <code>Sender</code> end, and will yield <code>None</code> once the <code>Sender</code> has been
-dropped and all pending messages have been received:</p>
+<p>一个<code>Stream</code>的常见例子是，这个<code>Receiver</code>用于<code>futures</code>箱子的 channel 类型。它会在每次<code>Sender</code>端发送一个值，都会 yield <code>Some(val)</code>，并且一旦<code>Sender</code>被 dropped 和接收到了所有 pending 消息，就会 yield <code>None</code>：</p>
 <pre><pre class="playpen"><code class="language-rust">
 <span class="boring">#![allow(unused_variables)]
 </span><span class="boring">fn main() {

@@ -153,234 +153,199 @@
                 <div id="content" class="content">
                     <main>
                         <h1><a class="header" href="#select" id="select"><code>select!</code></a></h1>
-<p>The <code>futures::select</code> macro runs multiple futures simultaneously, allowing
-the user to respond as soon as any future completes.</p>
-<pre><pre class="playpen"><code class="language-rust">
-<span class="boring">#![allow(unused_variables)]
-</span><span class="boring">fn main() {
-</span>use futures::{
-    future::FutureExt, // for `.fuse()`
-    pin_mut,
-    select,
-};
-
-async fn task_one() { /* ... */ }
-async fn task_two() { /* ... */ }
-
-async fn race_tasks() {
-    let t1 = task_one().fuse();
-    let t2 = task_two().fuse();
-
-    pin_mut!(t1, t2);
-
-    select! {
-        () = t1 =&gt; println!(&quot;task one completed first&quot;),
-        () = t2 =&gt; println!(&quot;task two completed first&quot;),
-    }
-}
-<span class="boring">}
-</span></code></pre></pre>
-<p>The function above will run both <code>t1</code> and <code>t2</code> concurrently. When either
-<code>t1</code> or <code>t2</code> finishes, the corresponding handler will call <code>println!</code>, and
-the function will end without completing the remaining task.</p>
-<p>The basic syntax for <code>select</code> is <code>&lt;pattern&gt; = &lt;expression&gt; =&gt; &lt;code&gt;,</code>,
-repeated for as many futures as you would like to <code>select</code> over.</p>
-<h2><a class="header" href="#default---and-complete--" id="default---and-complete--"><code>default =&gt; ...</code> and <code>complete =&gt; ...</code></a></h2>
-<p><code>select</code> also supports <code>default</code> and <code>complete</code> branches.</p>
-<p>A <code>default</code> branch will run if none of the futures being <code>select</code>ed
-over are yet complete. A <code>select</code> with a <code>default</code> branch will
-therefore always return immediately, since <code>default</code> will be run
-if none of the other futures are ready.</p>
-<p><code>complete</code> branches can be used to handle the case where all futures
-being <code>select</code>ed over have completed and will no longer make progress.
-This is often handy when looping over a <code>select!</code>.</p>
-<pre><pre class="playpen"><code class="language-rust">
-<span class="boring">#![allow(unused_variables)]
-</span><span class="boring">fn main() {
-</span>use futures::{future, select};
-
-async fn count() {
-    let mut a_fut = future::ready(4);
-    let mut b_fut = future::ready(6);
-    let mut total = 0;
-
-    loop {
-        select! {
-            a = a_fut =&gt; total += a,
-            b = b_fut =&gt; total += b,
-            complete =&gt; break,
-            default =&gt; unreachable!(), // never runs (futures are ready, then complete)
-        };
-    }
-    assert_eq!(total, 10);
-}
-<span class="boring">}
-</span></code></pre></pre>
-<h2><a class="header" href="#interaction-with-unpin-and-fusedfuture" id="interaction-with-unpin-and-fusedfuture">Interaction with <code>Unpin</code> and <code>FusedFuture</code></a></h2>
-<p>One thing you may have noticed in the first example above is that we
-had to call <code>.fuse()</code> on the futures returned by the two <code>async fn</code>s,
-as well as pinning them with <code>pin_mut</code>. Both of these calls are necessary
-because the futures used in <code>select</code> must implement both the <code>Unpin</code>
-trait and the <code>FusedFuture</code> trait.</p>
-<p><code>Unpin</code> is necessary because the futures used by <code>select</code> are not
-taken by value, but by mutable reference. By not taking ownership
-of the future, uncompleted futures can be used again after the
-call to <code>select</code>.</p>
-<p>Similarly, the <code>FusedFuture</code> trait is required because <code>select</code> must
-not poll a future after it has completed. <code>FusedFuture</code> is implemented
-by futures which track whether or not they have completed. This makes
-it possible to use <code>select</code> in a loop, only polling the futures which
-still have yet to complete. This can be seen in the example above,
-where <code>a_fut</code> or <code>b_fut</code> will have completed the second time through
-the loop. Because the future returned by <code>future::ready</code> implements
-<code>FusedFuture</code>, it's able to tell <code>select</code> not to poll it again.</p>
-<p>Note that streams have a corresponding <code>FusedStream</code> trait. Streams
-which implement this trait or have been wrapped using <code>.fuse()</code>
-will yield <code>FusedFuture</code> futures from their
-<code>.next()</code> / <code>.try_next()</code> combinators.</p>
-<pre><pre class="playpen"><code class="language-rust">
-<span class="boring">#![allow(unused_variables)]
-</span><span class="boring">fn main() {
-</span>use futures::{
-    stream::{Stream, StreamExt, FusedStream},
-    select,
-};
-
-async fn add_two_streams(
-    mut s1: impl Stream&lt;Item = u8&gt; + FusedStream + Unpin,
-    mut s2: impl Stream&lt;Item = u8&gt; + FusedStream + Unpin,
-) -&gt; u8 {
-    let mut total = 0;
-
-    loop {
-        let item = select! {
-            x = s1.next() =&gt; x,
-            x = s2.next() =&gt; x,
-            complete =&gt; break,
-        };
-        if let Some(next_num) = item {
-            total += next_num;
-        }
-    }
-
-    total
-}
-<span class="boring">}
-</span></code></pre></pre>
-<h2><a class="header" href="#concurrent-tasks-in-a-select-loop-with-fuse-and-futuresunordered" id="concurrent-tasks-in-a-select-loop-with-fuse-and-futuresunordered">Concurrent tasks in a <code>select</code> loop with <code>Fuse</code> and <code>FuturesUnordered</code></a></h2>
-<p>One somewhat hard-to-discover but handy function is <code>Fuse::terminated()</code>,
-which allows constructing an empty future which is already terminated,
-and can later be filled in with a future that needs to be run.</p>
-<p>This can be handy when there's a task that needs to be run during a <code>select</code>
-loop but which is created inside the <code>select</code> loop itself.</p>
-<p>Note the use of the <code>.select_next_some()</code> function. This can be
-used with <code>select</code> to only run the branch for <code>Some(_)</code> values
-returned from the stream, ignoring <code>None</code>s.</p>
-<pre><pre class="playpen"><code class="language-rust">
-<span class="boring">#![allow(unused_variables)]
-</span><span class="boring">fn main() {
-</span>use futures::{
-    future::{Fuse, FusedFuture, FutureExt},
-    stream::{FusedStream, Stream, StreamExt},
-    pin_mut,
-    select,
-};
-
-async fn get_new_num() -&gt; u8 { /* ... */ 5 }
-
-async fn run_on_new_num(_: u8) { /* ... */ }
-
-async fn run_loop(
-    mut interval_timer: impl Stream&lt;Item = ()&gt; + FusedStream + Unpin,
-    starting_num: u8,
-) {
-    let run_on_new_num_fut = run_on_new_num(starting_num).fuse();
-    let get_new_num_fut = Fuse::terminated();
-    pin_mut!(run_on_new_num_fut, get_new_num_fut);
-    loop {
-        select! {
-            () = interval_timer.select_next_some() =&gt; {
-                // The timer has elapsed. Start a new `get_new_num_fut`
-                // if one was not already running.
-                if get_new_num_fut.is_terminated() {
-                    get_new_num_fut.set(get_new_num().fuse());
-                }
-            },
-            new_num = get_new_num_fut =&gt; {
-                // A new number has arrived-- start a new `run_on_new_num_fut`,
-                // dropping the old one.
-                run_on_new_num_fut.set(run_on_new_num(new_num).fuse());
-            },
-            // Run the `run_on_new_num_fut`
-            () = run_on_new_num_fut =&gt; {},
-            // panic if everything completed, since the `interval_timer` should
-            // keep yielding values indefinitely.
-            complete =&gt; panic!(&quot;`interval_timer` completed unexpectedly&quot;),
-        }
-    }
-}
-<span class="boring">}
-</span></code></pre></pre>
-<p>When many copies of the same future need to be run simultaneously,
-use the <code>FuturesUnordered</code> type. The following example is similar
-to the one above, but will run each copy of <code>run_on_new_num_fut</code>
-to completion, rather than aborting them when a new one is created.
-It will also print out a value returned by <code>run_on_new_num_fut</code>.</p>
-<pre><pre class="playpen"><code class="language-rust">
-<span class="boring">#![allow(unused_variables)]
-</span><span class="boring">fn main() {
-</span>use futures::{
-    future::{Fuse, FusedFuture, FutureExt},
-    stream::{FusedStream, FuturesUnordered, Stream, StreamExt},
-    pin_mut,
-    select,
-};
-
-async fn get_new_num() -&gt; u8 { /* ... */ 5 }
-
-async fn run_on_new_num(_: u8) -&gt; u8 { /* ... */ 5 }
-
-// Runs `run_on_new_num` with the latest number
-// retrieved from `get_new_num`.
-//
-// `get_new_num` is re-run every time a timer elapses,
-// immediately cancelling the currently running
-// `run_on_new_num` and replacing it with the newly
-// returned value.
-async fn run_loop(
-    mut interval_timer: impl Stream&lt;Item = ()&gt; + FusedStream + Unpin,
-    starting_num: u8,
-) {
-    let mut run_on_new_num_futs = FuturesUnordered::new();
-    run_on_new_num_futs.push(run_on_new_num(starting_num));
-    let get_new_num_fut = Fuse::terminated();
-    pin_mut!(get_new_num_fut);
-    loop {
-        select! {
-            () = interval_timer.select_next_some() =&gt; {
-                // The timer has elapsed. Start a new `get_new_num_fut`
-                // if one was not already running.
-                if get_new_num_fut.is_terminated() {
-                    get_new_num_fut.set(get_new_num().fuse());
-                }
-            },
-            new_num = get_new_num_fut =&gt; {
-                // A new number has arrived-- start a new `run_on_new_num_fut`.
-                run_on_new_num_futs.push(run_on_new_num(new_num));
-            },
-            // Run the `run_on_new_num_futs` and check if any have completed
-            res = run_on_new_num_futs.select_next_some() =&gt; {
-                println!(&quot;run_on_new_num_fut returned {:?}&quot;, res);
-            },
-            // panic if everything completed, since the `interval_timer` should
-            // keep yielding values indefinitely.
-            complete =&gt; panic!(&quot;`interval_timer` completed unexpectedly&quot;),
-        }
-    }
-}
-
-<span class="boring">}
-</span></code></pre></pre>
+                        <p><code>futures::select</code>宏能同时运行多个 Future ，从而使用户，可以在任何 Future 完成后，立即做出响应。</p>
+                        <pre><pre class="playpen"><code class="language-rust">
+                        <span class="boring">#![allow(unused_variables)]
+                        </span><span class="boring">fn main() {
+                        </span>use futures::{
+                            future::FutureExt, // for `.fuse()`
+                            pin_mut,
+                            select,
+                        };
+                        
+                        async fn task_one() { /* ... */ }
+                        async fn task_two() { /* ... */ }
+                        
+                        async fn race_tasks() {
+                            let t1 = task_one().fuse();
+                            let t2 = task_two().fuse();
+                        
+                            pin_mut!(t1, t2);
+                        
+                            select! {
+                                () = t1 =&gt; println!(&quot;task one completed first&quot;),
+                                () = t2 =&gt; println!(&quot;task two completed first&quot;),
+                            }
+                        }
+                        <span class="boring">}
+                        </span></code></pre></pre>
+                        <p>上面的函数将同时运行<code>t1</code>和<code>t2</code>同时。当<code>t1</code>或是<code>t2</code>完成后，相应的处理程序将调用<code>println!</code>，而该函数将在不完成剩余任务的情况下，结束。</p>
+                        <p><code>select</code>的基本语法是<code>&lt;pattern&gt; = &lt;expression&gt; =&gt; &lt;code&gt;,</code>，重复您想要在<code>select</code>上使用的，任意数量的 Future 。</p>
+                        <h2><a class="header" href="#default---and-complete--" id="default---and-complete--"><code>default =&gt; ...</code> and <code>complete =&gt; ...</code></a></h2>
+                        <p><code>select</code>也支持<code>default</code>和<code>complete</code>分支。</p>
+                        <p>如果<code>select</code>了的 Futures 没有一个是完成的，<code>default</code>分支将运行。<code>select</code>带上一个<code>default</code>分支的组合，始终会立即返回，因为<code>default</code>在其他 Future 均未准备好，就运行了。</p>
+                        <p><code>complete</code>分支可以用来处理，<code>select</code>ed Future 全部完成，并且将不再前进。对一个<code>select!</code>循环访问时通常很方便。</p>
+                        <pre><pre class="playpen"><code class="language-rust">
+                        <span class="boring">#![allow(unused_variables)]
+                        </span><span class="boring">fn main() {
+                        </span>use futures::{future, select};
+                        
+                        async fn count() {
+                            let mut a_fut = future::ready(4);
+                            let mut b_fut = future::ready(6);
+                            let mut total = 0;
+                        
+                            loop {
+                                select! {
+                                    a = a_fut =&gt; total += a,
+                                    b = b_fut =&gt; total += b,
+                                    complete =&gt; break,
+                                    default =&gt; unreachable!(), // never runs (futures are ready, then complete)
+                                };
+                            }
+                            assert_eq!(total, 10);
+                        }
+                        <span class="boring">}
+                        </span></code></pre></pre>
+                        <h2><a class="header" href="#interaction-with-unpin-and-fusedfuture" id="interaction-with-unpin-and-fusedfuture">Interaction with <code>Unpin</code> and <code>FusedFuture</code></a></h2>
+                        <p>您可能在上面的第一个示例中，注意到的一件事是，我们必须在两个<code>async fn</code>返回的 Future 上调用<code>.fuse()</code>，以及将用<code>pin_mut</code>固定。这两个调用都是必需的，因为在<code>select</code>中使用的 futures ，必须同时实现了<code>Unpin</code> trait 与<code>FusedFuture</code> trait。</p>
+                        <p><code>Unpin</code>是必要的，因为<code>select</code>不是取值的，而是可变的引用。由于不拥有 Future 的所有权，因此可以在对<code>select</code>的调用后，未完成的 futures 还可以再次使用。</p>
+                        <p>同样，<code>FusedFuture</code> trait 是必需的，因为<code>select</code>在一个 future 完成后，必不得对它再轮询。<code>FusedFuture</code>是 一个 Future trait，作用是追踪 Future 本身是否完成的。这样使得，<code>select</code>能在一个循环中使用，只轮询仍未完成的 Futures。可以在上面的示例中看到，其中<code>a_fut</code>或是<code>b_fut</code>是在循环第二次时完成。因为 <code>future::ready</code>返回的 Future 实现了<code>FusedFuture</code>，它可以告诉<code>select</code>不要再次轮询。</p>
+                        <p>请注意，streams 具有对应的<code>FusedStream</code> trait。实现此 trait 或由<code>.fuse()</code>封装的 Streams，会从他们的 Future <code>.next()</code>/<code>.try_next()</code>组合器中， yield 出<code>FusedFuture</code> futures。</p>
+                        <pre><pre class="playpen"><code class="language-rust">
+                        <span class="boring">#![allow(unused_variables)]
+                        </span><span class="boring">fn main() {
+                        </span>use futures::{
+                            stream::{Stream, StreamExt, FusedStream},
+                            select,
+                        };
+                        
+                        async fn add_two_streams(
+                            mut s1: impl Stream&lt;Item = u8&gt; + FusedStream + Unpin,
+                            mut s2: impl Stream&lt;Item = u8&gt; + FusedStream + Unpin,
+                        ) -&gt; u8 {
+                            let mut total = 0;
+                        
+                            loop {
+                                let item = select! {
+                                    x = s1.next() =&gt; x,
+                                    x = s2.next() =&gt; x,
+                                    complete =&gt; break,
+                                };
+                                if let Some(next_num) = item {
+                                    total += next_num;
+                                }
+                            }
+                        
+                            total
+                        }
+                        <span class="boring">}
+                        </span></code></pre></pre>
+                        <h2><a class="header" href="#concurrent-tasks-in-a-select-loop-with-fuse-and-futuresunordered" id="concurrent-tasks-in-a-select-loop-with-fuse-and-futuresunordered">Concurrent tasks in a <code>select</code> loop with <code>Fuse</code> and <code>FuturesUnordered</code></a></h2>
+                        <p>一个有点难以发现但方便的函数是<code>Fuse::terminated()</code>，它允许构造一个已经终止的，空的 Future，之后可以用需要运行的 Future 填充它。</p>
+                        <p>有个方便的情况就是，有一个任务需要在一个<code>select</code>循环内运行，但这个循环又是在这个<code>select</code>循环本身里面创建的。</p>
+                        <p>注意使用<code>.select_next_some()</code>函数。可以与<code>select</code>合作，只运行那些由 stream 返回的<code>Some(_)</code>值，而忽略<code>None</code>s。</p>
+                        <pre><pre class="playpen"><code class="language-rust">
+                        <span class="boring">#![allow(unused_variables)]
+                        </span><span class="boring">fn main() {
+                        </span>use futures::{
+                            future::{Fuse, FusedFuture, FutureExt},
+                            stream::{FusedStream, Stream, StreamExt},
+                            pin_mut,
+                            select,
+                        };
+                        
+                        async fn get_new_num() -&gt; u8 { /* ... */ 5 }
+                        
+                        async fn run_on_new_num(_: u8) { /* ... */ }
+                        
+                        async fn run_loop(
+                            mut interval_timer: impl Stream&lt;Item = ()&gt; + FusedStream + Unpin,
+                            starting_num: u8,
+                        ) {
+                            let run_on_new_num_fut = run_on_new_num(starting_num).fuse();
+                            let get_new_num_fut = Fuse::terminated();
+                            pin_mut!(run_on_new_num_fut, get_new_num_fut);
+                            loop {
+                                select! {
+                                    () = interval_timer.select_next_some() =&gt; {
+                                        // The timer has elapsed. Start a new `get_new_num_fut`
+                                        // if one was not already running.
+                                        if get_new_num_fut.is_terminated() {
+                                            get_new_num_fut.set(get_new_num().fuse());
+                                        }
+                                    },
+                                    new_num = get_new_num_fut =&gt; {
+                                        // A new number has arrived-- start a new `run_on_new_num_fut`,
+                                        // dropping the old one.
+                                        run_on_new_num_fut.set(run_on_new_num(new_num).fuse());
+                                    },
+                                    // Run the `run_on_new_num_fut`
+                                    () = run_on_new_num_fut =&gt; {},
+                                    // panic if everything completed, since the `interval_timer` should
+                                    // keep yielding values indefinitely.
+                                    complete =&gt; panic!(&quot;`interval_timer` completed unexpectedly&quot;),
+                                }
+                            }
+                        }
+                        <span class="boring">}
+                        </span></code></pre></pre>
+                        <p>如果需要同时运行多个相同 Future 的副本，请使用<code>FuturesUnordered</code>类型。以下示例与上面的示例相似，但是将运行<code>run_on_new_num_fut</code>的每个副本，直到完成，而不是在创建新的时，终止它们。还会打印出一个由<code>run_on_new_num_fut</code>返回的值。</p>
+                        <pre><pre class="playpen"><code class="language-rust">
+                        <span class="boring">#![allow(unused_variables)]
+                        </span><span class="boring">fn main() {
+                        </span>use futures::{
+                            future::{Fuse, FusedFuture, FutureExt},
+                            stream::{FusedStream, FuturesUnordered, Stream, StreamExt},
+                            pin_mut,
+                            select,
+                        };
+                        
+                        async fn get_new_num() -&gt; u8 { /* ... */ 5 }
+                        
+                        async fn run_on_new_num(_: u8) -&gt; u8 { /* ... */ 5 }
+                        
+                        // Runs `run_on_new_num` with the latest number
+                        // retrieved from `get_new_num`.
+                        //
+                        // `get_new_num` is re-run every time a timer elapses,
+                        // immediately cancelling the currently running
+                        // `run_on_new_num` and replacing it with the newly
+                        // returned value.
+                        async fn run_loop(
+                            mut interval_timer: impl Stream&lt;Item = ()&gt; + FusedStream + Unpin,
+                            starting_num: u8,
+                        ) {
+                            let mut run_on_new_num_futs = FuturesUnordered::new();
+                            run_on_new_num_futs.push(run_on_new_num(starting_num));
+                            let get_new_num_fut = Fuse::terminated();
+                            pin_mut!(get_new_num_fut);
+                            loop {
+                                select! {
+                                    () = interval_timer.select_next_some() =&gt; {
+                                        // The timer has elapsed. Start a new `get_new_num_fut`
+                                        // if one was not already running.
+                                        if get_new_num_fut.is_terminated() {
+                                            get_new_num_fut.set(get_new_num().fuse());
+                                        }
+                                    },
+                                    new_num = get_new_num_fut =&gt; {
+                                        // A new number has arrived-- start a new `run_on_new_num_fut`.
+                                        run_on_new_num_futs.push(run_on_new_num(new_num));
+                                    },
+                                    // Run the `run_on_new_num_futs` and check if any have completed
+                                    res = run_on_new_num_futs.select_next_some() =&gt; {
+                                        println!(&quot;run_on_new_num_fut returned {:?}&quot;, res);
+                                    },
+                                    // panic if everything completed, since the `interval_timer` should
+                                    // keep yielding values indefinitely.
+                                    complete =&gt; panic!(&quot;`interval_timer` completed unexpectedly&quot;),
+                                }
+                            }
+                        }
+                        
+                        <span class="boring">}
+                        </span></code></pre></pre>
 
                     </main>
 

@@ -153,45 +153,40 @@
                 <div id="content" class="content">
                     <main>
                         <h1><a class="header" href="#-in-async-blocks" id="-in-async-blocks"><code>?</code> in <code>async</code> Blocks</a></h1>
-<p>Just as in <code>async fn</code>, it's common to use <code>?</code> inside <code>async</code> blocks.
-However, the return type of <code>async</code> blocks isn't explicitly stated.
-This can cause the compiler to fail to infer the error type of the
-<code>async</code> block.</p>
-<p>For example, this code:</p>
-<pre><pre class="playpen"><code class="language-rust">
-<span class="boring">#![allow(unused_variables)]
-</span><span class="boring">fn main() {
-</span>let fut = async {
-    foo().await?;
-    bar().await?;
-    Ok(())
-};
-<span class="boring">}
-</span></code></pre></pre>
-<p>will trigger this error:</p>
-<pre><code>error[E0282]: type annotations needed
- --&gt; src/main.rs:5:9
-  |
-4 |     let fut = async {
-  |         --- consider giving `fut` a type
-5 |         foo().await?;
-  |         ^^^^^^^^^^^^ cannot infer type
-</code></pre>
-<p>Unfortunately, there's currently no way to &quot;give <code>fut</code> a type&quot;, nor a way
-to explicitly specify the return type of an <code>async</code> block.
-To work around this, use the &quot;turbofish&quot; operator to supply the success and
-error types for the <code>async</code> block:</p>
-<pre><pre class="playpen"><code class="language-rust">
-<span class="boring">#![allow(unused_variables)]
-</span><span class="boring">fn main() {
-</span>let fut = async {
-    foo().await?;
-    bar().await?;
-    Ok::&lt;(), MyError&gt;(()) // &lt;- note the explicit type annotation here
-};
-<span class="boring">}
-</span></code></pre></pre>
-
+    <p>就像在<code>async fn</code>，<code>?</code>在<code>async</code>代码块内的使用很常见。但是，<code>async</code>代码块的返回类型是没有明确说明的。这可能会导致编译器无法推断<code>async</code>代码块的 error 类型。</p>
+    <p>例如，此代码：</p>
+    <pre><pre class="playpen"><code class="language-rust">
+    <span class="boring">#![allow(unused_variables)]
+    </span><span class="boring">fn main() {
+    </span>let fut = async {
+        foo().await?;
+        bar().await?;
+        Ok(())
+    };
+    <span class="boring">}
+    </span></code></pre></pre>
+    <p>将触发此错误：</p>
+    <pre><code>error[E0282]: type annotations needed
+     --&gt; src/main.rs:5:9
+      |
+    4 |     let fut = async {
+      |         --- consider giving `fut` a type
+    5 |         foo().await?;
+      |         ^^^^^^^^^^^^ cannot infer type
+    </code></pre>
+    <p>不幸的是，目前没有办法“giving <code>fut</code> a type”(给<code>fut</code>一个类型)，解决的办法也不是明确指定<code>async</code>代码块的返回类型。</p>
+    <p>要解决此问题，请使用“turbofish”操作符，为<code>async</code>代码块提供成功和错误类型。：</p>
+    <pre><pre class="playpen"><code class="language-rust">
+    <span class="boring">#![allow(unused_variables)]
+    </span><span class="boring">fn main() {
+    </span>let fut = async {
+        foo().await?;
+        bar().await?;
+        Ok::&lt;(), MyError&gt;(()) // &lt;- 注意这里的明确类型声明
+    };
+    <span class="boring">}
+    </span></code></pre></pre>
+    
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
