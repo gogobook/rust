@@ -13,9 +13,9 @@
 
 > 超级简单
 
-修改,更新文档, 只需要PR提交Markdown文件.
+修改,更新文档, 只需要PR提交Markdown内容..
 
-如: 想修改,更新 Book 第一章第一节第一段, 你只需要PR提交修改,更新文档内容的Markdown文件
+如: 想修改,更新 Book 第一章第一节第一段, 你只需要PR, 提交修改或更新文档的Markdown内容
 
 ## Trademark
 
